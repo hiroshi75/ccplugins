@@ -1,0 +1,13 @@
+{
+  "name": "hiroshi75",
+  "owner": {
+    "name": "Hiroshi Ayukawa"
+  },
+  "plugins": [
+    {
+      "name": "spec-manager-plugin",
+      "source": "./spec-manager-plugin",
+      "description": "A plugin to manage and display application specifications."
+    }
+  ]
+}
