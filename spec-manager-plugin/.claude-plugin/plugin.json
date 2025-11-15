@@ -1,0 +1,8 @@
+{
+  "name": "spec-manager-plugin",
+  "description": "A plugin to manage and display application specifications.",
+  "version": "1.0.3",
+  "author": {
+    "name": "Hiroshi Ayukawa"
+  }
+}
