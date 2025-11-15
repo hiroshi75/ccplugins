@@ -1,6 +1,6 @@
 # spec-manager
 
-This skill manages and displays the application's specification documents. **Claude automatically invokes this skill** when specifications become clearer during development or when major code changes occur, keeping your documentation synchronized with your codebase.
+**PROACTIVE SKILL** - Automatically manage and update application specification documents. Claude invokes this skill automatically when code changes occur or specifications need updating, keeping your documentation synchronized with your codebase.
 
 ## Installation
 
@@ -9,47 +9,67 @@ This skill manages and displays the application's specification documents. **Cla
 /plugin install spec-manager-plugin@hiroshi75
 ```
 
-## Automatic Usage
+## Automatic Triggers
 
-**This skill works automatically!** Claude will invoke it proactively when:
+Claude **automatically invokes** this skill when:
 
-- 🚀 Starting new feature development
-- ✅ Completing significant code changes (3+ files modified)
-- 🏗️ Making architectural or structural changes
-- 📝 Detecting specification-related keywords in conversation
-- 🔄 Ending development sessions with substantial changes
+- **Starting features** - Before implementing new functionality
+- **Completing changes** - After modifying 3+ files or major features
+- **Refactoring** - When architecture or project structure changes
+- **Keywords detected** - When user mentions: 仕様, spec, design, architecture, requirements, PRD
+- **Session end** - After development sessions with substantial changes
 
-You don't need to manually trigger it - Claude will keep your specifications up-to-date automatically.
+**No manual action required** - Claude keeps specifications synchronized automatically.
 
-## Manual Usage (Optional)
+## Workflow
 
-If you want to manually trigger specification updates:
+```
+Detect changes → Auto-invoke skill → Update .spec-manager/ docs → Notify user
+```
+
+## Manual Invocation (Optional)
+
+To manually trigger specification updates:
 
 ```
 /spec-manager-plugin:update-spec
 ```
 
-Or if you prefer other languages:
+With language preference:
 
 ```
 /spec-manager-plugin:update-spec 日本語で
 ```
 
-## How It Works
-
-1. **Automatic Detection**: Claude monitors your development activities
-2. **Smart Triggering**: When trigger conditions are met, Claude automatically invokes this skill
-3. **Specification Sync**: Documents in `.spec-manager/` are updated to reflect code changes
-4. **User Notification**: You receive a summary of what was updated
-
 ## Specification Documents
 
-The following documents are automatically maintained in `.spec-manager/`:
+The following documents are maintained in `.spec-manager/`:
 
-- **PRD.md** - Product Requirements Document
-- **AppFlow.md** - Application flow and screen transitions
-- **TechStack.md** - Technologies and dependencies used
-- **FileStructure.md** - Project directory structure
-- **FrontendGuidelines.md** - Frontend design principles (if applicable)
-- **BackendStructure.md** - Backend architecture (if applicable)
-- **DevInstructions.md** - Development conventions and rules
+| Document | Required | Description |
+|----------|----------|-------------|
+| **PRD.md** | Yes | Product Requirements Document |
+| **AppFlow.md** | Yes | Application flow and screen transitions |
+| **TechStack.md** | Yes | Technologies and dependencies used |
+| **FileStructure.md** | No | Project directory structure |
+| **FrontendGuidelines.md** | No | Frontend design principles |
+| **BackendStructure.md** | No | Backend architecture and DB/Storage |
+| **DevInstructions.md** | No | Development conventions and rules |
+
+## How It Works
+
+1. **Change Detection** - Claude monitors development activities
+2. **Trigger Evaluation** - Checks if auto-invoke conditions are met
+3. **Skill Invocation** - Automatically invokes spec-manager skill
+4. **Document Update** - Updates relevant specification documents
+5. **User Notification** - Reports what was updated with summary
+
+## Example Notification
+
+After automatic invocation, you'll see:
+
+```
+Specification documents have been automatically updated:
+- PRD.md: Added authentication feature requirements
+- TechStack.md: Updated with JWT library dependencies
+- FileStructure.md: Reflected new auth/ directory structure
+```
