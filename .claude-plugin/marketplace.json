@@ -8,6 +8,11 @@
       "name": "spec-manager-plugin",
       "source": "./spec-manager-plugin",
       "description": "Proactive skill that automatically manages and updates application specifications when code changes occur."
+    },
+    {
+      "name": "langgraph-agent",
+      "source": "./langgraph-agent",
+      "description": "An autonomous agent that utilizes LangGraph to create, manage, and execute complex workflows."
     }
   ]
 }
