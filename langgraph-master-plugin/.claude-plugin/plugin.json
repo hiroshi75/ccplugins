@@ -1,0 +1,8 @@
+{
+  "name": "langgraph-master-plugin",
+  "description": "langgraph specialist plugin.",
+  "version": "0.0.1",
+  "author": {
+    "name": "Hiroshi Ayukawa"
+  }
+}
