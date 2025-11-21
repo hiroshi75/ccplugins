@@ -19,13 +19,17 @@ This skill writes and displays the application's specification documents. It is 
 ### When to Automatically Invoke This Skill
 
 #### 1. Before Implementation Phase
+
 - User requests new feature development
 - Planning to add new components or modules
 - Starting a new development session on the project
 - **Action**: Invoke this skill to ensure specifications are current before coding
+- If there is other useful skills to plan the specifications, delegate the planning to those skills first, then come back to this skill to write the specifications.
 
 #### 2. After Significant Changes
+
 Automatically invoke when you detect:
+
 - ✅ **Completed implementation** of new features or components
 - ✅ **Modified 3 or more files** in a single task
 - ✅ **Major refactoring** that changes architecture or structure
@@ -34,7 +38,9 @@ Automatically invoke when you detect:
 - **Action**: Invoke this skill immediately after completion, before marking tasks as done
 
 #### 3. Keyword Detection
+
 When user mentions any of these terms (in any language):
+
 - 仕様 / spec / specification
 - 設計 / design / architecture
 - 要件 / requirements / PRD
@@ -42,6 +48,7 @@ When user mentions any of these terms (in any language):
 - **Action**: Proactively suggest or automatically update specifications
 
 #### 4. Session Lifecycle Events
+
 - End of development session with substantial changes
 - Before creating pull requests or commits for major features
 - After completing a TodoWrite task list with multiple implementation tasks
