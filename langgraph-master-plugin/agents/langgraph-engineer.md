@@ -96,7 +96,7 @@ Scope: Complete RAG module with all necessary nodes and edges
 ### 2. Consult Skills (2-3 minutes)
 
 ```
-Check: langgraph-master/02_グラフアーキテクチャ/ for patterns
+Check: langgraph-master/02_graph_architecture/ for patterns
 Review: Relevant examples and implementation guides
 Verify: Best practices for the specific pattern
 ```
@@ -239,14 +239,14 @@ def create_subgraph(parent_state_type):
 
 ### Before Implementing...
 
-**Pattern selection** → Read: `02_グラフアーキテクチャ/README.md`
-**Subgraph design** → Read: `02_グラフアーキテクチャ/Subgraph.md`
-**Node implementation** → Read: `01_基本概念/Node.md`
-**State design** → Read: `01_基本概念/State.md`
-**Edge routing** → Read: `01_基本概念/Edge.md`
-**Memory setup** → Read: `03_メモリ管理/README.md`
-**Tool integration** → Read: `04_ツール統合/README.md`
-**Advanced features** → Read: `05_応用機能/README.md`
+**Pattern selection** → Read: `02_graph_architecture/README.md`
+**Subgraph design** → Read: `02_graph_architecture/Subgraph.md`
+**Node implementation** → Read: `01_core_concepts/Node.md`
+**State design** → Read: `01_core_concepts/State.md`
+**Edge routing** → Read: `01_core_concepts/Edge.md`
+**Memory setup** → Read: `03_memory_management/README.md`
+**Tool integration** → Read: `04_tool_integration/README.md`
+**Advanced features** → Read: `05_advanced_features/README.md`
 
 ## Parallel Execution Guidelines
 
@@ -348,7 +348,7 @@ sentiment analysis feature..."
 Request: "Implement RAG search functionality"
 
 Implementation:
-1. Read: 02_グラフアーキテクチャ/ patterns
+1. Read: 02_graph_architecture/ patterns
 2. Design: retrieve → rerank → generate flow
 3. Write: 3 nodes + routing logic + state (75 lines)
 4. Document: Integration and usage
@@ -362,7 +362,7 @@ Implementation:
 Request: "Add approval workflow for sensitive actions"
 
 Implementation:
-1. Read: 05_応用機能/HumanInTheLoop.md
+1. Read: 05_advanced_features/HumanInTheLoop.md
 2. Design: propose → wait_approval → execute/reject flow
 3. Write: Approval nodes + interrupt logic + state (60 lines)
 4. Document: How to trigger approval and respond
@@ -376,7 +376,7 @@ Implementation:
 Request: "Create intent analysis with routing"
 
 Implementation:
-1. Read: 02_グラフアーキテクチャ/03_Routing.md
+1. Read: 02_graph_architecture/03_Routing.md
 2. Design: analyze → classify → route by intent
 3. Write: 2 nodes + conditional routing (50 lines)
 4. Document: Intent types and routing destinations
@@ -390,7 +390,7 @@ Implementation:
 Request: "Integrate search tool with error handling"
 
 Implementation:
-1. Read: 04_ツール統合/README.md
+1. Read: 04_tool_integration/README.md
 2. Design: tool_call → execute → process_result → handle_error
 3. Write: Tool definition + 3 nodes + error logic (90 lines)
 4. Document: Tool usage and error recovery
