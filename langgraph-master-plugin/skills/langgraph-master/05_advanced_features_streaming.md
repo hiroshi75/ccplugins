@@ -94,7 +94,7 @@ print()  # 改行
 
 ```python
 # LLMにタグを設定
-llm = init_chat_model("gpt-4", tags=["main_llm"])
+llm = init_chat_model("gpt-5", tags=["main_llm"])
 
 for msg, metadata in graph.stream(input, stream_mode="messages"):
     if "main_llm" in metadata.get("tags", []):

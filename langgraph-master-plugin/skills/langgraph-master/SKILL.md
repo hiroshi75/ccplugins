@@ -1,6 +1,6 @@
 ---
 name: langgraph-master
-description: Use when implementing LangGraph applications, designing agent workflows, or learning LangGraph patterns.This is a comprehensive guide for building AI agents with LangGraph, covering core concepts, architecture patterns, memory management, tool integration, and advanced features.
+description: Use when specifying or implementing LangGraph applications - from architecture planning and specification writing to actual code implementation. Also use for designing agent workflows or learning LangGraph patterns. This is a comprehensive guide for building AI agents with LangGraph, covering core concepts, architecture patterns, memory management, tool integration, and advanced features.
 ---
 
 # LangGraph エージェント構築スキル
@@ -9,51 +9,67 @@ LangGraph を使った AI エージェントを構成するための包括的な
 
 ## 📚 学習コンテンツ
 
-### [01. 基本概念](01_core_concepts/README.md)
+### [01. 基本概念](01_core_concepts_overview.md)
 
 LangGraph の核となる 3 つの要素を理解する
 
-- State（状態）、Node（ノード）、Edge（エッジ）
+- [State（状態）](01_core_concepts_state.md)
+- [Node（ノード）](01_core_concepts_node.md)
+- [Edge（エッジ）](01_core_concepts_edge.md)
 - グラフベースアプローチの利点
 
-### [02. グラフアーキテクチャ](02_graph_architecture/README.md)
+### [02. グラフアーキテクチャ](02_graph_architecture_overview.md)
 
 6 つの主要なグラフパターンとエージェント設計
 
-- Workflow vs Agent の違い
-- 各パターンの使い分け
-- サブグラフによる階層構造
+- [Workflow vs Agent の違い](02_graph_architecture_workflow_vs_agent.md)
+- [Prompt Chaining（順序処理）](02_graph_architecture_prompt_chaining.md)
+- [Parallelization（並列処理）](02_graph_architecture_parallelization.md)
+- [Routing（分岐処理）](02_graph_architecture_routing.md)
+- [Orchestrator-Worker](02_graph_architecture_orchestrator_worker.md)
+- [Evaluator-Optimizer](02_graph_architecture_evaluator_optimizer.md)
+- [Agent（自律的ツール使用）](02_graph_architecture_agent.md)
+- [Subgraph（サブグラフ）](02_graph_architecture_subgraph.md)
 
-### [03. メモリ管理](03_memory_management/README.md)
+### [03. メモリ管理](03_memory_management_overview.md)
 
 永続化とチェックポイント機能
 
-- 短期記憶（チェックポイント）
-- 長期記憶（Store）
-- タイムトラベル機能
+- [Checkpointer（チェックポイント）](03_memory_management_checkpointer.md)
+- [Store（長期記憶）](03_memory_management_store.md)
+- [Persistence（永続化）](03_memory_management_persistence.md)
 
-### [04. ツール統合](04_tool_integration/README.md)
+### [04. ツール統合](04_tool_integration_overview.md)
 
 外部ツールの統合と実行制御
 
-- ツールの定義方法
-- Command API による制御
-- ツールノードの実装
+- [Tool Definition（ツールの定義）](04_tool_integration_tool_definition.md)
+- [Command API（制御 API）](04_tool_integration_command_api.md)
+- [Tool Node（ツールノード）](04_tool_integration_tool_node.md)
 
-### [05. 応用機能](05_advanced_features/README.md)
+### [05. 応用機能](05_advanced_features_overview.md)
 
 高度な機能と実装パターン
 
-- Human-in-the-Loop（承認フロー）
-- ストリーミング
-- Map-Reduce パターン
+- [Human-in-the-Loop（承認フロー）](05_advanced_features_human_in_the_loop.md)
+- [Streaming（ストリーミング）](05_advanced_features_streaming.md)
+- [Map-Reduce パターン](05_advanced_features_map_reduce.md)
 
-### [実装例](examples/)
+### [06. LLM モデル ID](06_llm_model_ids.md)
+
+主要な LLM プロバイダーのモデル ID リファレンス
+
+- Google Gemini モデル一覧
+- Anthropic Claude モデル一覧
+- OpenAI GPT モデル一覧
+- LangGraph での使用例とベストプラクティス
+
+### 実装例
 
 実践的なエージェント実装例
 
-- 基本的なチャットボット
-- RAG エージェント
+- [基本的なチャットボット](example_basic_chatbot.md)
+- [RAG エージェント](example_rag_agent.md)
 
 ## 📖 使い方
 
@@ -69,11 +85,11 @@ LangGraph の核となる 3 つの要素を理解する
 
 ## 🤖 効率的な実装：Subagent 活用
 
-LangGraph アプリケーションの開発を高速化するため、専用の subagent `langgraph-engineer` を活用する。
+LangGraph アプリケーションの開発を高速化するため、専用の subagent `langgraph-master-plugin:langgraph-engineer` を活用する。
 
 ### Subagent の特徴
 
-**langgraph-engineer** は機能モジュール単位の実装に特化したエージェント：
+**langgraph-master-plugin:langgraph-engineer** は機能モジュール単位の実装に特化したエージェント：
 
 - **機能単位のスコープ**: 完全な機能を実現する複数のノード、エッジ、状態定義をセットで実装
 - **並列実行最適化**: 複数のエージェントが同時に異なる機能モジュールを開発可能な設計
@@ -83,7 +99,7 @@ LangGraph アプリケーションの開発を高速化するため、専用の 
 
 ### 使用タイミング
 
-以下の場合に langgraph-engineer を活用する：
+以下の場合に langgraph-master-plugin:langgraph-engineer を活用する：
 
 1. **機能モジュールの実装が必要な場合**
 
@@ -108,9 +124,9 @@ LangGraph アプリケーションの開発を高速化するため、専用の 
 
 ```
 Planner → 機能単位に分解
-  ├─ langgraph-engineer 1: インテント分析モジュール（並列）
+  ├─ langgraph-master-plugin:langgraph-engineer 1: インテント分析モジュール（並列）
   │  └─ analyze + classify + route ノード + 条件分岐エッジ
-  └─ langgraph-engineer 2: RAG 検索モジュール（並列）
+  └─ langgraph-master-plugin:langgraph-engineer 2: RAG 検索モジュール（並列）
      └─ retrieve + rerank + generate ノード + 状態管理
 Orchestrator → モジュールを統合してグラフ組み立て
 ```
@@ -130,7 +146,7 @@ Orchestrator → モジュールを統合してグラフ組み立て
 
 3. **並列実行**
 
-   langgraph-engineer エージェントに 1 つの機能モジュール実装を割り当て並列実行
+   langgraph-master-plugin:langgraph-engineer エージェントに 1 つの機能モジュール実装を割り当て並列実行
 
    - 独立した機能モジュールは同時に実装
 
@@ -138,9 +154,15 @@ Orchestrator → モジュールを統合してグラフ組み立て
    - 完成したモジュールをグラフに組み込み
    - 統合テストで動作確認
 
+### テスト方法
+
+- 各機能モジュールごとにユニットテストを実施
+- 統合後に全体の動作確認を実施。多くの場合.env に API キーがあるのでそれを読み込んで最低でも１回は正常系を通す
+  - 正常系がうまく動かない場合、コードレビューも大事だが、おおまかに狙いをつけた箇所に適切にログを追加して原因を見極めて、よく考えた上で修正をしてください。
+
 ### 機能モジュールの例
 
-**適切なサイズ（langgraph-engineer の担当範囲）**:
+**適切なサイズ（langgraph-master-plugin:langgraph-engineer の担当範囲）**:
 
 - RAG 検索機能: retrieve + rerank + generate（3 ノード）
 - インテント分析: analyze + classify + route（2-3 ノード）
