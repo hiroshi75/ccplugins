@@ -57,7 +57,7 @@ LangGraph の核となる 3 つの要素を理解する
 
 ### [06. LLM モデル ID](06_llm_model_ids.md)
 
-主要な LLM プロバイダーのモデル ID リファレンス
+主要な LLM プロバイダーのモデル ID リファレンス。モデル ID は必ずこの文書を参考にして選んでください。この文書にないものを使ってはいけません。
 
 - Google Gemini モデル一覧
 - Anthropic Claude モデル一覧
