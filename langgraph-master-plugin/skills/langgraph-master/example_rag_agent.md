@@ -164,6 +164,6 @@ def sensitive_search(query: str) -> str:
 
 ## Related Pages
 
-- [02_Graph_Architecture/06_Agent.md](../02_Graph_Architecture/06_Agent.md) - Agent pattern
-- [04_Tool_Integration](../04_Tool_Integration/README.md) - Tool details
-- [basic_chatbot.md](basic_chatbot.md) - Basic chatbot
+- [02_graph_architecture_agent.md](02_graph_architecture_agent.md) - Agent pattern
+- [04_tool_integration_overview.md](04_tool_integration_overview.md) - Tool details
+- [example_basic_chatbot.md](example_basic_chatbot.md) - Basic chatbot

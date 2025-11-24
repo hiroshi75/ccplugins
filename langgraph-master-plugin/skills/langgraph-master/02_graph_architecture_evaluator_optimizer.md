@@ -330,6 +330,6 @@ Evaluator-Optimizer is optimal when **iterative improvement is needed until qual
 
 ## Related Pages
 
-- [01_PromptChaining.md](01_PromptChaining.md) - Basic sequential processing
-- [06_Agent.md](06_Agent.md) - Combining with Agent
-- [05_Advanced_Features/HumanInTheLoop.md](../05_Advanced_Features/HumanInTheLoop.md) - Human evaluation
+- [02_graph_architecture_prompt_chaining.md](02_graph_architecture_prompt_chaining.md) - Basic sequential processing
+- [02_graph_architecture_agent.md](02_graph_architecture_agent.md) - Combining with Agent
+- [05_advanced_features_human_in_the_loop.md](05_advanced_features_human_in_the_loop.md) - Human evaluation

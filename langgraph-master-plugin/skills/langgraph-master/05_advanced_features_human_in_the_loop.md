@@ -284,6 +284,6 @@ Human-in-the-Loop is a feature for incorporating human judgment in important dec
 
 ## Related Pages
 
-- [03_Memory_Management/Persistence.md](../03_Memory_Management/Persistence.md) - Checkpointer is required
-- [02_Graph_Architecture/06_Agent.md](../02_Graph_Architecture/06_Agent.md) - Combination with agents
-- [04_Tool_Integration/Tool_Node.md](../04_Tool_Integration/Tool_Node.md) - Approval before tool execution
+- [03_memory_management_persistence.md](03_memory_management_persistence.md) - Checkpointer is required
+- [02_graph_architecture_agent.md](02_graph_architecture_agent.md) - Combination with agents
+- [04_tool_integration_tool_node.md](04_tool_integration_tool_node.md) - Approval before tool execution

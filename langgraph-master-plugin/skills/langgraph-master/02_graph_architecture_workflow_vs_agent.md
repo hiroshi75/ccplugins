@@ -151,6 +151,6 @@ builder.add_conditional_edges("agent", should_continue, ...)
 
 ## Related Pages
 
-- [01_PromptChaining.md](01_PromptChaining.md) - Workflow pattern example
-- [06_Agent.md](06_Agent.md) - Agent pattern details
-- [03_Routing.md](03_Routing.md) - Hybrid approach example
+- [02_graph_architecture_prompt_chaining.md](02_graph_architecture_prompt_chaining.md) - Workflow pattern example
+- [02_graph_architecture_agent.md](02_graph_architecture_agent.md) - Agent pattern details
+- [02_graph_architecture_routing.md](02_graph_architecture_routing.md) - Hybrid approach example

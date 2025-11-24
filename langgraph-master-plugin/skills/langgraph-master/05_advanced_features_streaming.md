@@ -216,5 +216,5 @@ Streaming monitors progress in real-time and improves user experience. Choose th
 
 ## Related Pages
 
-- [02_Graph_Architecture/06_Agent.md](../02_Graph_Architecture/06_Agent.md) - Agent streaming
-- [HumanInTheLoop.md](HumanInTheLoop.md) - Combining streaming and approval
+- [02_graph_architecture_agent.md](02_graph_architecture_agent.md) - Agent streaming
+- [05_advanced_features_human_in_the_loop.md](05_advanced_features_human_in_the_loop.md) - Combining streaming and approval

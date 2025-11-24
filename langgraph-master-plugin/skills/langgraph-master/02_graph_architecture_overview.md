@@ -6,7 +6,7 @@ Six major graph patterns and agent design.
 
 LangGraph supports various architectural patterns. It's important to select the optimal pattern based on the nature of the problem.
 
-## [Workflow vs Agent](Workflow_vs_Agent.md)
+## [Workflow vs Agent](02_graph_architecture_workflow_vs_agent.md)
 
 First, understand the difference between Workflow and Agent:
 
@@ -15,25 +15,25 @@ First, understand the difference between Workflow and Agent:
 
 ## Six Major Patterns
 
-### 1. [Prompt Chaining (Sequential Processing)](01_PromptChaining.md)
+### 1. [Prompt Chaining (Sequential Processing)](02_graph_architecture_prompt_chaining.md)
 Each LLM call processes the previous output. Suitable for translation and stepwise processing.
 
-### 2. [Parallelization (Parallel Processing)](02_Parallelization.md)
+### 2. [Parallelization (Parallel Processing)](02_graph_architecture_parallelization.md)
 Execute multiple independent tasks simultaneously. Used for speed improvement and reliability verification.
 
-### 3. [Routing (Branching Processing)](03_Routing.md)
+### 3. [Routing (Branching Processing)](02_graph_architecture_routing.md)
 Route to specialized flows based on input. Optimal for customer support.
 
-### 4. [Orchestrator-Worker (Master-Worker)](04_OrchestratorWorker.md)
+### 4. [Orchestrator-Worker (Master-Worker)](02_graph_architecture_orchestrator_worker.md)
 Orchestrator decomposes tasks and delegates to multiple workers.
 
-### 5. [Evaluator-Optimizer (Evaluation-Improvement Loop)](05_EvaluatorOptimizer.md)
+### 5. [Evaluator-Optimizer (Evaluation-Improvement Loop)](02_graph_architecture_evaluator_optimizer.md)
 Repeat generation and evaluation, iteratively improving until acceptable criteria are met.
 
-### 6. [Agent (Autonomous Tool Usage)](06_Agent.md)
+### 6. [Agent (Autonomous Tool Usage)](02_graph_architecture_agent.md)
 LLM dynamically determines tool selection, handling unpredictable problem-solving.
 
-## [Subgraph](Subgraph.md)
+## [Subgraph](02_graph_architecture_subgraph.md)
 
 Build hierarchical graph structures and modularize complex systems.
 
@@ -56,4 +56,4 @@ Build hierarchical graph structures and modularize complex systems.
 
 ## Next Steps
 
-For details on each pattern, refer to individual pages. We recommend starting with [Workflow_vs_Agent.md](Workflow_vs_Agent.md).
+For details on each pattern, refer to individual pages. We recommend starting with [02_graph_architecture_workflow_vs_agent.md](02_graph_architecture_workflow_vs_agent.md).

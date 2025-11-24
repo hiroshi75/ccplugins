@@ -333,6 +333,6 @@ The Agent pattern is optimal for **dynamic and uncertain problem-solving**. It a
 
 ## Related Pages
 
-- [Workflow_vs_Agent.md](Workflow_vs_Agent.md) - Differences between Workflow and Agent
-- [04_Tool_Integration](../04_Tool_Integration/README.md) - Tool details
-- [05_Advanced_Features/HumanInTheLoop.md](../05_Advanced_Features/HumanInTheLoop.md) - Human intervention
+- [02_graph_architecture_workflow_vs_agent.md](02_graph_architecture_workflow_vs_agent.md) - Differences between Workflow and Agent
+- [04_tool_integration_overview.md](04_tool_integration_overview.md) - Tool details
+- [05_advanced_features_human_in_the_loop.md](05_advanced_features_human_in_the_loop.md) - Human intervention

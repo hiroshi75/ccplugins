@@ -112,6 +112,6 @@ def chatbot_with_limit(state: MessagesState):
 
 ## Related Pages
 
-- [01_Core Concepts](../01_Core_Concepts/README.md) - Understanding fundamental concepts
-- [03_Memory Management](../03_Memory_Management/README.md) - Checkpointer details
-- [rag_agent.md](rag_agent.md) - More advanced example
+- [01_core_concepts_overview.md](01_core_concepts_overview.md) - Understanding fundamental concepts
+- [03_memory_management_overview.md](03_memory_management_overview.md) - Checkpointer details
+- [example_rag_agent.md](example_rag_agent.md) - More advanced example

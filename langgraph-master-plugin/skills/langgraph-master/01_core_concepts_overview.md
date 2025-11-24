@@ -13,17 +13,17 @@ LangGraph is a framework that models agent workflows as **graphs**. By decomposi
 
 ## Three Core Elements
 
-### 1. [State](State.md)
+### 1. [State](01_core_concepts_state.md)
 - Memory shared across all nodes in the graph
 - Snapshot of the current execution state
 - Defined with TypedDict or Pydantic models
 
-### 2. [Node](Node.md)
+### 2. [Node](01_core_concepts_node.md)
 - Python functions that execute individual tasks
 - Receive the current state and return updates
 - Basic unit of processing
 
-### 3. [Edge](Edge.md)
+### 3. [Edge](01_core_concepts_edge.md)
 - Define transitions between nodes
 - Fixed transitions or conditional branching
 - Determine control flow
@@ -52,6 +52,6 @@ This approach allows each step to operate independently, building a robust syste
 
 For details on each element, refer to the following pages:
 
-- [State.md](State.md) - State management details
-- [Node.md](Node.md) - How to implement nodes
-- [Edge.md](Edge.md) - Edges and control flow
+- [01_core_concepts_state.md](01_core_concepts_state.md) - State management details
+- [01_core_concepts_node.md](01_core_concepts_node.md) - How to implement nodes
+- [01_core_concepts_edge.md](01_core_concepts_edge.md) - Edges and control flow

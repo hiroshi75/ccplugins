@@ -8,19 +8,19 @@ LangGraph's **built-in persistence layer** allows you to save and restore agent 
 
 ## Memory Types
 
-### Short-term Memory: [Checkpointer](Checkpointer.md)
+### Short-term Memory: [Checkpointer](03_memory_management_checkpointer.md)
 - Automatically saves state at each superstep
 - Thread-based conversation management
 - Time travel functionality
 
-### Long-term Memory: [Store](Store.md)
+### Long-term Memory: [Store](03_memory_management_store.md)
 - Share information across threads
 - Persist user information
 - Semantic search
 
 ## Key Features
 
-### 1. [Persistence](Persistence.md)
+### 1. [Persistence](03_memory_management_persistence.md)
 
 **Checkpoints**: Save state at each superstep
 - Snapshot state at each stage of graph execution
@@ -147,6 +147,6 @@ for state in graph.get_state_history(config):
 
 For details on each feature, refer to the following pages:
 
-- [Persistence.md](Persistence.md) - Persistence details
-- [Checkpointer.md](Checkpointer.md) - Checkpointer implementation
-- [Store.md](Store.md) - Long-term memory management
+- [03_memory_management_persistence.md](03_memory_management_persistence.md) - Persistence details
+- [03_memory_management_checkpointer.md](03_memory_management_checkpointer.md) - Checkpointer implementation
+- [03_memory_management_store.md](03_memory_management_store.md) - Long-term memory management

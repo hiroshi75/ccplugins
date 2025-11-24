@@ -1,18 +1,18 @@
 # Command API
 
-状態更新と制御フローを統合する高度なAPI。
+An advanced API that integrates state updates and control flow.
 
-## 概要
+## Overview
 
-Command APIは、ノードから**状態更新**と**制御フロー**を同時に指定できる機能です。
+The Command API is a feature that allows nodes to specify **state updates** and **control flow** simultaneously.
 
-## 基本的な使用
+## Basic Usage
 
 ```python
 from langgraph.types import Command
 
 def decision_node(state: State) -> Command:
-    """状態を更新して次のノードを指定"""
+    """Update state and specify the next node"""
     result = analyze(state["data"])
 
     if result["confidence"] > 0.8:
@@ -27,25 +27,25 @@ def decision_node(state: State) -> Command:
         )
 ```
 
-## Commandオブジェクトのパラメータ
+## Command Object Parameters
 
 ```python
 Command(
-    update: dict,           # 状態への更新
-    goto: str | list[str],  # 次のノード（単数または複数）
-    graph: str | None = None  # サブグラフナビゲーション用
+    update: dict,           # Updates to state
+    goto: str | list[str],  # Next node(s) (single or multiple)
+    graph: str | None = None  # For subgraph navigation
 )
 ```
 
-## vs 通常の状態更新
+## vs Traditional State Updates
 
-### 通常の方法
+### Traditional Method
 
 ```python
 def node(state: State) -> dict:
     return {"result": "value"}
 
-# エッジで制御フロー
+# Control flow in edges
 def route(state: State) -> str:
     if state["result"] == "value":
         return "next_node"
@@ -60,19 +60,19 @@ builder.add_conditional_edges("node", route, {...})
 def node(state: State) -> Command:
     return Command(
         update={"result": "value"},
-        goto="next_node"  # 制御フローも指定
+        goto="next_node"  # Specify control flow as well
     )
 
-# エッジは不要（Commandが制御）
+# No edges needed (Command controls flow)
 ```
 
-## 応用パターン
+## Advanced Patterns
 
-### パターン1: 条件付き分岐
+### Pattern 1: Conditional Branching
 
 ```python
 def validator(state: State) -> Command:
-    """検証して次のノードを決定"""
+    """Validate and determine next node"""
     is_valid = validate(state["data"])
 
     if is_valid:
@@ -87,29 +87,29 @@ def validator(state: State) -> Command:
         )
 ```
 
-### パターン2: 並列実行
+### Pattern 2: Parallel Execution
 
 ```python
 def fan_out_node(state: State) -> Command:
-    """複数のノードへ並列分岐"""
+    """Branch to multiple nodes in parallel"""
     return Command(
         update={"started": True},
-        goto=["worker_a", "worker_b", "worker_c"]  # 並列実行
+        goto=["worker_a", "worker_b", "worker_c"]  # Parallel execution
     )
 ```
 
-### パターン3: ループ制御
+### Pattern 3: Loop Control
 
 ```python
 def iterator_node(state: State) -> Command:
-    """反復処理"""
+    """Iterative processing"""
     iteration = state.get("iteration", 0) + 1
     result = process_iteration(state["data"], iteration)
 
     if iteration < state["max_iterations"] and not result["done"]:
         return Command(
             update={"iteration": iteration, "result": result},
-            goto="iterator_node"  # 自分自身にループ
+            goto="iterator_node"  # Loop back to self
         )
     else:
         return Command(
@@ -118,30 +118,30 @@ def iterator_node(state: State) -> Command:
         )
 ```
 
-### パターン4: サブグラフナビゲーション
+### Pattern 4: Subgraph Navigation
 
 ```python
 def sub_node(state: State) -> Command:
-    """サブグラフから親グラフへナビゲート"""
+    """Navigate from subgraph to parent graph"""
     result = process(state["data"])
 
     if need_parent_intervention(result):
         return Command(
             update={"sub_result": result},
             goto="parent_handler",
-            graph=Command.PARENT  # 親グラフへ
+            graph=Command.PARENT  # Navigate to parent graph
         )
 
     return {"sub_result": result}
 ```
 
-## ツールとの統合
+## Integration with Tools
 
-### ツール実行後の制御
+### Control After Tool Execution
 
 ```python
 def tool_node_with_command(state: MessagesState) -> Command:
-    """ツール実行後に次のアクションを決定"""
+    """Determine next action after tool execution"""
     last_message = state["messages"][-1]
     tool_results = []
 
@@ -156,7 +156,7 @@ def tool_node_with_command(state: MessagesState) -> Command:
             )
         )
 
-    # 結果に応じて次のノードを決定
+    # Determine next node based on results
     if any("error" in r.content.lower() for r in tool_results):
         return Command(
             update={"messages": tool_results},
@@ -169,16 +169,16 @@ def tool_node_with_command(state: MessagesState) -> Command:
         )
 ```
 
-### ツール内からのCommand
+### Command from Within Tools
 
 ```python
 from langgraph.types import interrupt
 
 @tool
 def send_email(to: str, subject: str, body: str) -> str:
-    """メールを送信（承認付き）"""
+    """Send email (with approval)"""
 
-    # 承認を求める
+    # Request approval
     approved = interrupt({
         "action": "send_email",
         "to": to,
@@ -193,14 +193,14 @@ def send_email(to: str, subject: str, body: str) -> str:
         return "Email cancelled by user"
 ```
 
-## 動的ルーティング
+## Dynamic Routing
 
 ```python
 def dynamic_router(state: State) -> Command:
-    """状態に基づいて動的にルート選択"""
+    """Dynamically select route based on state"""
     score = evaluate(state["data"])
 
-    # スコアに応じてルートを選択
+    # Select route based on score
     if score > 0.9:
         route = "expert_handler"
     elif score > 0.7:
@@ -214,11 +214,11 @@ def dynamic_router(state: State) -> Command:
     )
 ```
 
-## エラーリカバリー
+## Error Recovery
 
 ```python
 def processor_with_fallback(state: State) -> Command:
-    """エラー時にフォールバック"""
+    """Fallback on error"""
     try:
         result = risky_operation(state["data"])
 
@@ -234,11 +234,11 @@ def processor_with_fallback(state: State) -> Command:
         )
 ```
 
-## 状態マシンの実装
+## State Machine Implementation
 
 ```python
 def state_machine_node(state: State) -> Command:
-    """状態マシン"""
+    """State machine"""
     current_state = state.get("state", "initial")
 
     transitions = {
@@ -256,25 +256,25 @@ def state_machine_node(state: State) -> Command:
     )
 ```
 
-## 利点
+## Benefits
 
-✅ **簡潔性**: 状態更新と制御フローを1箇所で定義
-✅ **可読性**: ノードの意図が明確
-✅ **柔軟性**: 動的なルーティングが容易
-✅ **デバッグ**: 制御フローが追跡しやすい
+✅ **Conciseness**: Define state updates and control flow in one place
+✅ **Readability**: Node intent is clear
+✅ **Flexibility**: Dynamic routing is easier
+✅ **Debugging**: Control flow is easier to track
 
-## 注意点
+## Considerations
 
-⚠️ **複雑さ**: 過度に複雑な条件分岐は避ける
-⚠️ **テスト**: 全ての分岐をテストする必要
-⚠️ **並列実行**: 並列ノードの順序は不定
+⚠️ **Complexity**: Avoid overly complex conditional branching
+⚠️ **Testing**: All branches need to be tested
+⚠️ **Parallel Execution**: Order of parallel nodes is non-deterministic
 
-## まとめ
+## Summary
 
-Command APIは状態更新と制御フローを統合し、より柔軟で可読性の高いグラフを構築できます。
+The Command API integrates state updates and control flow, enabling more flexible and readable graph construction.
 
-## 関連ページ
+## Related Pages
 
-- [01_基本概念/Node.md](../01_基本概念/Node.md) - ノードの基本
-- [01_基本概念/Edge.md](../01_基本概念/Edge.md) - エッジとの比較
-- [02_グラフアーキテクチャ/Subgraph.md](../02_グラフアーキテクチャ/Subgraph.md) - サブグラフナビゲーション
+- [01_core_concepts_node.md](01_core_concepts_node.md) - Node basics
+- [01_core_concepts_edge.md](01_core_concepts_edge.md) - Comparison with edges
+- [02_graph_architecture_subgraph.md](02_graph_architecture_subgraph.md) - Subgraph navigation

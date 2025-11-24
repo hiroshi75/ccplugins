@@ -98,5 +98,5 @@ class AgentState(TypedDict):
 
 ## Related Pages
 
-- [Node.md](Node.md) - How to use State in nodes
-- [03_メモリ管理](../03_メモリ管理/README.md) - State persistence
+- [01_core_concepts_node.md](01_core_concepts_node.md) - How to use State in nodes
+- [03_memory_management_overview.md](03_memory_management_overview.md) - State persistence

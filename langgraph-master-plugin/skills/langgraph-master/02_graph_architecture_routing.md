@@ -258,6 +258,6 @@ Routing is optimal for **appropriate processing selection based on input charact
 
 ## Related Pages
 
-- [06_Agent.md](06_Agent.md) - Combining with Agent
-- [01_Basic_Concepts/Edge.md](../01_Basic_Concepts/Edge.md) - Conditional edge details
-- [Workflow_vs_Agent.md](Workflow_vs_Agent.md) - Pattern usage
+- [02_graph_architecture_agent.md](02_graph_architecture_agent.md) - Combining with Agent
+- [01_core_concepts_edge.md](01_core_concepts_edge.md) - Conditional edge details
+- [02_graph_architecture_workflow_vs_agent.md](02_graph_architecture_workflow_vs_agent.md) - Pattern usage

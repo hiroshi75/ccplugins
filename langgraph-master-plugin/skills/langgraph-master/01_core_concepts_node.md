@@ -127,6 +127,6 @@ def robust_node(state: State) -> dict:
 
 ## Related Pages
 
-- [State.md](State.md) - How to define State
-- [Edge.md](Edge.md) - Connections between nodes
-- [04_ツール統合](../04_ツール統合/README.md) - Tool node details
+- [01_core_concepts_state.md](01_core_concepts_state.md) - How to define State
+- [01_core_concepts_edge.md](01_core_concepts_edge.md) - Connections between nodes
+- [04_tool_integration_overview.md](04_tool_integration_overview.md) - Tool node details

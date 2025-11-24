@@ -283,5 +283,5 @@ Store is long-term memory for sharing information across multiple threads. Use i
 
 ## Related Pages
 
-- [Checkpointer.md](Checkpointer.md) - Differences from short-term memory
-- [Persistence.md](Persistence.md) - Persistence basics
+- [03_memory_management_checkpointer.md](03_memory_management_checkpointer.md) - Differences from short-term memory
+- [03_memory_management_persistence.md](03_memory_management_persistence.md) - Persistence basics

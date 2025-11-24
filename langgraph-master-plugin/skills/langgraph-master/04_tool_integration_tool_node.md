@@ -1,10 +1,10 @@
-# Tool Node（ツールノード）
+# Tool Node
 
-ツールを実行するノードの実装。
+Implementation of nodes that execute tools.
 
-## ToolNode（組み込み）
+## ToolNode (Built-in)
 
-最もシンプルな方法：
+The simplest approach:
 
 ```python
 from langgraph.prebuilt import ToolNode
@@ -12,19 +12,19 @@ from langgraph.prebuilt import ToolNode
 tools = [search_tool, calculator_tool]
 tool_node = ToolNode(tools)
 
-# グラフに追加
+# Add to graph
 builder.add_node("tools", tool_node)
 ```
 
-## 動作の仕組み
+## How It Works
 
-ToolNodeは：
-1. 最後のメッセージから`tool_calls`を抽出
-2. 各ツールを実行
-3. 結果を`ToolMessage`として返す
+ToolNode:
+1. Extracts `tool_calls` from the last message
+2. Executes each tool
+3. Returns results as `ToolMessage`
 
 ```python
-# 入力
+# Input
 {
     "messages": [
         AIMessage(tool_calls=[
@@ -33,9 +33,9 @@ ToolNodeは：
     ]
 }
 
-# ToolNodeの実行
+# ToolNode execution
 
-# 出力
+# Output
 {
     "messages": [
         ToolMessage(
@@ -46,30 +46,30 @@ ToolNodeは：
 }
 ```
 
-## カスタムツールノード
+## Custom Tool Node
 
-より細かい制御が必要な場合：
+For finer control:
 
 ```python
 def custom_tool_node(state: MessagesState):
-    """カスタムツールノード"""
+    """Custom tool node"""
     last_message = state["messages"][-1]
     tool_results = []
 
     for tool_call in last_message.tool_calls:
-        # ツールを検索
+        # Find the tool
         tool = tool_map.get(tool_call["name"])
 
         if not tool:
             result = f"Tool {tool_call['name']} not found"
         else:
             try:
-                # ツールを実行
+                # Execute the tool
                 result = tool.invoke(tool_call["args"])
             except Exception as e:
                 result = f"Error: {str(e)}"
 
-        # ToolMessageを作成
+        # Create ToolMessage
         tool_results.append(
             ToolMessage(
                 content=str(result),
@@ -80,13 +80,13 @@ def custom_tool_node(state: MessagesState):
     return {"messages": tool_results}
 ```
 
-## エラーハンドリング
+## Error Handling
 
-### 基本的なエラー処理
+### Basic Error Handling
 
 ```python
 def robust_tool_node(state: MessagesState):
-    """エラーハンドリング付きツールノード"""
+    """Tool node with error handling"""
     last_message = state["messages"][-1]
     tool_results = []
 
@@ -103,7 +103,7 @@ def robust_tool_node(state: MessagesState):
             )
 
         except KeyError:
-            # ツールが見つからない
+            # Tool not found
             tool_results.append(
                 ToolMessage(
                     content=f"Error: Tool '{tool_call['name']}' not found",
@@ -112,7 +112,7 @@ def robust_tool_node(state: MessagesState):
             )
 
         except Exception as e:
-            # 実行エラー
+            # Execution error
             tool_results.append(
                 ToolMessage(
                     content=f"Error executing tool: {str(e)}",
@@ -123,13 +123,13 @@ def robust_tool_node(state: MessagesState):
     return {"messages": tool_results}
 ```
 
-### リトライロジック
+### Retry Logic
 
 ```python
 import time
 
 def tool_node_with_retry(state: MessagesState, max_retries: int = 3):
-    """リトライ付きツールノード"""
+    """Tool node with retry"""
     last_message = state["messages"][-1]
     tool_results = []
 
@@ -162,7 +162,7 @@ def tool_node_with_retry(state: MessagesState, max_retries: int = 3):
                     time.sleep(2 ** retry_count)  # Exponential backoff
 
             except Exception as e:
-                # リトライ不可能なエラー
+                # Non-retryable error
                 tool_results.append(
                     ToolMessage(
                         content=f"Error: {str(e)}",
@@ -174,11 +174,11 @@ def tool_node_with_retry(state: MessagesState, max_retries: int = 3):
     return {"messages": tool_results}
 ```
 
-## ツールの条件付き実行
+## Conditional Tool Execution
 
 ```python
 def conditional_tool_node(state: MessagesState, *, store):
-    """権限チェック付きツールノード"""
+    """Tool node with permission checking"""
     user_id = state.get("user_id")
     user = store.get(("users", user_id), "profile")
 
@@ -188,7 +188,7 @@ def conditional_tool_node(state: MessagesState, *, store):
     for tool_call in last_message.tool_calls:
         tool = tool_map[tool_call["name"]]
 
-        # 権限チェック
+        # Permission check
         if not has_permission(user, tool.name):
             tool_results.append(
                 ToolMessage(
@@ -198,7 +198,7 @@ def conditional_tool_node(state: MessagesState, *, store):
             )
             continue
 
-        # 実行
+        # Execute
         result = tool.invoke(tool_call["args"])
         tool_results.append(
             ToolMessage(
@@ -210,7 +210,7 @@ def conditional_tool_node(state: MessagesState, *, store):
     return {"messages": tool_results}
 ```
 
-## ツール実行のログ記録
+## Logging Tool Execution
 
 ```python
 import logging
@@ -218,7 +218,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 def logged_tool_node(state: MessagesState):
-    """ログ記録付きツールノード"""
+    """Tool node with logging"""
     last_message = state["messages"][-1]
     tool_results = []
 
@@ -275,13 +275,13 @@ def logged_tool_node(state: MessagesState):
     return {"messages": tool_results}
 ```
 
-## 並列ツール実行
+## Parallel Tool Execution
 
 ```python
 from concurrent.futures import ThreadPoolExecutor
 
 def parallel_tool_node(state: MessagesState):
-    """ツールを並列実行"""
+    """Execute tools in parallel"""
     last_message = state["messages"][-1]
 
     def execute_tool(tool_call):
@@ -307,12 +307,12 @@ def parallel_tool_node(state: MessagesState):
     return {"messages": tool_results}
 ```
 
-## まとめ
+## Summary
 
-ToolNodeはツールを実行し、結果をToolMessageとして返します。エラーハンドリング、権限チェック、ログ記録などを追加できます。
+ToolNode executes tools and returns results as ToolMessage. You can add error handling, permission checks, logging, and more.
 
-## 関連ページ
+## Related Pages
 
-- [Tool_Definition.md](Tool_Definition.md) - ツールの定義
-- [Command_API.md](Command_API.md) - Command APIとの統合
-- [05_応用機能/HumanInTheLoop.md](../05_応用機能/HumanInTheLoop.md) - 承認フローとの組み合わせ
+- [04_tool_integration_tool_definition.md](04_tool_integration_tool_definition.md) - Tool definition
+- [04_tool_integration_command_api.md](04_tool_integration_command_api.md) - Integration with Command API
+- [05_advanced_features_human_in_the_loop.md](05_advanced_features_human_in_the_loop.md) - Combining with approval flows

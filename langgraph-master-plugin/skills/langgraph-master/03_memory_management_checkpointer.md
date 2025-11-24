@@ -220,5 +220,5 @@ Checkpointer determines how state is persisted. It's important to choose the app
 
 ## Related Pages
 
-- [Persistence.md](Persistence.md) - How to use persistence
-- [Store.md](Store.md) - Differences from long-term memory
+- [03_memory_management_persistence.md](03_memory_management_persistence.md) - How to use persistence
+- [03_memory_management_store.md](03_memory_management_store.md) - Differences from long-term memory

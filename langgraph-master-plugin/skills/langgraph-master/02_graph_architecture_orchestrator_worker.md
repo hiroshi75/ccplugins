@@ -257,6 +257,6 @@ Orchestrator-Worker is optimal for **parallel processing of large task volumes**
 
 ## Related Pages
 
-- [02_Parallelization.md](02_Parallelization.md) - Comparison with static parallel processing
-- [05_Advanced_Features/MapReduce.md](../05_Advanced_Features/MapReduce.md) - Map-Reduce details
-- [01_Basic_Concepts/State.md](../01_Basic_Concepts/State.md) - Reducer details
+- [02_graph_architecture_parallelization.md](02_graph_architecture_parallelization.md) - Comparison with static parallel processing
+- [05_advanced_features_map_reduce.md](05_advanced_features_map_reduce.md) - Map-Reduce details
+- [01_core_concepts_state.md](01_core_concepts_state.md) - Reducer details

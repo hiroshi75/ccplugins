@@ -1,53 +1,53 @@
-# Tool Definition（ツール定義）
+# Tool Definition
 
-ツールの定義方法と設計パターン。
+How to define tools and design patterns.
 
-## 基本的な定義
+## Basic Definition
 
 ```python
 from langchain_core.tools import tool
 
 @tool
 def search(query: str) -> str:
-    """ウェブ検索を実行します。
+    """Perform a web search.
 
     Args:
-        query: 検索クエリ
+        query: Search query
     """
     return perform_search(query)
 ```
 
-## 重要な要素
+## Key Elements
 
 ### 1. Docstring
 
-LLMがツールを理解するための説明：
+Description for the LLM to understand the tool:
 
 ```python
 @tool
 def get_weather(location: str, unit: str = "celsius") -> str:
-    """指定された場所の現在の天気を取得します。
+    """Get the current weather for a specified location.
 
-    このツールは世界中の都市の最新天気情報を提供します。
-    温度、湿度、天候状態などの詳細情報を含みます。
+    This tool provides up-to-date weather information for cities around the world.
+    It includes detailed information such as temperature, humidity, and weather conditions.
 
     Args:
-        location: 都市名（例: "Tokyo", "New York", "London"）
-        unit: 温度単位（"celsius" または "fahrenheit"）デフォルトは"celsius"
+        location: City name (e.g., "Tokyo", "New York", "London")
+        unit: Temperature unit ("celsius" or "fahrenheit"), default is "celsius"
 
     Returns:
-        天気情報を含む文字列
+        A string containing weather information
 
     Examples:
         >>> get_weather("Tokyo")
-        "東京の天気: 晴れ, 気温: 25°C, 湿度: 60%"
+        "Tokyo weather: Sunny, Temperature: 25°C, Humidity: 60%"
     """
     return fetch_weather(location, unit)
 ```
 
-### 2. 型アノテーション
+### 2. Type Annotations
 
-パラメータと戻り値の型を明示：
+Explicitly specify parameter and return value types:
 
 ```python
 from typing import List, Dict
@@ -58,35 +58,35 @@ def search_products(
     max_results: int = 10,
     category: str | None = None
 ) -> List[Dict[str, any]]:
-    """商品を検索します。
+    """Search for products.
 
     Args:
-        query: 検索キーワード
-        max_results: 最大結果数
-        category: カテゴリーフィルター（オプション）
+        query: Search keywords
+        max_results: Maximum number of results
+        category: Category filter (optional)
     """
     return database.search(query, max_results, category)
 ```
 
-## 構造化出力
+## Structured Output
 
-Pydanticモデルを使用した構造化出力：
+Structured output using Pydantic models:
 
 ```python
 from pydantic import BaseModel, Field
 
 class WeatherInfo(BaseModel):
-    temperature: float = Field(description="気温（摂氏）")
-    humidity: int = Field(description="湿度（%）")
-    condition: str = Field(description="天候状態")
-    location: str = Field(description="場所")
+    temperature: float = Field(description="Temperature in Celsius")
+    humidity: int = Field(description="Humidity (%)")
+    condition: str = Field(description="Weather condition")
+    location: str = Field(description="Location")
 
 @tool(response_format="content_and_artifact")
 def get_detailed_weather(location: str) -> tuple[str, WeatherInfo]:
-    """詳細な天気情報を取得します。
+    """Get detailed weather information.
 
     Args:
-        location: 都市名
+        location: City name
     """
     data = fetch_weather_data(location)
 
@@ -97,32 +97,32 @@ def get_detailed_weather(location: str) -> tuple[str, WeatherInfo]:
         location=location
     )
 
-    summary = f"{location}の天気: {weather.condition}, {weather.temperature}°C"
+    summary = f"{location} weather: {weather.condition}, {weather.temperature}°C"
 
     return summary, weather
 ```
 
-## ツール設計のベストプラクティス
+## Best Practices for Tool Design
 
-### 1. 単一責任
+### 1. Single Responsibility
 
 ```python
-# Good: 1つのことをうまく行う
+# Good: Does one thing well
 @tool
 def send_email(to: str, subject: str, body: str) -> str:
-    """メールを送信"""
+    """Send an email"""
 
-# Bad: 複数の責任
+# Bad: Multiple responsibilities
 @tool
 def send_and_log_email(to: str, subject: str, body: str, log_file: str) -> str:
-    """メールを送信してログを記録"""
-    # 2つの異なる責任
+    """Send an email and log it"""
+    # Two different responsibilities
 ```
 
-### 2. 明確なパラメータ
+### 2. Clear Parameters
 
 ```python
-# Good: パラメータが明確
+# Good: Clear parameters
 @tool
 def book_meeting(
     title: str,
@@ -130,41 +130,41 @@ def book_meeting(
     duration_minutes: int,
     attendees: List[str]
 ) -> str:
-    """会議を予約"""
+    """Book a meeting"""
 
-# Bad: 曖昧なパラメータ
+# Bad: Ambiguous parameters
 @tool
 def book_meeting(data: dict) -> str:
-    """会議を予約"""
+    """Book a meeting"""
 ```
 
-### 3. エラーハンドリング
+### 3. Error Handling
 
 ```python
 @tool
 def divide(a: float, b: float) -> float:
-    """2つの数を割ります。
+    """Divide two numbers.
 
     Args:
-        a: 被除数
-        b: 除数
+        a: Dividend
+        b: Divisor
 
     Raises:
-        ValueError: bが0の場合
+        ValueError: If b is 0
     """
     if b == 0:
-        raise ValueError("0で割ることはできません")
+        raise ValueError("Cannot divide by zero")
 
     return a / b
 ```
 
-## 動的ツール生成
+## Dynamic Tool Generation
 
-APIスキーマからツールを自動生成：
+Automatically generate tools from API schemas:
 
 ```python
 def create_api_tool(endpoint: str, method: str, description: str):
-    """API仕様からツールを生成"""
+    """Generate tools from API specifications"""
 
     @tool
     def api_tool(**kwargs) -> dict:
@@ -183,45 +183,45 @@ def create_api_tool(endpoint: str, method: str, description: str):
 
     return api_tool
 
-# 使用例
+# Example usage
 create_user_tool = create_api_tool(
     endpoint="https://api.example.com/users",
     method="POST",
-    description="新しいユーザーを作成します"
+    description="Create a new user"
 )
 ```
 
-## ツールのグループ化
+## Grouping Tools
 
-関連するツールをグループ化：
+Group related tools together:
 
 ```python
-# データベースツールグループ
+# Database tool group
 database_tools = [
     query_users_tool,
     update_user_tool,
     delete_user_tool
 ]
 
-# 検索ツールグループ
+# Search tool group
 search_tools = [
     web_search_tool,
     image_search_tool,
     news_search_tool
 ]
 
-# 状況に応じて選択
+# Select based on context
 if user.role == "admin":
     tools = database_tools + search_tools
 else:
     tools = search_tools
 ```
 
-## まとめ
+## Summary
 
-ツール定義は明確で詳細なdocstring、適切な型アノテーション、エラーハンドリングが重要です。
+Tool definitions require clear and detailed docstrings, appropriate type annotations, and error handling.
 
-## 関連ページ
+## Related Pages
 
-- [Tool_Node.md](Tool_Node.md) - ツールノードでの使用
-- [Command_API.md](Command_API.md) - Command APIとの統合
+- [04_tool_integration_tool_node.md](04_tool_integration_tool_node.md) - Using tools in tool nodes
+- [04_tool_integration_command_api.md](04_tool_integration_command_api.md) - Integration with Command API

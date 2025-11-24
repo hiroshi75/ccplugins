@@ -165,6 +165,6 @@ builder.add_conditional_edges(
 
 ## Related Pages
 
-- [Node.md](Node.md) - Node implementation
-- [02_グラフアーキテクチャ/03_Routing.md](../02_グラフアーキテクチャ/03_Routing.md) - Routing patterns
-- [05_応用機能/MapReduce.md](../05_応用機能/MapReduce.md) - Parallel processing patterns
+- [01_core_concepts_node.md](01_core_concepts_node.md) - Node implementation
+- [02_graph_architecture_routing.md](02_graph_architecture_routing.md) - Routing patterns
+- [05_advanced_features_map_reduce.md](05_advanced_features_map_reduce.md) - Parallel processing patterns

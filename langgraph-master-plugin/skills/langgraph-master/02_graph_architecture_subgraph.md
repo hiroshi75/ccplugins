@@ -277,6 +277,6 @@ Subgraph is optimal for **hierarchical organization of complex systems**. Choose
 
 ## Related Pages
 
-- [06_Agent.md](06_Agent.md) - Combination with multi-agent
-- [01_Basic_Concepts/State.md](../01_Basic_Concepts/State.md) - State design
-- [03_Memory_Management/Persistence.md](../03_Memory_Management/Persistence.md) - Checkpointer propagation
+- [02_graph_architecture_agent.md](02_graph_architecture_agent.md) - Combination with multi-agent
+- [01_core_concepts_state.md](01_core_concepts_state.md) - State design
+- [03_memory_management_persistence.md](03_memory_management_persistence.md) - Checkpointer propagation

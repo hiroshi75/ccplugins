@@ -133,6 +133,6 @@ Prompt Chaining is the simplest pattern, optimal for **cases requiring stepwise 
 
 ## Related Pages
 
-- [02_Parallelization.md](02_Parallelization.md) - Comparison with parallel processing
-- [05_EvaluatorOptimizer.md](05_EvaluatorOptimizer.md) - Combination with validation loop
-- [01_Basic_Concepts/Edge.md](../01_Basic_Concepts/Edge.md) - Edge basics
+- [02_graph_architecture_parallelization.md](02_graph_architecture_parallelization.md) - Comparison with parallel processing
+- [02_graph_architecture_evaluator_optimizer.md](02_graph_architecture_evaluator_optimizer.md) - Combination with validation loop
+- [01_core_concepts_edge.md](01_core_concepts_edge.md) - Edge basics

@@ -278,6 +278,6 @@ Map-Reduce is a pattern that uses Send API to process large datasets in parallel
 
 ## Related Pages
 
-- [02_Graph_Architecture/04_OrchestratorWorker.md](../02_Graph_Architecture/04_OrchestratorWorker.md) - Orchestrator-Worker pattern
-- [02_Graph_Architecture/02_Parallelization.md](../02_Graph_Architecture/02_Parallelization.md) - Comparison with static parallelization
-- [01_Basic_Concepts/State.md](../01_Basic_Concepts/State.md) - Details on Reducers
+- [02_graph_architecture_orchestrator_worker.md](02_graph_architecture_orchestrator_worker.md) - Orchestrator-Worker pattern
+- [02_graph_architecture_parallelization.md](02_graph_architecture_parallelization.md) - Comparison with static parallelization
+- [01_core_concepts_state.md](01_core_concepts_state.md) - Details on Reducers

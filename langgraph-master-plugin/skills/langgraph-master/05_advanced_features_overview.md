@@ -8,21 +8,21 @@ By leveraging LangGraph's advanced features, you can build more sophisticated ag
 
 ## Key Features
 
-### 1. [Human-in-the-Loop (Approval Flow)](HumanInTheLoop.md)
+### 1. [Human-in-the-Loop (Approval Flow)](05_advanced_features_human_in_the_loop.md)
 
 Pause graph execution and request human intervention:
 - Dynamic interrupt
 - Static interrupt
 - Approval, editing, and rejection flows
 
-### 2. [Streaming](Streaming.md)
+### 2. [Streaming](05_advanced_features_streaming.md)
 
 Monitor progress in real-time:
 - LLM token streaming
 - State update streaming
 - Custom event streaming
 
-### 3. [Map-Reduce (Parallel Processing Pattern)](MapReduce.md)
+### 3. [Map-Reduce (Parallel Processing Pattern)](05_advanced_features_map_reduce.md)
 
 Parallel processing of large datasets:
 - Dynamic worker generation with Send API
@@ -68,6 +68,6 @@ for chunk in graph.stream(
 
 For details on each feature, refer to the following pages:
 
-- [HumanInTheLoop.md](HumanInTheLoop.md) - Implementation of approval flows
-- [Streaming.md](Streaming.md) - How to use streaming
-- [MapReduce.md](MapReduce.md) - Map-Reduce pattern
+- [05_advanced_features_human_in_the_loop.md](05_advanced_features_human_in_the_loop.md) - Implementation of approval flows
+- [05_advanced_features_streaming.md](05_advanced_features_streaming.md) - How to use streaming
+- [05_advanced_features_map_reduce.md](05_advanced_features_map_reduce.md) - Map-Reduce pattern

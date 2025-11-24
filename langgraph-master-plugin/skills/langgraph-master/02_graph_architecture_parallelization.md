@@ -177,6 +177,6 @@ Parallelization is optimal for **simultaneous execution of independent tasks**. 
 
 ## Related Pages
 
-- [04_OrchestratorWorker.md](04_OrchestratorWorker.md) - Dynamic parallel processing
-- [05_Advanced_Features/MapReduce.md](../05_Advanced_Features/MapReduce.md) - Map-Reduce pattern
-- [01_Basic_Concepts/State.md](../01_Basic_Concepts/State.md) - Reducer details
+- [02_graph_architecture_orchestrator_worker.md](02_graph_architecture_orchestrator_worker.md) - Dynamic parallel processing
+- [05_advanced_features_map_reduce.md](05_advanced_features_map_reduce.md) - Map-Reduce pattern
+- [01_core_concepts_state.md](01_core_concepts_state.md) - Reducer details

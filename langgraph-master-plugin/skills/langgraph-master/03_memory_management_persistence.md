@@ -259,6 +259,6 @@ Persistence enables **state persistence and restoration**, making conversation c
 
 ## Related Pages
 
-- [Checkpointer.md](Checkpointer.md) - Checkpointer implementation details
-- [Store.md](Store.md) - Combining with long-term memory
-- [05_Advanced_Features/HumanInTheLoop.md](../05_Advanced_Features/HumanInTheLoop.md) - Applications of state inspection
+- [03_memory_management_checkpointer.md](03_memory_management_checkpointer.md) - Checkpointer implementation details
+- [03_memory_management_store.md](03_memory_management_store.md) - Combining with long-term memory
+- [05_advanced_features_human_in_the_loop.md](05_advanced_features_human_in_the_loop.md) - Applications of state inspection

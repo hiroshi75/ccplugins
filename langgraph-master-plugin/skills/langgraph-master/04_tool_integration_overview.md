@@ -1,78 +1,78 @@
-# 04. ツール統合
+# 04. Tool Integration
 
-外部ツールの統合と実行制御。
+Integration and execution control of external tools.
 
-## 概要
+## Overview
 
-LangGraphでは、LLMが**ツール**を呼び出すことで、外部システムとやり取りできます。ツールは検索、計算、API呼び出しなど、様々な機能を提供します。
+In LangGraph, LLMs can interact with external systems by calling **tools**. Tools provide various capabilities such as search, calculation, API calls, and more.
 
-## 主要コンポーネント
+## Key Components
 
-### 1. [Tool Definition（ツール定義）](Tool_Definition.md)
+### 1. [Tool Definition](04_tool_integration_tool_definition.md)
 
-ツールの定義方法：
-- `@tool`デコレータ
-- 関数の説明とパラメータ
-- 構造化出力
+How to define tools:
+- `@tool` decorator
+- Function descriptions and parameters
+- Structured output
 
-### 2. [Tool Node（ツールノード）](Tool_Node.md)
+### 2. [Tool Node](04_tool_integration_tool_node.md)
 
-ツールを実行するノード：
-- `ToolNode`の使用
-- エラーハンドリング
-- カスタムツールノード
+Nodes that execute tools:
+- Using `ToolNode`
+- Error handling
+- Custom tool nodes
 
-### 3. [Command API](Command_API.md)
+### 3. [Command API](04_tool_integration_command_api.md)
 
-ツール実行の制御：
-- 状態更新と制御フローの統合
-- ツールからの遷移制御
+Controlling tool execution:
+- Integration of state updates and control flow
+- Transition control from tools
 
-## 基本的な実装
+## Basic Implementation
 
 ```python
 from langchain_core.tools import tool
 from langgraph.prebuilt import ToolNode
 from langgraph.graph import MessagesState, StateGraph
 
-# 1. ツール定義
+# 1. Define tools
 @tool
 def search(query: str) -> str:
-    """ウェブ検索を実行します。
+    """Perform a web search.
 
     Args:
-        query: 検索クエリ
+        query: Search query
     """
     return perform_search(query)
 
 @tool
 def calculator(expression: str) -> float:
-    """数式を計算します。
+    """Calculate a mathematical expression.
 
     Args:
-        expression: 計算式（例: "2 + 2"）
+        expression: Expression to calculate (e.g., "2 + 2")
     """
     return eval(expression)
 
 tools = [search, calculator]
 
-# 2. LLMにツールをバインド
+# 2. Bind tools to LLM
 llm_with_tools = llm.bind_tools(tools)
 
-# 3. エージェントノード
+# 3. Agent node
 def agent(state: MessagesState):
     response = llm_with_tools.invoke(state["messages"])
     return {"messages": [response]}
 
-# 4. ツールノード
+# 4. Tool node
 tool_node = ToolNode(tools)
 
-# 5. グラフ構築
+# 5. Build graph
 builder = StateGraph(MessagesState)
 builder.add_node("agent", agent)
 builder.add_node("tools", tool_node)
 
-# 6. 条件付きエッジ
+# 6. Conditional edges
 def should_continue(state: MessagesState):
     last_message = state["messages"][-1]
     if last_message.tool_calls:
@@ -86,45 +86,45 @@ builder.add_edge("tools", "agent")
 graph = builder.compile()
 ```
 
-## ツールの種類
+## Types of Tools
 
-### 検索ツール
+### Search Tools
 
 ```python
 @tool
 def web_search(query: str) -> str:
-    """ウェブを検索"""
+    """Search the web"""
     return search_api(query)
 ```
 
-### 計算ツール
+### Calculator Tools
 
 ```python
 @tool
 def calculator(expression: str) -> float:
-    """数式を計算"""
+    """Calculate a mathematical expression"""
     return eval(expression)
 ```
 
-### APIツール
+### API Tools
 
 ```python
 @tool
 def get_weather(city: str) -> dict:
-    """天気情報を取得"""
+    """Get weather information"""
     return weather_api(city)
 ```
 
-### データベースツール
+### Database Tools
 
 ```python
 @tool
 def query_database(sql: str) -> list[dict]:
-    """データベースをクエリ"""
+    """Query the database"""
     return execute_sql(sql)
 ```
 
-## ツール実行のフロー
+## Tool Execution Flow
 
 ```
 User Query
@@ -142,17 +142,17 @@ LLM decides: Continue?
 Final Answer
 ```
 
-## 重要な原則
+## Key Principles
 
-1. **明確な説明**: ツールのdocstringを詳細に記述
-2. **エラーハンドリング**: ツール実行のエラーを適切に処理
-3. **型安全性**: パラメータの型を明示
-4. **承認フロー**: 重要なツールには Human-in-the-Loop を組み込む
+1. **Clear Descriptions**: Write detailed docstrings for tools
+2. **Error Handling**: Handle tool execution errors appropriately
+3. **Type Safety**: Explicitly specify parameter types
+4. **Approval Flow**: Incorporate Human-in-the-Loop for critical tools
 
-## 次のステップ
+## Next Steps
 
-各コンポーネントの詳細については、以下のページを参照してください：
+For details on each component, please refer to the following pages:
 
-- [Tool_Definition.md](Tool_Definition.md) - ツールの定義方法
-- [Tool_Node.md](Tool_Node.md) - ツールノードの実装
-- [Command_API.md](Command_API.md) - Command APIの使用
+- [04_tool_integration_tool_definition.md](04_tool_integration_tool_definition.md) - How to define tools
+- [04_tool_integration_tool_node.md](04_tool_integration_tool_node.md) - Tool node implementation
+- [04_tool_integration_command_api.md](04_tool_integration_command_api.md) - Using the Command API
