@@ -1,20 +1,20 @@
-# Human-in-the-Loop（承認フロー）
+# Human-in-the-Loop (Approval Flow)
 
-グラフ実行を一時停止して人間の介入を求める機能。
+A feature to pause graph execution and request human intervention.
 
-## 概要
+## Overview
 
-Human-in-the-Loopは、重要な決定やアクションの前に**人間の承認や入力**を求める機能です。
+Human-in-the-Loop is a feature that requests **human approval or input** before important decisions or actions.
 
-## 動的インタラプト（推奨）
+## Dynamic Interrupt (Recommended)
 
-### 基本的な使用
+### Basic Usage
 
 ```python
 from langgraph.types import interrupt
 
 def approval_node(state: State):
-    """承認を求める"""
+    """Request approval"""
     approved = interrupt("Do you approve this action?")
 
     if approved:
@@ -23,29 +23,29 @@ def approval_node(state: State):
         return {"status": "rejected"}
 ```
 
-### 実行
+### Execution
 
 ```python
-# 初回実行（インタラプトで停止）
+# Initial execution (stops at interrupt)
 result = graph.invoke(input, config)
 
-# インタラプト情報を確認
+# Check interrupt information
 print(result["__interrupt__"])  # "Do you approve this action?"
 
-# 承認して再開
+# Approve and resume
 graph.invoke(None, config, resume=True)
 
-# または却下
+# Or reject
 graph.invoke(None, config, resume=False)
 ```
 
-## 応用パターン
+## Application Patterns
 
-### パターン1: 承認または却下
+### Pattern 1: Approve or Reject
 
 ```python
 def action_approval(state: State):
-    """アクション実行前に承認"""
+    """Approval before action execution"""
     action_details = prepare_action(state)
 
     approved = interrupt({
@@ -60,11 +60,11 @@ def action_approval(state: State):
         return {"result": None, "approved": False}
 ```
 
-### パターン2: 編集可能な承認
+### Pattern 2: Editable Approval
 
 ```python
 def review_and_edit(state: State):
-    """生成内容を確認・編集"""
+    """Review and edit generated content"""
     generated = generate_content(state)
 
     edited_content = interrupt({
@@ -74,16 +74,16 @@ def review_and_edit(state: State):
 
     return {"final_content": edited_content}
 
-# 編集して再開
+# Resume with edited version
 graph.invoke(None, config, resume=edited_version)
 ```
 
-### パターン3: ツール実行前の承認
+### Pattern 3: Tool Execution Approval
 
 ```python
 @tool
 def send_email(to: str, subject: str, body: str):
-    """メールを送信（承認付き）"""
+    """Send email (with approval)"""
     response = interrupt({
         "action": "send_email",
         "to": to,
@@ -93,7 +93,7 @@ def send_email(to: str, subject: str, body: str):
     })
 
     if response.get("action") == "approve":
-        # 承認された場合、パラメータの編集も可能
+        # When approved, parameters can also be edited
         final_to = response.get("to", to)
         final_subject = response.get("subject", subject)
         final_body = response.get("body", body)
@@ -103,11 +103,11 @@ def send_email(to: str, subject: str, body: str):
         return "Email cancelled by user"
 ```
 
-### パターン4: 入力の検証ループ
+### Pattern 4: Input Validation Loop
 
 ```python
 def get_valid_input(state: State):
-    """有効な入力を得るまでループ"""
+    """Loop until valid input is obtained"""
     prompt = "Enter a positive number:"
 
     while True:
@@ -121,28 +121,28 @@ def get_valid_input(state: State):
     return {"value": answer}
 ```
 
-## 静的インタラプト（デバッグ用）
+## Static Interrupt (For Debugging)
 
-コンパイル時にブレークポイントを設定：
+Set breakpoints at compile time:
 
 ```python
 graph = builder.compile(
     checkpointer=checkpointer,
-    interrupt_before=["risky_node"],  # ノード実行前に停止
-    interrupt_after=["generate_content"]  # ノード実行後に停止
+    interrupt_before=["risky_node"],  # Stop before node execution
+    interrupt_after=["generate_content"]  # Stop after node execution
 )
 
-# 実行（指定ノード前で停止）
+# Execute (stops before specified node)
 graph.invoke(input, config)
 
-# 状態を確認
+# Check state
 state = graph.get_state(config)
 
-# 再開
+# Resume
 graph.invoke(None, config)
 ```
 
-## 実践例: 段階的承認ワークフロー
+## Practical Example: Multi-Stage Approval Workflow
 
 ```python
 from langgraph.types import interrupt, Command
@@ -154,12 +154,12 @@ class ApprovalState(TypedDict):
     approved: bool
 
 def draft_node(state: ApprovalState):
-    """下書き作成"""
+    """Create draft"""
     draft = create_draft(state["request"])
     return {"draft": draft}
 
 def review_node(state: ApprovalState):
-    """レビューと編集"""
+    """Review and edit"""
     reviewed = interrupt({
         "type": "review",
         "content": state["draft"],
@@ -169,7 +169,7 @@ def review_node(state: ApprovalState):
     return {"reviewed": reviewed}
 
 def approval_node(state: ApprovalState):
-    """最終承認"""
+    """Final approval"""
     approved = interrupt({
         "type": "approval",
         "content": state["reviewed"],
@@ -184,15 +184,15 @@ def approval_node(state: ApprovalState):
     else:
         return Command(
             update={"approved": False},
-            goto="draft"  # 下書きに戻る
+            goto="draft"  # Return to draft
         )
 
 def publish_node(state: ApprovalState):
-    """公開"""
+    """Publish"""
     publish(state["reviewed"])
     return {"status": "published"}
 
-# グラフ構築
+# Build graph
 builder.add_node("draft", draft_node)
 builder.add_node("review", review_node)
 builder.add_node("approval", approval_node)
@@ -201,31 +201,31 @@ builder.add_node("publish", publish_node)
 builder.add_edge(START, "draft")
 builder.add_edge("draft", "review")
 builder.add_edge("review", "approval")
-# approvalノードがCommandで制御フロー決定
+# approval node determines control flow with Command
 builder.add_edge("publish", END)
 ```
 
-## 重要なルール
+## Important Rules
 
-### ✅ 推奨事項
+### ✅ Recommendations
 
-- JSON形式で値を渡す
-- `interrupt()`の呼び出し順序を一貫させる
-- `interrupt()`前の処理は冪等的にする
+- Pass values in JSON format
+- Keep `interrupt()` call order consistent
+- Make processing before `interrupt()` idempotent
 
-### ❌ 禁止事項
+### ❌ Prohibitions
 
-- `interrupt()`を`try-except`でキャッチしない
-- 条件で`interrupt()`をスキップしない
-- 非シリアライズ可能なオブジェクトを渡さない
+- Don't catch `interrupt()` with `try-except`
+- Don't skip `interrupt()` conditionally
+- Don't pass non-serializable objects
 
-## ユースケース
+## Use Cases
 
-### 1. 高リスク操作の承認
+### 1. High-Risk Operation Approval
 
 ```python
 def delete_data(state: State):
-    """データ削除（承認必須）"""
+    """Delete data (approval required)"""
     approved = interrupt({
         "action": "delete_data",
         "warning": "This cannot be undone!",
@@ -238,11 +238,11 @@ def delete_data(state: State):
     return {"deleted": False}
 ```
 
-### 2. クリエイティブ作業のレビュー
+### 2. Creative Work Review
 
 ```python
 def creative_generation(state: State):
-    """クリエイティブコンテンツ生成とレビュー"""
+    """Creative content generation and review"""
     versions = []
 
     for _ in range(3):
@@ -258,11 +258,11 @@ def creative_generation(state: State):
     return {"final_version": selected}
 ```
 
-### 3. 段階的なデータ入力
+### 3. Incremental Data Input
 
 ```python
 def collect_user_info(state: State):
-    """ユーザー情報を段階的に収集"""
+    """Collect user information incrementally"""
     name = interrupt("What is your name?")
 
     age = interrupt(f"Hello {name}, what is your age?")
@@ -278,12 +278,12 @@ def collect_user_info(state: State):
     }
 ```
 
-## まとめ
+## Summary
 
-Human-in-the-Loopは重要な決定で人間の判断を組み込む機能です。動的インタラプトが柔軟で推奨されます。
+Human-in-the-Loop is a feature for incorporating human judgment in important decisions. Dynamic interrupt is flexible and recommended.
 
-## 関連ページ
+## Related Pages
 
-- [03_メモリ管理/Persistence.md](../03_メモリ管理/Persistence.md) - チェックポインターが必須
-- [02_グラフアーキテクチャ/06_Agent.md](../02_グラフアーキテクチャ/06_Agent.md) - エージェントとの組み合わせ
-- [04_ツール統合/Tool_Node.md](../04_ツール統合/Tool_Node.md) - ツール実行前の承認
+- [03_Memory_Management/Persistence.md](../03_Memory_Management/Persistence.md) - Checkpointer is required
+- [02_Graph_Architecture/06_Agent.md](../02_Graph_Architecture/06_Agent.md) - Combination with agents
+- [04_Tool_Integration/Tool_Node.md](../04_Tool_Integration/Tool_Node.md) - Approval before tool execution

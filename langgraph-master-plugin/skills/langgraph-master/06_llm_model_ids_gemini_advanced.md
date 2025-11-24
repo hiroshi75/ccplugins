@@ -1,37 +1,37 @@
-# Gemini 高度な機能
+# Gemini Advanced Features
 
-Google Gemini モデルの高度な設定とマルチモーダル機能。
+Advanced configuration and multimodal features for Google Gemini models.
 
-## コンテキストウィンドウと出力制限
+## Context Window and Output Limits
 
-| モデル | コンテキストウィンドウ | 最大出力トークン |
+| Model | Context Window | Max Output Tokens |
 |--------|-------------------|---------------|
 | Gemini 3 Pro | - | 64K |
-| Gemini 2.5 Pro | 1M (2M 予定) | - |
+| Gemini 2.5 Pro | 1M (2M planned) | - |
 | Gemini 2.5 Flash | 1M | - |
 | Gemini 2.0 Flash | 1M | - |
 
-**ティア別制限**:
-- Gemini Advanced / Vertex AI: 1M トークン
-- 無料版: 約 32K トークン
+**Tier-based Limits**:
+- Gemini Advanced / Vertex AI: 1M tokens
+- Free tier: ~32K tokens
 
-## パラメータ設定
+## Parameter Configuration
 
 ```python
 from langchain_google_genai import ChatGoogleGenerativeAI
 
 llm = ChatGoogleGenerativeAI(
     model="gemini-2.5-flash",
-    temperature=0.7,          # 創造性 (0.0-1.0)
-    top_p=0.9,               # 多様性
-    top_k=40,                # サンプリング
-    max_tokens=8192,         # 最大出力
+    temperature=0.7,          # Creativity (0.0-1.0)
+    top_p=0.9,               # Diversity
+    top_k=40,                # Sampling
+    max_tokens=8192,         # Max output
 )
 ```
 
-## マルチモーダル機能
+## Multimodal Features
 
-### 画像入力
+### Image Input
 
 ```python
 from langchain_google_genai import ChatGoogleGenerativeAI
@@ -41,7 +41,7 @@ llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash")
 
 message = HumanMessage(
     content=[
-        {"type": "text", "text": "この画像には何が写っていますか？"},
+        {"type": "text", "text": "What is in this image?"},
         {"type": "image_url", "image_url": "https://example.com/image.jpg"}
     ]
 )
@@ -49,14 +49,14 @@ message = HumanMessage(
 response = llm.invoke([message])
 ```
 
-### 画像生成（Gemini 3.x）
+### Image Generation (Gemini 3.x)
 
 ```python
 llm = ChatGoogleGenerativeAI(model="google/gemini-3-pro-image-preview")
-response = llm.invoke("美しい夕日の風景を生成してください")
+response = llm.invoke("Generate a beautiful sunset landscape")
 ```
 
-## ストリーミング
+## Streaming
 
 ```python
 llm = ChatGoogleGenerativeAI(
@@ -64,11 +64,11 @@ llm = ChatGoogleGenerativeAI(
     streaming=True
 )
 
-for chunk in llm.stream("質問"):
+for chunk in llm.stream("Question"):
     print(chunk.content, end="", flush=True)
 ```
 
-## 安全設定
+## Safety Settings
 
 ```python
 from langchain_google_genai import (
@@ -86,7 +86,7 @@ llm = ChatGoogleGenerativeAI(
 )
 ```
 
-## モデル一覧の取得
+## Retrieving Model List
 
 ```python
 import google.generativeai as genai
@@ -99,20 +99,20 @@ for model in genai.list_models():
         print(f"{model.name}: {model.input_token_limit} tokens")
 ```
 
-## エラーハンドリング
+## Error Handling
 
 ```python
 from google.api_core import exceptions
 
 try:
-    response = llm.invoke("質問")
+    response = llm.invoke("Question")
 except exceptions.ResourceExhausted:
-    print("レート制限に達しました")
+    print("Rate limit reached")
 except exceptions.InvalidArgument as e:
-    print(f"無効な引数: {e}")
+    print(f"Invalid argument: {e}")
 ```
 
-## 参考リンク
+## Reference Links
 
 - [Gemini API Models](https://ai.google.dev/gemini-api/docs/models)
 - [Vertex AI](https://docs.cloud.google.com/vertex-ai/generative-ai/docs/models)

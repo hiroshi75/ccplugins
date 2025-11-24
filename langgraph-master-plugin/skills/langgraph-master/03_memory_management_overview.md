@@ -1,89 +1,89 @@
-# 03. メモリ管理
+# 03. Memory Management
 
-永続化とチェックポイント機能による状態管理。
+State management through persistence and checkpoint features.
 
-## 概要
+## Overview
 
-LangGraphの**組み込み永続化レイヤー**により、エージェントの状態を保存・復元できます。これにより、会話の継続、エラーからの復旧、タイムトラベルが可能になります。
+LangGraph's **built-in persistence layer** allows you to save and restore agent state. This enables conversation continuation, error recovery, and time travel.
 
-## メモリの種類
+## Memory Types
 
-### 短期記憶: [Checkpointer（チェックポインター）](Checkpointer.md)
-- 各スーパーステップで状態を自動保存
-- スレッドベースの会話管理
-- タイムトラベル機能
+### Short-term Memory: [Checkpointer](Checkpointer.md)
+- Automatically saves state at each superstep
+- Thread-based conversation management
+- Time travel functionality
 
-### 長期記憶: [Store（ストア）](Store.md)
-- 複数スレッド間で情報共有
-- ユーザー情報の永続化
-- セマンティック検索
+### Long-term Memory: [Store](Store.md)
+- Share information across threads
+- Persist user information
+- Semantic search
 
-## 主要機能
+## Key Features
 
-### 1. [Persistence（永続化）](Persistence.md)
+### 1. [Persistence](Persistence.md)
 
-**チェックポイント**: 各スーパーステップで状態を保存
-- グラフ実行の各段階で状態をスナップショット
-- 失敗時に復旧可能
-- 実行履歴の追跡
+**Checkpoints**: Save state at each superstep
+- Snapshot state at each stage of graph execution
+- Recoverable from failures
+- Track execution history
 
-**スレッド**: 会話の単位
-- `thread_id`で会話を識別
-- 各スレッドは独立した状態を保持
-- 複数の会話を並行管理
+**Threads**: Unit of conversation
+- Identify conversations by `thread_id`
+- Each thread maintains independent state
+- Manage multiple conversations in parallel
 
-**StateSnapshot**: チェックポイントの表現
-- `values`: その時点の状態
-- `next`: 次に実行するノード
-- `config`: チェックポイント設定
-- `metadata`: メタデータ
+**StateSnapshot**: Representation of checkpoints
+- `values`: State at that point in time
+- `next`: Nodes to execute next
+- `config`: Checkpoint configuration
+- `metadata`: Metadata
 
 ### 2. Human-in-the-Loop
 
-**状態の検査**: 任意の時点で状態を確認
+**State Inspection**: Check state at any point
 ```python
 state = graph.get_state(config)
 print(state.values)
 ```
 
-**承認フロー**: 重要な操作前に人間の承認
+**Approval Flow**: Human approval before critical operations
 ```python
-# グラフを一時停止して承認を待つ
+# Pause graph and wait for approval
 ```
 
-### 3. Memory（記憶）
+### 3. Memory
 
-**会話記憶**: スレッド内での記憶
+**Conversation Memory**: Memory within a thread
 ```python
-# 同じthread_idで呼び出すと会話が継続
+# Conversation continues when called with the same thread_id
 config = {"configurable": {"thread_id": "conversation-1"}}
 graph.invoke(input, config)
 ```
 
-**長期記憶**: スレッドを超えた記憶
+**Long-term Memory**: Memory across threads
 ```python
-# Storeでユーザー情報を保存
+# Save user information in Store
 store.put(("user", user_id), "preferences", user_prefs)
 ```
 
-### 4. Time Travel（タイムトラベル）
+### 4. Time Travel
 
-過去の実行を再生・フォーク：
+Replay and fork past executions:
 ```python
-# 特定のチェックポイントから再開
+# Resume from specific checkpoint
 history = graph.get_state_history(config)
 for state in history:
     print(f"Checkpoint: {state.config['configurable']['checkpoint_id']}")
 
-# 過去のチェックポイントから再実行
+# Re-execute from past checkpoint
 graph.invoke(input, past_checkpoint_config)
 ```
 
-## チェックポインター実装
+## Checkpointer Implementations
 
-LangGraphは複数のチェックポインター実装を提供：
+LangGraph provides multiple checkpointer implementations:
 
-### InMemorySaver（実験用）
+### InMemorySaver (For Experimentation)
 ```python
 from langgraph.checkpoint.memory import MemorySaver
 
@@ -91,7 +91,7 @@ checkpointer = MemorySaver()
 graph = builder.compile(checkpointer=checkpointer)
 ```
 
-### SqliteSaver（ローカル開発用）
+### SqliteSaver (For Local Development)
 ```python
 from langgraph.checkpoint.sqlite import SqliteSaver
 
@@ -99,7 +99,7 @@ checkpointer = SqliteSaver.from_conn_string("checkpoints.db")
 graph = builder.compile(checkpointer=checkpointer)
 ```
 
-### PostgresSaver（本番環境用）
+### PostgresSaver (For Production)
 ```python
 from langgraph.checkpoint.postgres import PostgresSaver
 
@@ -109,44 +109,44 @@ checkpointer = PostgresSaver.from_conn_string(
 graph = builder.compile(checkpointer=checkpointer)
 ```
 
-## 基本的な使用例
+## Basic Usage Example
 
 ```python
 from langgraph.checkpoint.memory import MemorySaver
 
-# チェックポインター付きでコンパイル
+# Compile with checkpointer
 checkpointer = MemorySaver()
 graph = builder.compile(checkpointer=checkpointer)
 
-# thread_idを指定して実行
+# Execute with thread_id
 config = {"configurable": {"thread_id": "user-123"}}
 
-# 初回実行
+# First execution
 result1 = graph.invoke({"messages": [("user", "Hello")]}, config)
 
-# 同じスレッドで継続
+# Continue in same thread
 result2 = graph.invoke({"messages": [("user", "How are you?")]}, config)
 
-# 状態を確認
+# Check state
 state = graph.get_state(config)
-print(state.values)  # これまでの全メッセージ
+print(state.values)  # All messages so far
 
-# 履歴を確認
+# Check history
 for state in graph.get_state_history(config):
     print(f"Step: {state.values}")
 ```
 
-## 重要な原則
+## Key Principles
 
-1. **スレッドID管理**: 会話ごとに一意のthread_idを使用
-2. **チェックポインター選択**: 用途に応じた適切な実装を選択
-3. **状態の最小化**: チェックポイントサイズを抑えるため、必要な情報のみ保存
-4. **クリーンアップ**: 古いチェックポイントの定期的な削除
+1. **Thread ID Management**: Use unique thread_id for each conversation
+2. **Checkpointer Selection**: Choose appropriate implementation for your use case
+3. **State Minimization**: Save only necessary information to keep checkpoint size small
+4. **Cleanup**: Periodically delete old checkpoints
 
-## 次のステップ
+## Next Steps
 
-各機能の詳細については、以下のページを参照してください：
+For details on each feature, refer to the following pages:
 
-- [Persistence.md](Persistence.md) - 永続化の詳細
-- [Checkpointer.md](Checkpointer.md) - チェックポインターの実装
-- [Store.md](Store.md) - 長期記憶の管理
+- [Persistence.md](Persistence.md) - Persistence details
+- [Checkpointer.md](Checkpointer.md) - Checkpointer implementation
+- [Store.md](Store.md) - Long-term memory management

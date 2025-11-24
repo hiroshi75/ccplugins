@@ -1,19 +1,19 @@
-# Routing（分岐処理）
+# Routing (Branching Processing)
 
-入力に基づいて専門的なフローへ振り分けるパターン。
+A pattern for routing to specialized flows based on input.
 
-## 概要
+## Overview
 
-Routingは、入力の特性に基づいて**適切な処理パスを選択**するパターンです。カスタマーサポートでの質問分類などに使用されます。
+Routing is a pattern that **selects the appropriate processing path** based on input characteristics. Used for customer support question classification, etc.
 
-## 適用場面
+## Use Cases
 
-- 顧客の質問タイプ別に専門チームへ振り分け
-- ドキュメントの種類別に異なる処理パイプライン
-- 緊急度・重要度による優先度付け
-- 言語別の処理フロー選択
+- Route customer questions to specialized teams by type
+- Different processing pipelines by document type
+- Prioritization by urgency/importance
+- Processing flow selection by language
 
-## 実装例: カスタマーサポート
+## Implementation Example: Customer Support
 
 ```python
 from typing import Literal, TypedDict
@@ -24,39 +24,39 @@ class State(TypedDict):
     response: str
 
 def router_node(state: State) -> Literal["pricing", "refund", "technical"]:
-    """質問を分類してルーティング"""
+    """Classify and route question"""
     query = state["query"]
 
-    # LLMで分類
+    # Classify with LLM
     category = llm.invoke(
         f"Classify this customer query into: pricing, refund, or technical\n"
         f"Query: {query}\n"
         f"Category:"
     )
 
-    if "価格" in query or "料金" in query:
+    if "price" in query or "cost" in query:
         return "pricing"
-    elif "返金" in query or "キャンセル" in query:
+    elif "refund" in query or "cancel" in query:
         return "refund"
     else:
         return "technical"
 
 def pricing_node(state: State):
-    """料金に関する対応"""
+    """Handle pricing queries"""
     response = handle_pricing_query(state["query"])
     return {"response": response, "category": "pricing"}
 
 def refund_node(state: State):
-    """返金に関する対応"""
+    """Handle refund queries"""
     response = handle_refund_query(state["query"])
     return {"response": response, "category": "refund"}
 
 def technical_node(state: State):
-    """技術的な問題への対応"""
+    """Handle technical issues"""
     response = handle_technical_query(state["query"])
     return {"response": response, "category": "technical"}
 
-# グラフ構築
+# Build graph
 builder = StateGraph(State)
 
 builder.add_node("router", router_node)
@@ -64,7 +64,7 @@ builder.add_node("pricing", pricing_node)
 builder.add_node("refund", refund_node)
 builder.add_node("technical", technical_node)
 
-# ルーティングエッジ
+# Routing edges
 builder.add_edge(START, "router")
 builder.add_conditional_edges(
     "router",
@@ -76,7 +76,7 @@ builder.add_conditional_edges(
     }
 )
 
-# 各ノードから終了
+# End from each node
 builder.add_edge("pricing", END)
 builder.add_edge("refund", END)
 builder.add_edge("technical", END)
@@ -84,42 +84,42 @@ builder.add_edge("technical", END)
 graph = builder.compile()
 ```
 
-## 応用パターン
+## Advanced Patterns
 
-### パターン1: 多段階ルーティング
+### Pattern 1: Multi-Stage Routing
 
 ```python
 def first_router(state: State) -> Literal["sales", "support"]:
-    """第1段階: 営業かサポートか"""
-    if "購入" in state["query"] or "見積" in state["query"]:
+    """Stage 1: Sales or Support"""
+    if "purchase" in state["query"] or "quote" in state["query"]:
         return "sales"
     return "support"
 
 def support_router(state: State) -> Literal["billing", "technical"]:
-    """第2段階: サポート内での分類"""
-    if "請求" in state["query"]:
+    """Stage 2: Classification within Support"""
+    if "billing" in state["query"]:
         return "billing"
     return "technical"
 
-# 多段階ルーティング
+# Multi-stage routing
 builder.add_conditional_edges("first_router", first_router, {...})
 builder.add_conditional_edges("support_router", support_router, {...})
 ```
 
-### パターン2: 優先度ベースルーティング
+### Pattern 2: Priority-Based Routing
 
 ```python
 from typing import Literal
 
 def priority_router(state: State) -> Literal["urgent", "normal", "low"]:
-    """緊急度で振り分け"""
+    """Route by urgency"""
     query = state["query"]
 
-    # 緊急キーワード
-    if any(word in query for word in ["緊急", "至急", "すぐに"]):
+    # Urgent keywords
+    if any(word in query for word in ["urgent", "immediately", "asap"]):
         return "urgent"
 
-    # 重要度判定
+    # Importance determination
     importance = analyze_importance(query)
     if importance > 0.7:
         return "normal"
@@ -130,31 +130,31 @@ builder.add_conditional_edges(
     "priority_router",
     priority_router,
     {
-        "urgent": "urgent_handler",    # すぐ処理
-        "normal": "normal_queue",       # 通常キュー
-        "low": "batch_processor"        # バッチ処理
+        "urgent": "urgent_handler",    # Immediate processing
+        "normal": "normal_queue",       # Normal queue
+        "low": "batch_processor"        # Batch processing
     }
 )
 ```
 
-### パターン3: セマンティックルーティング（埋め込みベース）
+### Pattern 3: Semantic Routing (Embedding-Based)
 
 ```python
 import numpy as np
 from typing import Literal
 
 def semantic_router(state: State) -> Literal["product", "account", "general"]:
-    """埋め込みベースの意味的ルーティング"""
+    """Semantic routing based on embeddings"""
     query_embedding = embed(state["query"])
 
-    # 各カテゴリーの代表的な埋め込み
+    # Representative embeddings for each category
     categories = {
-        "product": embed("製品、機能、使い方"),
-        "account": embed("アカウント、ログイン、パスワード"),
-        "general": embed("一般的な質問")
+        "product": embed("product, features, how to use"),
+        "account": embed("account, login, password"),
+        "general": embed("general questions")
     }
 
-    # 最も近いカテゴリーを選択
+    # Select closest category
     similarities = {
         cat: cosine_similarity(query_embedding, emb)
         for cat, emb in categories.items()
@@ -163,23 +163,23 @@ def semantic_router(state: State) -> Literal["product", "account", "general"]:
     return max(similarities, key=similarities.get)
 ```
 
-### パターン4: 動的ルーティング（LLM判定）
+### Pattern 4: Dynamic Routing (LLM Judgment)
 
 ```python
 def llm_router(state: State):
-    """LLMに最適なルートを判定させる"""
+    """Have LLM determine optimal route"""
     routes = ["expert_a", "expert_b", "expert_c", "general"]
 
     prompt = f"""
-    この質問を最も適切に処理できる専門家を選んでください:
-    - expert_a: データベースの専門家
-    - expert_b: APIの専門家
-    - expert_c: UIの専門家
-    - general: 一般的な質問
+    Select the most appropriate expert to handle this question:
+    - expert_a: Database specialist
+    - expert_b: API specialist
+    - expert_c: UI specialist
+    - general: General questions
 
-    質問: {state['query']}
+    Question: {state['query']}
 
-    選択: """
+    Selection: """
 
     route = llm.invoke(prompt).strip()
     return route if route in routes else "general"
@@ -196,23 +196,23 @@ builder.add_conditional_edges(
 )
 ```
 
-## 利点
+## Benefits
 
-✅ **専門化**: 各タイプに特化した処理が可能
-✅ **効率化**: 不要な処理をスキップ
-✅ **保守性**: 各ルートを独立して改善
-✅ **スケーラビリティ**: 新しいルートを簡単に追加
+✅ **Specialization**: Specialized processing for each type
+✅ **Efficiency**: Skip unnecessary processing
+✅ **Maintainability**: Improve each route independently
+✅ **Scalability**: Easy to add new routes
 
-## 注意点
+## Considerations
 
-⚠️ **分類精度**: ルーティングの誤りが全体に影響
-⚠️ **カバレッジ**: すべてのケースをカバーする必要
-⚠️ **フォールバック**: 不明なケースの処理が重要
-⚠️ **バランス**: ルート間の負荷分散を考慮
+⚠️ **Classification Accuracy**: Routing errors affect the whole
+⚠️ **Coverage**: Need to cover all cases
+⚠️ **Fallback**: Handling unknown cases is important
+⚠️ **Balance**: Consider load balancing between routes
 
-## ベストプラクティス
+## Best Practices
 
-### 1. フォールバックルートを用意
+### 1. Provide Fallback Route
 
 ```python
 def safe_router(state: State):
@@ -223,11 +223,11 @@ def safe_router(state: State):
     except Exception:
         pass
 
-    # フォールバック
+    # Fallback
     return "general_handler"
 ```
 
-### 2. ルーティング理由をログに記録
+### 2. Log Routing Reasons
 
 ```python
 def logged_router(state: State):
@@ -239,10 +239,10 @@ def logged_router(state: State):
     }
 ```
 
-### 3. 動的なルート追加
+### 3. Dynamic Route Addition
 
 ```python
-# 設定ファイルからルートを読み込み
+# Load routes from configuration file
 ROUTES = load_routes_config()
 
 builder.add_conditional_edges(
@@ -252,12 +252,12 @@ builder.add_conditional_edges(
 )
 ```
 
-## まとめ
+## Summary
 
-Routingは**入力の特性に基づく適切な処理選択**に最適です。分類精度とフォールバック処理が成功の鍵です。
+Routing is optimal for **appropriate processing selection based on input characteristics**. Classification accuracy and fallback handling are keys to success.
 
-## 関連ページ
+## Related Pages
 
-- [06_Agent.md](06_Agent.md) - Agentとの組み合わせ
-- [01_基本概念/Edge.md](../01_基本概念/Edge.md) - 条件付きエッジの詳細
-- [Workflow_vs_Agent.md](Workflow_vs_Agent.md) - パターンの使い分け
+- [06_Agent.md](06_Agent.md) - Combining with Agent
+- [01_Basic_Concepts/Edge.md](../01_Basic_Concepts/Edge.md) - Conditional edge details
+- [Workflow_vs_Agent.md](Workflow_vs_Agent.md) - Pattern usage

@@ -1,99 +1,99 @@
-# Persistence（永続化）
+# Persistence
 
-グラフの状態を保存し、復元する機能。
+Functionality to save and restore graph state.
 
-## 概要
+## Overview
 
-Persistenceは、グラフ実行の各段階で状態を**自動的に保存**し、後で復元できるようにする機能です。
+Persistence is a feature that **automatically saves** state at each stage of graph execution and allows you to restore it later.
 
-## 基本概念
+## Basic Concepts
 
-### チェックポイント
+### Checkpoints
 
-各**スーパーステップ**（並列実行されるノードのセット）の後に、状態が自動保存されます。
+State is automatically saved after each **superstep** (set of nodes executed in parallel).
 
 ```python
-# スーパーステップ1: node_aとnode_bが並列実行
-# → チェックポイント1
+# Superstep 1: node_a and node_b execute in parallel
+# → Checkpoint 1
 
-# スーパーステップ2: node_c実行
-# → チェックポイント2
+# Superstep 2: node_c executes
+# → Checkpoint 2
 
-# スーパーステップ3: node_d実行
-# → チェックポイント3
+# Superstep 3: node_d executes
+# → Checkpoint 3
 ```
 
-### スレッド
+### Threads
 
-スレッドは**一連の実行の累積された状態**を含む識別子です：
+A thread is an identifier containing the **accumulated state of a series of executions**:
 
 ```python
 config = {"configurable": {"thread_id": "conversation-123"}}
 ```
 
-同じ`thread_id`で実行すると、前回の状態から継続します。
+Executing with the same `thread_id` continues from the previous state.
 
-## 実装例
+## Implementation Example
 
 ```python
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import StateGraph, MessagesState
 
-# グラフ定義
+# Define graph
 builder = StateGraph(MessagesState)
 builder.add_node("chatbot", chatbot_node)
 builder.add_edge(START, "chatbot")
 builder.add_edge("chatbot", END)
 
-# チェックポインター付きでコンパイル
+# Compile with checkpointer
 checkpointer = MemorySaver()
 graph = builder.compile(checkpointer=checkpointer)
 
-# スレッドIDを指定して実行
+# Execute with thread ID
 config = {"configurable": {"thread_id": "user-001"}}
 
-# 初回実行
+# First execution
 graph.invoke(
-    {"messages": [{"role": "user", "content": "私の名前はアリスです"}]},
+    {"messages": [{"role": "user", "content": "My name is Alice"}]},
     config
 )
 
-# 同じスレッドで継続（前回の状態を保持）
+# Continue in same thread (retains previous state)
 response = graph.invoke(
-    {"messages": [{"role": "user", "content": "私の名前は？"}]},
+    {"messages": [{"role": "user", "content": "What's my name?"}]},
     config
 )
 
-# → "あなたの名前はアリスです"
+# → "Your name is Alice"
 ```
 
-## StateSnapshotオブジェクト
+## StateSnapshot Object
 
-チェックポイントは`StateSnapshot`オブジェクトで表現されます：
+Checkpoints are represented as `StateSnapshot` objects:
 
 ```python
 class StateSnapshot:
-    values: dict          # その時点の状態
-    next: tuple[str]      # 次に実行するノード
-    config: RunnableConfig  # チェックポイント設定
-    metadata: dict        # メタデータ
-    tasks: tuple[PregelTask]  # 実行予定タスク
+    values: dict          # State at that point in time
+    next: tuple[str]      # Nodes to execute next
+    config: RunnableConfig  # Checkpoint configuration
+    metadata: dict        # Metadata
+    tasks: tuple[PregelTask]  # Scheduled tasks
 ```
 
-### 最新状態の取得
+### Getting Latest State
 
 ```python
 state = graph.get_state(config)
 
-print(state.values)      # 現在の状態
-print(state.next)        # 次のノード
-print(state.config)      # チェックポイント設定
+print(state.values)      # Current state
+print(state.next)        # Next nodes
+print(state.config)      # Checkpoint configuration
 ```
 
-### 履歴の取得
+### Getting History
 
 ```python
-# 時系列順にStateSnapshotのリストを取得
+# Get list of StateSnapshots in chronological order
 for state in graph.get_state_history(config):
     print(f"Checkpoint: {state.config['configurable']['checkpoint_id']}")
     print(f"Values: {state.values}")
@@ -101,141 +101,141 @@ for state in graph.get_state_history(config):
     print("---")
 ```
 
-## タイムトラベル機能
+## Time Travel Feature
 
-特定のチェックポイントから実行を再開：
+Resume execution from a specific checkpoint:
 
 ```python
-# 履歴から特定のチェックポイントを取得
+# Get specific checkpoint from history
 history = list(graph.get_state_history(config))
 
-# 3つ前のチェックポイント
+# Checkpoint from 3 steps ago
 past_state = history[3]
 
-# そのチェックポイントから再実行
+# Re-execute from that checkpoint
 result = graph.invoke(
-    {"messages": [{"role": "user", "content": "新しい質問"}]},
+    {"messages": [{"role": "user", "content": "New question"}]},
     past_state.config
 )
 ```
 
-### 代替パスの検証
+### Validating Alternative Paths
 
 ```python
-# 現在の状態を取得
+# Get current state
 current_state = graph.get_state(config)
 
-# 異なる入力で試す
+# Try with different input
 alt_result = graph.invoke(
-    {"messages": [{"role": "user", "content": "別の質問"}]},
+    {"messages": [{"role": "user", "content": "Different question"}]},
     current_state.config
 )
 
-# 元の実行には影響しない
+# Original execution is not affected
 ```
 
-## 状態の更新
+## Updating State
 
-チェックポイントの状態を直接更新：
+Directly update checkpoint state:
 
 ```python
-# 現在の状態を取得
+# Get current state
 state = graph.get_state(config)
 
-# 状態を更新
+# Update state
 graph.update_state(
     config,
-    {"messages": [{"role": "assistant", "content": "更新されたメッセージ"}]}
+    {"messages": [{"role": "assistant", "content": "Updated message"}]}
 )
 
-# 更新後の状態から再開
+# Resume from updated state
 graph.invoke({"messages": [...]}, config)
 ```
 
-## ユースケース
+## Use Cases
 
-### 1. 会話の継続
+### 1. Conversation Continuation
 
 ```python
-# セッション1
+# Session 1
 config = {"configurable": {"thread_id": "chat-1"}}
-graph.invoke({"messages": [("user", "こんにちは")]}, config)
+graph.invoke({"messages": [("user", "Hello")]}, config)
 
-# セッション2（後日）
-# 前回の会話を覚えている
-graph.invoke({"messages": [("user", "前回の話の続きです")]}, config)
+# Session 2 (days later)
+# Remembers previous conversation
+graph.invoke({"messages": [("user", "Continuing from last time")]}, config)
 ```
 
-### 2. エラーからの復旧
+### 2. Error Recovery
 
 ```python
 try:
     graph.invoke(input, config)
 except Exception as e:
-    # エラーが発生しても、チェックポイントから復旧可能
+    # Even if error occurs, can recover from checkpoint
     print(f"Error: {e}")
 
-    # 最新の状態を確認
+    # Check latest state
     state = graph.get_state(config)
 
-    # 状態を修正して再実行
+    # Fix state and re-execute
     graph.update_state(config, {"error_fixed": True})
     graph.invoke(input, config)
 ```
 
-### 3. A/Bテスト
+### 3. A/B Testing
 
 ```python
-# 基準実行
+# Base execution
 base_result = graph.invoke(input, base_config)
 
-# 代替実行1
+# Alternative execution 1
 alt_config_1 = base_config.copy()
 alt_result_1 = graph.invoke(modified_input_1, alt_config_1)
 
-# 代替実行2
+# Alternative execution 2
 alt_config_2 = base_config.copy()
 alt_result_2 = graph.invoke(modified_input_2, alt_config_2)
 
-# 結果を比較
+# Compare results
 ```
 
-### 4. デバッグとトレース
+### 4. Debugging and Tracing
 
 ```python
-# 実行
+# Execute
 graph.invoke(input, config)
 
-# 各ステップを確認
+# Check each step
 for i, state in enumerate(graph.get_state_history(config)):
     print(f"Step {i}:")
     print(f"  State: {state.values}")
     print(f"  Next: {state.next}")
 ```
 
-## 重要な注意点
+## Important Considerations
 
-### スレッドIDの一意性
+### Thread ID Uniqueness
 
 ```python
-# ユーザーごとに異なるthread_idを使用
+# Use different thread_id per user
 user_config = {"configurable": {"thread_id": f"user-{user_id}"}}
 
-# 会話ごとに異なるthread_idを使用
+# Use different thread_id per conversation
 conversation_config = {"configurable": {"thread_id": f"conv-{conv_id}"}}
 ```
 
-### チェックポイントのクリーンアップ
+### Checkpoint Cleanup
 
 ```python
-# 古いチェックポイントを削除（実装依存）
+# Delete old checkpoints (implementation-dependent)
 checkpointer.cleanup(before_timestamp=old_timestamp)
 ```
 
-### マルチユーザー対応
+### Multi-user Support
 
 ```python
-# ユーザーIDとセッションIDを組み合わせ
+# Combine user ID and session ID
 def get_config(user_id: str, session_id: str):
     return {
         "configurable": {
@@ -246,19 +246,19 @@ def get_config(user_id: str, session_id: str):
 config = get_config("user123", "session456")
 ```
 
-## ベストプラクティス
+## Best Practices
 
-1. **意味のあるthread_id**: ユーザー、セッション、会話を識別できる形式
-2. **定期的なクリーンアップ**: 古いチェックポイントを削除
-3. **適切なチェックポインター**: 用途に応じた実装を選択
-4. **エラーハンドリング**: チェックポイント取得時のエラーを適切に処理
+1. **Meaningful thread_id**: Format that can identify user, session, conversation
+2. **Regular Cleanup**: Delete old checkpoints
+3. **Appropriate Checkpointer**: Choose implementation based on use case
+4. **Error Handling**: Properly handle errors when retrieving checkpoints
 
-## まとめ
+## Summary
 
-Persistenceは**状態の永続化と復元**を実現し、会話の継続、エラー復旧、タイムトラベルを可能にします。
+Persistence enables **state persistence and restoration**, making conversation continuation, error recovery, and time travel possible.
 
-## 関連ページ
+## Related Pages
 
-- [Checkpointer.md](Checkpointer.md) - チェックポインター実装の詳細
-- [Store.md](Store.md) - 長期記憶との組み合わせ
-- [05_応用機能/HumanInTheLoop.md](../05_応用機能/HumanInTheLoop.md) - 状態検査の応用
+- [Checkpointer.md](Checkpointer.md) - Checkpointer implementation details
+- [Store.md](Store.md) - Combining with long-term memory
+- [05_Advanced_Features/HumanInTheLoop.md](../05_Advanced_Features/HumanInTheLoop.md) - Applications of state inspection

@@ -1,31 +1,31 @@
-# OpenAI GPT-5 高度な機能
+# OpenAI GPT-5 Advanced Features
 
-GPT-5 モデルの高度な設定とマルチモーダル機能。
+Advanced settings and multimodal features for GPT-5 models.
 
-## パラメータ設定
+## Parameter Settings
 
 ```python
 from langchain_openai import ChatOpenAI
 
 llm = ChatOpenAI(
     model="gpt-5",
-    temperature=0.7,          # 創造性 (0.0-2.0)
-    max_tokens=128000,        # 最大出力（GPT-5: 128K）
-    top_p=0.9,               # 多様性
-    frequency_penalty=0.0,    # 繰り返しペナルティ
-    presence_penalty=0.0,     # 話題の多様性
+    temperature=0.7,          # Creativity (0.0-2.0)
+    max_tokens=128000,        # Max output (GPT-5: 128K)
+    top_p=0.9,               # Diversity
+    frequency_penalty=0.0,    # Repetition penalty
+    presence_penalty=0.0,     # Topic diversity
 )
 
-# GPT-5 Pro（最大出力が大きい）
+# GPT-5 Pro (larger max output)
 llm_pro = ChatOpenAI(
     model="gpt-5-pro",
     max_tokens=272000,        # GPT-5 Pro: 272K
 )
 ```
 
-## コンテキストウィンドウと出力制限
+## Context Window and Output Limits
 
-| モデル | コンテキストウィンドウ | 最大出力トークン |
+| Model | Context Window | Max Output Tokens |
 |--------|-------------------|---------------|
 | `gpt-5` | 400,000 (API) | 128,000 |
 | `gpt-5-mini` | 400,000 (API) | 128,000 |
@@ -34,9 +34,9 @@ llm_pro = ChatOpenAI(
 | `gpt-5.1` | 128,000 (ChatGPT) / 400,000 (API) | 128,000 |
 | `gpt-5.1-codex` | 400,000 | 128,000 |
 
-**注意**: コンテキストウィンドウは入力＋出力の合計長です。
+**Note**: Context window is the combined length of input + output.
 
-## ビジョン（画像処理）
+## Vision (Image Processing)
 
 ```python
 from langchain_openai import ChatOpenAI
@@ -46,7 +46,7 @@ llm = ChatOpenAI(model="gpt-5")
 
 message = HumanMessage(
     content=[
-        {"type": "text", "text": "この画像には何が写っていますか？"},
+        {"type": "text", "text": "What is shown in this image?"},
         {
             "type": "image_url",
             "image_url": {
@@ -60,7 +60,7 @@ message = HumanMessage(
 response = llm.invoke([message])
 ```
 
-## ツール使用（Function Calling）
+## Tool Use (Function Calling)
 
 ```python
 from langchain_openai import ChatOpenAI
@@ -68,42 +68,42 @@ from langchain_core.tools import tool
 
 @tool
 def get_weather(location: str) -> str:
-    """天気を取得"""
-    return f"{location}の天気は晴れです"
+    """Get weather"""
+    return f"The weather in {location} is sunny"
 
 @tool
 def calculate(expression: str) -> float:
-    """計算"""
+    """Calculate"""
     return eval(expression)
 
 llm = ChatOpenAI(model="gpt-5")
 llm_with_tools = llm.bind_tools([get_weather, calculate])
 
-response = llm_with_tools.invoke("東京の天気と2+2を教えて")
+response = llm_with_tools.invoke("Tell me the weather in Tokyo and 2+2")
 print(response.tool_calls)
 ```
 
-## 並列ツール呼び出し
+## Parallel Tool Calling
 
 ```python
 @tool
 def get_stock_price(symbol: str) -> float:
-    """株価を取得"""
+    """Get stock price"""
     return 150.25
 
 @tool
 def get_company_info(symbol: str) -> dict:
-    """企業情報を取得"""
+    """Get company information"""
     return {"name": "Apple Inc.", "industry": "Technology"}
 
 llm = ChatOpenAI(model="gpt-5")
 llm_with_tools = llm.bind_tools([get_stock_price, get_company_info])
 
-# 複数のツールを並列で呼び出し
-response = llm_with_tools.invoke("AAPLの株価と企業情報を教えて")
+# Call multiple tools in parallel
+response = llm_with_tools.invoke("Tell me the stock price and company info for AAPL")
 ```
 
-## ストリーミング
+## Streaming
 
 ```python
 llm = ChatOpenAI(
@@ -111,11 +111,11 @@ llm = ChatOpenAI(
     streaming=True
 )
 
-for chunk in llm.stream("質問"):
+for chunk in llm.stream("Question"):
     print(chunk.content, end="", flush=True)
 ```
 
-## JSON モード
+## JSON Mode
 
 ```python
 llm = ChatOpenAI(
@@ -123,61 +123,61 @@ llm = ChatOpenAI(
     model_kwargs={"response_format": {"type": "json_object"}}
 )
 
-response = llm.invoke("ユーザー情報をJSON形式で返してください")
+response = llm.invoke("Return user information in JSON format")
 ```
 
-## GPT-5.1 適応的推論の使用
+## Using GPT-5.1 Adaptive Reasoning
 
-### Instant モード
+### Instant Mode
 
-速度と精度のバランス：
+Balance between speed and accuracy:
 
 ```python
 llm = ChatOpenAI(model="gpt-5.1-instant")
 
-# 適応的に推論時間を調整
-response = llm.invoke("この問題を解いて...")
+# Adaptively adjusts reasoning time
+response = llm.invoke("Solve this problem...")
 ```
 
-### Thinking モード
+### Thinking Mode
 
-複雑な問題に対して深い思考：
+Deep thought for complex problems:
 
 ```python
 llm = ChatOpenAI(model="gpt-5.1-thinking")
 
-# より長い思考時間で精度を向上
-response = llm.invoke("複雑な数学問題...")
+# Improves accuracy with longer thinking time
+response = llm.invoke("Complex math problem...")
 ```
 
-## GPT-5 Pro の活用
+## Leveraging GPT-5 Pro
 
-企業・研究環境向けの拡張推論：
+Extended reasoning for enterprise and research environments:
 
 ```python
 llm = ChatOpenAI(
     model="gpt-5-pro",
-    temperature=0.3,  # 精度重視
-    max_tokens=272000  # 大量の出力が可能
+    temperature=0.3,  # Precision-focused
+    max_tokens=272000  # Large output possible
 )
 
-# より詳細で信頼性の高い回答
-response = llm.invoke("詳細な分析を...")
+# More detailed and reliable responses
+response = llm.invoke("Detailed analysis of...")
 ```
 
-## コード生成特化モデル
+## Code Generation Specialized Models
 
 ```python
-# GitHub Copilot で使用される Codex
+# Codex used in GitHub Copilot
 llm = ChatOpenAI(model="gpt-5.1-codex")
 
-response = llm.invoke("Pythonでクイックソートを実装して")
+response = llm.invoke("Implement quicksort in Python")
 
-# 小型版（高速）
+# Compact version (fast)
 llm_mini = ChatOpenAI(model="gpt-5.1-codex-mini")
 ```
 
-## トークン使用量の追跡
+## Tracking Token Usage
 
 ```python
 from langchain.callbacks import get_openai_callback
@@ -185,7 +185,7 @@ from langchain.callbacks import get_openai_callback
 llm = ChatOpenAI(model="gpt-5")
 
 with get_openai_callback() as cb:
-    response = llm.invoke("質問")
+    response = llm.invoke("Question")
     print(f"Total Tokens: {cb.total_tokens}")
     print(f"Prompt Tokens: {cb.prompt_tokens}")
     print(f"Completion Tokens: {cb.completion_tokens}")
@@ -194,7 +194,7 @@ with get_openai_callback() as cb:
 
 ## Azure OpenAI Service
 
-GPT-5 は Azure でも利用可能：
+GPT-5 is also available on Azure:
 
 ```python
 from langchain_openai import AzureChatOpenAI
@@ -208,7 +208,7 @@ llm = AzureChatOpenAI(
 )
 ```
 
-### 環境変数（Azure）
+### Environment Variables (Azure)
 
 ```bash
 export AZURE_OPENAI_ENDPOINT="https://your-resource.openai.azure.com/"
@@ -216,7 +216,7 @@ export AZURE_OPENAI_API_KEY="your-azure-api-key"
 export AZURE_OPENAI_DEPLOYMENT_NAME="gpt-5"
 ```
 
-## エラーハンドリング
+## Error Handling
 
 ```python
 from langchain_openai import ChatOpenAI
@@ -224,14 +224,14 @@ from openai import OpenAIError, RateLimitError
 
 try:
     llm = ChatOpenAI(model="gpt-5")
-    response = llm.invoke("質問")
+    response = llm.invoke("Question")
 except RateLimitError:
-    print("レート制限に達しました")
+    print("Rate limit reached")
 except OpenAIError as e:
-    print(f"OpenAI エラー: {e}")
+    print(f"OpenAI error: {e}")
 ```
 
-## レート制限の処理
+## Handling Rate Limits
 
 ```python
 from tenacity import retry, wait_exponential, stop_after_attempt
@@ -246,41 +246,41 @@ def invoke_with_retry(llm, messages):
     return llm.invoke(messages)
 
 llm = ChatOpenAI(model="gpt-5")
-response = invoke_with_retry(llm, ["質問"])
+response = invoke_with_retry(llm, ["Question"])
 ```
 
-## 大規模コンテキストの活用
+## Leveraging Large Context
 
-GPT-5 の 400K コンテキストウィンドウを活用：
+Utilizing GPT-5's 400K context window:
 
 ```python
 llm = ChatOpenAI(model="gpt-5")
 
-# 大量の文書を一度に処理
-long_document = "..." * 100000  # 長文ドキュメント
+# Process large amounts of documents at once
+long_document = "..." * 100000  # Long document
 
 response = llm.invoke(f"""
-以下の文書を分析してください：
+Please analyze the following document:
 
 {long_document}
 
-要約と主要なポイントを教えてください。
+Provide a summary and key points.
 """)
 ```
 
-## Compaction 技術
+## Compaction Technology
 
-GPT-5.1 では、実質的により長い文脈を扱える技術が導入されています：
+GPT-5.1 introduces technology that effectively handles longer contexts:
 
 ```python
-# 非常に長い会話履歴やドキュメントの処理
+# Processing very long conversation histories or documents
 llm = ChatOpenAI(model="gpt-5.1")
 
-# Compaction により効率的に処理
+# Efficiently processed through Compaction
 response = llm.invoke(very_long_context)
 ```
 
-## 参考リンク
+## Reference Links
 
 - [OpenAI GPT-5 Documentation](https://openai.com/gpt-5/)
 - [OpenAI GPT-5.1 Documentation](https://openai.com/index/gpt-5-1/)

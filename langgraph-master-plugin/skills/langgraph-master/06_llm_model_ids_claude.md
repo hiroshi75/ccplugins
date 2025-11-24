@@ -1,127 +1,127 @@
-# Anthropic Claude モデル ID
+# Anthropic Claude Model IDs
 
-Anthropic Claude API で使用可能なモデル ID 一覧。
+List of available model IDs for the Anthropic Claude API.
 
-> **最終更新**: 2025-11-24
+> **Last Updated**: 2025-11-24
 
-## モデル一覧
+## Model List
 
 ### Claude 4.x (2025)
 
-| モデル ID | コンテキスト | 最大出力 | リリース | 特徴 |
+| Model ID | Context | Max Output | Release | Features |
 |-----------|------------|---------|---------|------|
-| `claude-opus-4-1-20250805` | 200K | 32K | 2025-08 | 最強。複雑な推論・コード生成 |
-| `claude-sonnet-4-5` | 1M | 64K | 2025-09 | 最新バランス型（推奨） |
-| `claude-sonnet-4-20250514` | 200K (1M beta) | 64K | 2025-05 | 本番環境推奨（日付固定） |
-| `claude-haiku-4-5-20251001` | 200K | 64K | 2025-10 | 高速・低コスト |
+| `claude-opus-4-1-20250805` | 200K | 32K | 2025-08 | Most powerful. Complex reasoning & code generation |
+| `claude-sonnet-4-5` | 1M | 64K | 2025-09 | Latest balanced model (recommended) |
+| `claude-sonnet-4-20250514` | 200K (1M beta) | 64K | 2025-05 | Production recommended (date-fixed) |
+| `claude-haiku-4-5-20251001` | 200K | 64K | 2025-10 | Fast & low-cost |
 
-**モデル特性**:
-- **Opus**: 最高性能、複雑なタスク（200K コンテキスト）
-- **Sonnet**: バランス型、汎用的（1M コンテキスト）
-- **Haiku**: 高速・低コスト（$1/M 入力, $5/M 出力）
+**Model Characteristics**:
+- **Opus**: Highest performance, complex tasks (200K context)
+- **Sonnet**: Balanced, general-purpose (1M context)
+- **Haiku**: Fast & low-cost ($1/M input, $5/M output)
 
-## 基本的な使用方法
+## Basic Usage
 
 ```python
 from langchain_anthropic import ChatAnthropic
 
-# 推奨: 最新 Sonnet
+# Recommended: Latest Sonnet
 llm = ChatAnthropic(model="claude-sonnet-4-5")
 
-# 本番環境: 日付固定版
+# Production: Date-fixed version
 llm = ChatAnthropic(model="claude-sonnet-4-20250514")
 
-# 高速・低コスト
+# Fast & low-cost
 llm = ChatAnthropic(model="claude-haiku-4-5-20251001")
 
-# 最高性能
+# Highest performance
 llm = ChatAnthropic(model="claude-opus-4-1-20250805")
 ```
 
-### 環境変数
+### Environment Variables
 
 ```bash
 export ANTHROPIC_API_KEY="sk-ant-..."
 ```
 
-## モデル選択ガイド
+## Model Selection Guide
 
-| 用途 | 推奨モデル |
+| Use Case | Recommended Model |
 |------|-----------|
-| コスト重視 | `claude-haiku-4-5-20251001` |
-| バランス | `claude-sonnet-4-5` |
-| 性能重視 | `claude-opus-4-1-20250805` |
-| 本番環境 | `claude-sonnet-4-20250514` (日付固定) |
+| Cost-focused | `claude-haiku-4-5-20251001` |
+| Balanced | `claude-sonnet-4-5` |
+| Performance-focused | `claude-opus-4-1-20250805` |
+| Production | `claude-sonnet-4-20250514` (date-fixed) |
 
-## Claude の特徴
+## Claude Features
 
-### 1. 大規模コンテキストウィンドウ
+### 1. Large Context Window
 
-Claude Sonnet 4.5 は **1M トークン**のコンテキストウィンドウに対応：
+Claude Sonnet 4.5 supports **1M tokens** context window:
 
-| モデル | 標準コンテキスト | 最大出力 | 備考 |
+| Model | Standard Context | Max Output | Notes |
 |--------|---------------|---------|------|
-| Sonnet 4.5 | 1M | 64K | 最新版 |
-| Sonnet 4 | 200K (1M beta) | 64K | beta ヘッダーで 1M 利用可 |
-| Opus 4.1 | 200K | 32K | 高性能版 |
-| Haiku 4.5 | 200K | 64K | 高速版 |
+| Sonnet 4.5 | 1M | 64K | Latest version |
+| Sonnet 4 | 200K (1M beta) | 64K | 1M available with beta header |
+| Opus 4.1 | 200K | 32K | High-performance version |
+| Haiku 4.5 | 200K | 64K | Fast version |
 
 ```python
-# 1M コンテキストの利用（Sonnet 4.5）
+# Using 1M context (Sonnet 4.5)
 llm = ChatAnthropic(
     model="claude-sonnet-4-5",
-    max_tokens=64000  # 最大出力: 64K
+    max_tokens=64000  # Max output: 64K
 )
 
-# Sonnet 4 で 1M コンテキストを有効化（beta）
+# Enable 1M context for Sonnet 4 (beta)
 llm = ChatAnthropic(
     model="claude-sonnet-4-20250514",
     default_headers={"anthropic-beta": "max-tokens-3-5-sonnet-2024-07-15"}
 )
 ```
 
-### 2. 日付固定バージョン
+### 2. Date-Fixed Versions
 
-本番環境では予期しない更新を防ぐため、日付付きバージョンを推奨：
+For production environments, date-fixed versions are recommended to prevent unexpected updates:
 
 ```python
-# ✅ 推奨（本番）
+# ✅ Recommended (production)
 llm = ChatAnthropic(model="claude-sonnet-4-20250514")
 
-# ⚠️ 注意（開発のみ）
+# ⚠️ Caution (development only)
 llm = ChatAnthropic(model="claude-sonnet-4")
 ```
 
-### 3. ツール使用（Function Calling）
+### 3. Tool Use (Function Calling)
 
-Claude はツール使用が強力（詳細は[ツール使用ガイド](06_llm_model_ids_claude_tools.md)を参照）。
+Claude has powerful tool use capabilities (see [Tool Use Guide](06_llm_model_ids_claude_tools.md) for details).
 
-### 4. マルチプラットフォーム対応
+### 4. Multi-Platform Support
 
-複数のクラウドプラットフォームで利用可能（詳細は[プラットフォーム別ガイド](06_llm_model_ids_claude_platforms.md)を参照）：
+Available on multiple cloud platforms (see [Platform-Specific Guide](06_llm_model_ids_claude_platforms.md) for details):
 
-- Anthropic API（直接）
+- Anthropic API (direct)
 - Google Vertex AI
 - AWS Bedrock
 - Azure AI (Microsoft Foundry)
 
-## 廃止済みモデル
+## Deprecated Models
 
-| モデル | 廃止日 | 移行先 |
+| Model | Deprecation Date | Migration Target |
 |--------|-------|--------|
 | Claude 3 Opus | 2025-07-21 | `claude-opus-4-1-20250805` |
 | Claude 3 Sonnet | 2025-07-21 | `claude-sonnet-4-5` |
 | Claude 2.1 | 2025-07-21 | `claude-sonnet-4-5` |
 
-## 詳細ドキュメント
+## Detailed Documentation
 
-高度な設定やパラメータについては：
-- **[Claude 高度な機能](06_llm_model_ids_claude_advanced.md)** - パラメータ設定、ストリーミング、キャッシング
-- **[プラットフォーム別ガイド](06_llm_model_ids_claude_platforms.md)** - Vertex AI, AWS Bedrock, Azure AI での使用方法
-- **[ツール使用ガイド](06_llm_model_ids_claude_tools.md)** - Function Calling の実装方法
+For advanced settings and parameters:
+- **[Claude Advanced Features](06_llm_model_ids_claude_advanced.md)** - Parameter configuration, streaming, caching
+- **[Platform-Specific Guide](06_llm_model_ids_claude_platforms.md)** - Usage on Vertex AI, AWS Bedrock, Azure AI
+- **[Tool Use Guide](06_llm_model_ids_claude_tools.md)** - Function Calling implementation
 
-## 参考リンク
+## Reference Links
 
-- [Claude API 公式](https://docs.anthropic.com/en/docs/about-claude/models/overview)
+- [Claude API Official](https://docs.anthropic.com/en/docs/about-claude/models/overview)
 - [Anthropic Console](https://console.anthropic.com/)
 - [LangChain Integration](https://docs.langchain.com/oss/python/integrations/chat/anthropic)

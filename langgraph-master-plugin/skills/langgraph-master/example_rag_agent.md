@@ -1,8 +1,8 @@
-# RAGエージェント
+# RAG Agent
 
-検索機能を持つRAG（Retrieval-Augmented Generation）エージェントの実装例。
+Implementation example of a RAG (Retrieval-Augmented Generation) agent with search functionality.
 
-## 完全なコード
+## Complete Code
 
 ```python
 from typing import Annotated, Literal
@@ -12,45 +12,45 @@ from langgraph.checkpoint.memory import MemorySaver
 from langchain_anthropic import ChatAnthropic
 from langchain_core.tools import tool
 
-# 1. ツールの定義
+# 1. Define tool
 @tool
 def retrieve_documents(query: str) -> str:
-    """関連する文書を検索します。
+    """Retrieve relevant documents.
 
     Args:
-        query: 検索クエリ
+        query: Search query
     """
-    # 実際にはベクトルストアなどで検索
-    # ここではダミーデータ
+    # In practice, search with vector store, etc.
+    # Using dummy data here
     docs = [
-        "LangGraphはエージェントフレームワークです。",
-        "StateGraphで状態管理を行います。",
-        "ツールを使ってエージェントを拡張できます。"
+        "LangGraph is an agent framework.",
+        "StateGraph manages state.",
+        "You can extend agents with tools."
     ]
 
     return "\n".join(docs)
 
 tools = [retrieve_documents]
 
-# 2. LLMにツールをバインド
+# 2. Bind tools to LLM
 llm = ChatAnthropic(model="claude-sonnet-4-5-20250929")
 llm_with_tools = llm.bind_tools(tools)
 
-# 3. ノードの定義
+# 3. Define nodes
 def agent_node(state: MessagesState):
-    """エージェントノード"""
+    """Agent node"""
     response = llm_with_tools.invoke(state["messages"])
     return {"messages": [response]}
 
 def should_continue(state: MessagesState) -> Literal["tools", "end"]:
-    """ツール使用の判定"""
+    """Determine tool usage"""
     last_message = state["messages"][-1]
 
     if last_message.tool_calls:
         return "tools"
     return "end"
 
-# 4. グラフの構築
+# 4. Build graph
 builder = StateGraph(MessagesState)
 
 builder.add_node("agent", agent_node)
@@ -67,14 +67,14 @@ builder.add_conditional_edges(
 )
 builder.add_edge("tools", "agent")
 
-# 5. コンパイル
+# 5. Compile
 checkpointer = MemorySaver()
 graph = builder.compile(checkpointer=checkpointer)
 
-# 6. 実行
+# 6. Execute
 config = {"configurable": {"thread_id": "rag-session-1"}}
 
-query = "LangGraphとは何ですか？"
+query = "What is LangGraph?"
 
 for chunk in graph.stream(
     {"messages": [{"role": "user", "content": query}]},
@@ -84,72 +84,72 @@ for chunk in graph.stream(
     chunk["messages"][-1].pretty_print()
 ```
 
-## 実行フロー
+## Execution Flow
 
 ```
-User Query: "LangGraphとは何ですか？"
+User Query: "What is LangGraph?"
     ↓
 [Agent Node]
     ↓
-LLM: "情報を検索します" + ToolCall(retrieve_documents)
+LLM: "I'll search for information" + ToolCall(retrieve_documents)
     ↓
-[Tool Node] ← 検索実行
+[Tool Node] ← Execute search
     ↓
-ToolMessage: "LangGraphはエージェントフレームワークです。..."
+ToolMessage: "LangGraph is an agent framework..."
     ↓
-[Agent Node] ← 検索結果を使用
+[Agent Node] ← Use search results
     ↓
-LLM: "LangGraphは、エージェントを構築するためのフレームワークです..."
+LLM: "LangGraph is a framework for building agents..."
     ↓
 END
 ```
 
-## 拡張例
+## Extension Examples
 
-### 複数の検索ツール
+### Multiple Search Tools
 
 ```python
 @tool
 def web_search(query: str) -> str:
-    """ウェブを検索"""
+    """Search the web"""
     return search_web(query)
 
 @tool
 def database_search(query: str) -> str:
-    """データベースを検索"""
+    """Search database"""
     return search_database(query)
 
 tools = [retrieve_documents, web_search, database_search]
 ```
 
-### ベクトル検索の実装
+### Vector Search Implementation
 
 ```python
 from langchain_community.vectorstores import FAISS
 from langchain_openai import OpenAIEmbeddings
 
-# ベクトルストアの初期化
+# Initialize vector store
 embeddings = OpenAIEmbeddings()
 vectorstore = FAISS.from_texts(
-    ["LangGraphはエージェントフレームワークです。", ...],
+    ["LangGraph is an agent framework.", ...],
     embeddings
 )
 
 @tool
 def semantic_search(query: str) -> str:
-    """セマンティック検索を実行"""
+    """Perform semantic search"""
     docs = vectorstore.similarity_search(query, k=3)
     return "\n".join([doc.page_content for doc in docs])
 ```
 
-### Human-in-the-Loopの追加
+### Adding Human-in-the-Loop
 
 ```python
 from langgraph.types import interrupt
 
 @tool
 def sensitive_search(query: str) -> str:
-    """機密情報の検索（承認必要）"""
+    """Search sensitive information (requires approval)"""
     approved = interrupt({
         "action": "sensitive_search",
         "query": query,
@@ -162,8 +162,8 @@ def sensitive_search(query: str) -> str:
         return "Search cancelled by user"
 ```
 
-## 関連ページ
+## Related Pages
 
-- [02_グラフアーキテクチャ/06_Agent.md](../02_グラフアーキテクチャ/06_Agent.md) - エージェントパターン
-- [04_ツール統合](../04_ツール統合/README.md) - ツールの詳細
-- [basic_chatbot.md](basic_chatbot.md) - 基本的なチャットボット
+- [02_Graph_Architecture/06_Agent.md](../02_Graph_Architecture/06_Agent.md) - Agent pattern
+- [04_Tool_Integration](../04_Tool_Integration/README.md) - Tool details
+- [basic_chatbot.md](basic_chatbot.md) - Basic chatbot

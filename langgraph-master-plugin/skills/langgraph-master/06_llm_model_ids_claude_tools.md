@@ -1,8 +1,8 @@
-# Claude ツール使用ガイド
+# Claude Tool Use Guide
 
-Claude のツール使用（Function Calling）の実装方法。
+Implementation methods for Claude's tool use (Function Calling).
 
-## 基本的なツール定義
+## Basic Tool Definition
 
 ```python
 from langchain_anthropic import ChatAnthropic
@@ -10,32 +10,32 @@ from langchain_core.tools import tool
 
 @tool
 def get_weather(location: str) -> str:
-    """指定された場所の天気を取得します。
+    """Get weather for a specified location.
 
     Args:
-        location: 天気を知りたい場所（例: "東京"）
+        location: Location to check weather (e.g., "Tokyo")
     """
-    return f"{location}の天気は晴れです"
+    return f"The weather in {location} is sunny"
 
 @tool
 def calculate(expression: str) -> float:
-    """数式を計算します。
+    """Calculate a mathematical expression.
 
     Args:
-        expression: 計算する数式（例: "2 + 2"）
+        expression: Mathematical expression to calculate (e.g., "2 + 2")
     """
     return eval(expression)
 
-# ツールをバインド
+# Bind tools
 llm = ChatAnthropic(model="claude-sonnet-4-5")
 llm_with_tools = llm.bind_tools([get_weather, calculate])
 
-# 使用
-response = llm_with_tools.invoke("東京の天気と2+2を教えて")
+# Usage
+response = llm_with_tools.invoke("Tell me Tokyo's weather and 2+2")
 print(response.tool_calls)
 ```
 
-## LangGraph でのツール統合
+## Tool Integration with LangGraph
 
 ```python
 from langgraph.prebuilt import create_react_agent
@@ -44,26 +44,26 @@ from langchain_core.tools import tool
 
 @tool
 def search_database(query: str) -> str:
-    """データベースを検索します。
+    """Search the database.
 
     Args:
-        query: 検索クエリ
+        query: Search query
     """
-    return f"'{query}' の検索結果"
+    return f"Search results for '{query}'"
 
-# エージェント作成
+# Create agent
 llm = ChatAnthropic(model="claude-sonnet-4-5")
 tools = [search_database]
 
 agent = create_react_agent(llm, tools)
 
-# 実行
+# Execute
 result = agent.invoke({
-    "messages": [("user", "ユーザー情報を検索して")]
+    "messages": [("user", "Search for user information")]
 })
 ```
 
-## カスタムツールノードの実装
+## Custom Tool Node Implementation
 
 ```python
 from langgraph.graph import StateGraph
@@ -76,7 +76,7 @@ class State(TypedDict):
 
 @tool
 def get_stock_price(symbol: str) -> float:
-    """株価を取得"""
+    """Get stock price"""
     return 150.25
 
 llm = ChatAnthropic(model="claude-sonnet-4-5")
@@ -87,7 +87,7 @@ def agent_node(state: State):
     return {"messages": [response]}
 
 def tool_node(state: State):
-    # ツール呼び出しを実行
+    # Execute tool calls
     last_message = state["messages"][-1]
     tool_calls = last_message.tool_calls
 
@@ -101,14 +101,14 @@ def tool_node(state: State):
 
     return {"messages": results}
 
-# グラフ構築
+# Build graph
 graph = StateGraph(State)
 graph.add_node("agent", agent_node)
 graph.add_node("tools", tool_node)
-# ... エッジの追加など
+# ... Add edges, etc.
 ```
 
-## ストリーミング + ツール使用
+## Streaming + Tool Use
 
 ```python
 from langchain_anthropic import ChatAnthropic
@@ -116,8 +116,8 @@ from langchain_core.tools import tool
 
 @tool
 def get_info(topic: str) -> str:
-    """情報を取得"""
-    return f"{topic} の情報"
+    """Get information"""
+    return f"Information about {topic}"
 
 llm = ChatAnthropic(
     model="claude-sonnet-4-5",
@@ -125,14 +125,14 @@ llm = ChatAnthropic(
 )
 llm_with_tools = llm.bind_tools([get_info])
 
-for chunk in llm_with_tools.stream("Pythonについて教えて"):
+for chunk in llm_with_tools.stream("Tell me about Python"):
     if hasattr(chunk, 'tool_calls') and chunk.tool_calls:
         print(f"Tool: {chunk.tool_calls}")
     elif chunk.content:
         print(chunk.content, end="", flush=True)
 ```
 
-## エラーハンドリング
+## Error Handling
 
 ```python
 from langchain_anthropic import ChatAnthropic
@@ -141,76 +141,76 @@ import anthropic
 
 @tool
 def risky_operation(data: str) -> str:
-    """リスクのある操作"""
+    """Risky operation"""
     if not data:
-        raise ValueError("データが必要です")
-    return f"処理完了: {data}"
+        raise ValueError("Data is required")
+    return f"Processing complete: {data}"
 
 try:
     llm = ChatAnthropic(model="claude-sonnet-4-5")
     llm_with_tools = llm.bind_tools([risky_operation])
-    response = llm_with_tools.invoke("操作を実行")
+    response = llm_with_tools.invoke("Execute operation")
 except anthropic.BadRequestError as e:
-    print(f"無効なリクエスト: {e}")
+    print(f"Invalid request: {e}")
 except Exception as e:
-    print(f"エラー: {e}")
+    print(f"Error: {e}")
 ```
 
-## ツールのベストプラクティス
+## Tool Best Practices
 
-### 1. 明確なドキュメント
+### 1. Clear Documentation
 
 ```python
 @tool
-def analyze_sentiment(text: str, language: str = "ja") -> dict:
-    """テキストの感情分析を実行します。
+def analyze_sentiment(text: str, language: str = "en") -> dict:
+    """Perform sentiment analysis on text.
 
     Args:
-        text: 分析するテキスト（最大1000文字）
-        language: テキストの言語（"ja", "en" など）デフォルトは日本語
+        text: Text to analyze (max 1000 characters)
+        language: Language of text ("ja", "en", etc.) defaults to English
 
     Returns:
         {"sentiment": "positive|negative|neutral", "score": 0.0-1.0}
     """
-    # 実装
+    # Implementation
     return {"sentiment": "positive", "score": 0.8}
 ```
 
-### 2. 型ヒントの使用
+### 2. Use Type Hints
 
 ```python
 from typing import List, Dict
 
 @tool
 def batch_process(items: List[str]) -> Dict[str, int]:
-    """複数アイテムをバッチ処理します。
+    """Batch process multiple items.
 
     Args:
-        items: 処理するアイテムのリスト
+        items: List of items to process
 
     Returns:
-        各アイテムの処理結果の辞書
+        Dictionary of processing results for each item
     """
     return {item: len(item) for item in items}
 ```
 
-### 3. エラーの適切な処理
+### 3. Proper Error Handling
 
 ```python
 @tool
 def safe_operation(data: str) -> str:
-    """安全な操作"""
+    """Safe operation"""
     try:
-        # 操作の実行
+        # Execute operation
         result = process(data)
         return result
     except ValueError as e:
-        return f"入力エラー: {e}"
+        return f"Input error: {e}"
     except Exception as e:
-        return f"予期しないエラー: {e}"
+        return f"Unexpected error: {e}"
 ```
 
-## 参考リンク
+## Reference Links
 
 - [Claude Tool Use Guide](https://docs.anthropic.com/en/docs/tool-use)
 - [LangGraph Tools Documentation](https://langchain-ai.github.io/langgraph/concepts/agentic_concepts/)

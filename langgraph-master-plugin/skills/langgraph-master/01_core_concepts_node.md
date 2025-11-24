@@ -1,28 +1,28 @@
-# Node（ノード）
+# Node
 
-個別のタスクを実行するPython関数。
+Python functions that execute individual tasks.
 
-## 概要
+## Overview
 
-ノードは「処理単位」で、状態を読み込み、何らかの処理を行い、更新を返します。
+Nodes are "processing units" that read state, perform some processing, and return updates.
 
-## 基本的な実装
+## Basic Implementation
 
 ```python
 def my_node(state: State) -> dict:
-    # 状態から情報を取得
+    # Get information from state
     messages = state["messages"]
 
-    # 処理を実行
+    # Execute processing
     result = process_messages(messages)
 
-    # 更新を返す（状態を直接変更しない）
+    # Return updates (don't modify state directly)
     return {"result": result, "count": state["count"] + 1}
 ```
 
-## ノードの種類
+## Types of Nodes
 
-### 1. LLM呼び出しノード
+### 1. LLM Call Node
 
 ```python
 def llm_node(state: State):
@@ -32,7 +32,7 @@ def llm_node(state: State):
     return {"messages": [response]}
 ```
 
-### 2. ツール実行ノード
+### 2. Tool Execution Node
 
 ```python
 from langgraph.prebuilt import ToolNode
@@ -41,40 +41,40 @@ tools = [search_tool, calculator_tool]
 tool_node = ToolNode(tools)
 ```
 
-### 3. 処理ノード
+### 3. Processing Node
 
 ```python
 def process_node(state: State):
     data = state["raw_data"]
 
-    # データ処理
+    # Data processing
     processed = clean_and_transform(data)
 
     return {"processed_data": processed}
 ```
 
-## ノードのシグネチャ
+## Node Signature
 
-ノードは以下のパラメータを受け取れます：
+Nodes can accept the following parameters:
 
 ```python
 from langgraph.types import Command
 
 def advanced_node(
     state: State,
-    config: RunnableConfig,  # オプション
+    config: RunnableConfig,  # Optional
 ) -> dict | Command:
-    # configから設定を取得
+    # Get configuration from config
     thread_id = config["configurable"]["thread_id"]
 
-    # 処理...
+    # Processing...
 
     return {"result": result}
 ```
 
-## Command APIによる制御
+## Control with Command API
 
-状態更新と制御フローを同時に指定：
+Specify state updates and control flow simultaneously:
 
 ```python
 from langgraph.types import Command
@@ -92,29 +92,29 @@ def decision_node(state: State) -> Command:
         )
 ```
 
-## 重要な原則
+## Important Principles
 
-1. **冪等性**: 同じ入力に対して同じ出力を返す
-2. **更新を返す**: 状態を直接変更せず、更新内容を返す
-3. **単一責任**: 各ノードは1つのことをうまく行う
+1. **Idempotency**: Return the same output for the same input
+2. **Return Updates**: Return update contents instead of directly modifying state
+3. **Single Responsibility**: Each node does one thing well
 
-## ノードの追加
+## Adding Nodes
 
 ```python
 from langgraph.graph import StateGraph
 
 builder = StateGraph(State)
 
-# ノードを追加
+# Add nodes
 builder.add_node("analyze", analyze_node)
 builder.add_node("decide", decide_node)
 builder.add_node("execute", execute_node)
 
-# ツールノードを追加
+# Add tool node
 builder.add_node("tools", tool_node)
 ```
 
-## エラーハンドリング
+## Error Handling
 
 ```python
 def robust_node(state: State) -> dict:
@@ -125,8 +125,8 @@ def robust_node(state: State) -> dict:
         return {"result": None, "error": str(e)}
 ```
 
-## 関連ページ
+## Related Pages
 
-- [State.md](State.md) - Stateの定義方法
-- [Edge.md](Edge.md) - ノード間の接続
-- [04_ツール統合](../04_ツール統合/README.md) - ツールノードの詳細
+- [State.md](State.md) - How to define State
+- [Edge.md](Edge.md) - Connections between nodes
+- [04_ツール統合](../04_ツール統合/README.md) - Tool node details

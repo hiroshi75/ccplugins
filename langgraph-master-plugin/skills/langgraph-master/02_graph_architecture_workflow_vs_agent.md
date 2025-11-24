@@ -1,28 +1,28 @@
 # Workflow vs Agent
 
-WorkflowとAgentの違いと使い分け。
+Differences and usage between Workflow and Agent.
 
-## 基本的な違い
+## Basic Differences
 
-### Workflow（ワークフロー）
+### Workflow
 > "predetermined code paths and are designed to operate in a certain order"
-> （事前決定されたコードパス、特定の順序で動作）
+> (Predetermined code paths, operates in specific order)
 
-- **事前定義**: 処理フローが明確
-- **予測可能**: 同じ入力に対して同じパスを辿る
-- **制御された実行**: 開発者が制御フローを完全に管理
+- **Pre-defined**: Processing flow is clear
+- **Predictable**: Follows same path for same input
+- **Controlled Execution**: Developer has complete control over control flow
 
-### Agent（エージェント）
+### Agent
 > "dynamic and define their own processes and tool usage"
-> （動的で自身のプロセスとツール使用を定義）
+> (Dynamic, defines its own processes and tool usage)
 
-- **動的**: LLMが次の行動を決定
-- **自律的**: ツール選択を自己判断
-- **不確定**: 同じ入力でも異なるパスを辿る可能性
+- **Dynamic**: LLM decides next action
+- **Autonomous**: Self-determines tool selection
+- **Uncertain**: May follow different paths with same input
 
-## 実装例の比較
+## Implementation Comparison
 
-### Workflow例: 翻訳パイプライン
+### Workflow Example: Translation Pipeline
 
 ```python
 def translate_node(state: State):
@@ -34,29 +34,29 @@ def summarize_node(state: State):
 def validate_node(state: State):
     return {"valid": check_quality(state["summary"])}
 
-# 固定されたフロー
+# Fixed flow
 builder.add_edge(START, "translate")
 builder.add_edge("translate", "summarize")
 builder.add_edge("summarize", "validate")
 builder.add_edge("validate", END)
 ```
 
-### Agent例: 問題解決エージェント
+### Agent Example: Problem-Solving Agent
 
 ```python
 def agent_node(state: State):
-    # LLMがツール使用を決定
+    # LLM determines tool usage
     response = llm_with_tools.invoke(state["messages"])
     return {"messages": [response]}
 
 def should_continue(state: State):
     last_message = state["messages"][-1]
-    # ツール呼び出しがあれば継続
+    # Continue if there are tool calls
     if last_message.tool_calls:
         return "continue"
     return "end"
 
-# LLMが動的に決定
+# LLM decides dynamically
 builder.add_conditional_edges(
     "agent",
     should_continue,
@@ -64,72 +64,72 @@ builder.add_conditional_edges(
 )
 ```
 
-## 使い分けの基準
+## Selection Criteria
 
-### Workflowを選択する場合
+### Choose Workflow When
 
-✅ **構造が明確**
-- 処理ステップが事前にわかっている
-- 実行順序が固定されている
+✅ **Structure is Clear**
+- Processing steps are known in advance
+- Execution order is fixed
 
-✅ **予測可能性が重要**
-- コンプライアンス要件がある
-- デバッグが容易である必要がある
+✅ **Predictability is Important**
+- Compliance requirements exist
+- Debugging needs to be easy
 
-✅ **コスト効率**
-- LLM呼び出しを最小限にしたい
-- トークン消費を抑えたい
+✅ **Cost Efficiency**
+- Want to minimize LLM calls
+- Want to reduce token consumption
 
-**例**: データ処理パイプライン、承認ワークフロー、翻訳チェーン
+**Examples**: Data processing pipelines, approval workflows, translation chains
 
-### Agentを選択する場合
+### Choose Agent When
 
-✅ **問題が不確定**
-- どのツールが必要かわからない
-- ステップ数が可変
+✅ **Problem is Uncertain**
+- Don't know which tools are needed
+- Variable number of steps
 
-✅ **柔軟性が必要**
-- 状況に応じて異なるアプローチ
-- ユーザーの質問が多様
+✅ **Flexibility is Needed**
+- Different approaches based on situation
+- Diverse user questions
 
-✅ **自律性が価値**
-- LLMの判断力を活かしたい
-- ReAct（推論+行動）パターンが適している
+✅ **Autonomy is Valuable**
+- Want to leverage LLM's judgment
+- ReAct (reasoning + action) pattern is suitable
 
-**例**: カスタマーサポート、研究アシスタント、複雑な問題解決
+**Examples**: Customer support, research assistant, complex problem solving
 
-## ハイブリッドアプローチ
+## Hybrid Approach
 
-多くの実用的なシステムは、両方を組み合わせます：
+Many practical systems combine both:
 
 ```python
-# Workflowの中にAgentを埋め込む
+# Embed Agent within Workflow
 builder.add_edge(START, "input_validation")  # Workflow
-builder.add_edge("input_validation", "agent")  # Agent部分
+builder.add_edge("input_validation", "agent")  # Agent part
 builder.add_conditional_edges("agent", should_continue, {...})
 builder.add_edge("tools", "agent")
 builder.add_conditional_edges("agent", ..., {"end": "output_formatting"})
 builder.add_edge("output_formatting", END)  # Workflow
 ```
 
-## ReActパターン（Agentの基本）
+## ReAct Pattern (Agent Foundation)
 
-Agentは**ReAct**（Reasoning + Acting）パターンに従います：
+Agent follows the **ReAct** (Reasoning + Acting) pattern:
 
-1. **Reasoning**: 「次に何をすべきか？」を考える
-2. **Acting**: ツールを使って行動する
-3. **Observing**: 結果を観察する
-4. 繰り返し、最終回答を出すまで継続
+1. **Reasoning**: Think "What should I do next?"
+2. **Acting**: Take action using tools
+3. **Observing**: Observe results
+4. Repeat until reaching final answer
 
 ```python
-# ReActループの実装
+# ReAct loop implementation
 def agent(state):
-    # Reasoning: 次の行動を決定
+    # Reasoning: Determine next action
     response = llm_with_tools.invoke(state["messages"])
     return {"messages": [response]}
 
 def tools(state):
-    # Acting: ツールを実行
+    # Acting: Execute tools
     results = execute_tools(state["messages"][-1].tool_calls)
     return {"messages": results}
 
@@ -137,20 +137,20 @@ def tools(state):
 builder.add_conditional_edges("agent", should_continue, ...)
 ```
 
-## まとめ
+## Summary
 
-| 観点 | Workflow | Agent |
-|------|----------|-------|
-| 制御 | 開発者が完全制御 | LLMが動的に判断 |
-| 予測可能性 | 高い | 低い |
-| 柔軟性 | 低い | 高い |
-| コスト | 低い | 高い |
-| 適用場面 | 構造化タスク | 不確定タスク |
+| Aspect | Workflow | Agent |
+|--------|----------|-------|
+| Control | Developer has complete control | LLM decides dynamically |
+| Predictability | High | Low |
+| Flexibility | Low | High |
+| Cost | Low | High |
+| Use Case | Structured tasks | Uncertain tasks |
 
-**重要**: どちらも LangGraphでは同じツール（State、Node、Edge）で構築できます。パターンの選択は問題の性質によって決まります。
+**Important**: Both can be built with the same tools (State, Node, Edge) in LangGraph. Pattern choice depends on problem nature.
 
-## 関連ページ
+## Related Pages
 
-- [01_PromptChaining.md](01_PromptChaining.md) - Workflowパターンの例
-- [06_Agent.md](06_Agent.md) - Agentパターンの詳細
-- [03_Routing.md](03_Routing.md) - ハイブリッドアプローチの例
+- [01_PromptChaining.md](01_PromptChaining.md) - Workflow pattern example
+- [06_Agent.md](06_Agent.md) - Agent pattern details
+- [03_Routing.md](03_Routing.md) - Hybrid approach example

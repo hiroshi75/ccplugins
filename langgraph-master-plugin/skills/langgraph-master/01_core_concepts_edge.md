@@ -1,33 +1,33 @@
-# Edge（エッジ）
+# Edge
 
-ノード間の遷移を定義する制御フロー。
+Control flow that defines transitions between nodes.
 
-## 概要
+## Overview
 
-エッジは「次に何をするか」を決定します。ノードが処理を行い、エッジが次の行動を指示する仕組みです。
+Edges determine "what to do next". Nodes perform processing, and edges dictate the next action.
 
-## エッジの種類
+## Types of Edges
 
-### 1. 通常のエッジ（固定遷移）
+### 1. Normal Edges (Fixed Transitions)
 
-常に特定のノードへ遷移します：
+Always transition to a specific node:
 
 ```python
 from langgraph.graph import START, END
 
-# STARTからnode_aへ
+# From START to node_a
 builder.add_edge(START, "node_a")
 
-# node_aからnode_bへ
+# From node_a to node_b
 builder.add_edge("node_a", "node_b")
 
-# node_bから終了
+# From node_b to end
 builder.add_edge("node_b", END)
 ```
 
-### 2. 条件付きエッジ（動的遷移）
+### 2. Conditional Edges (Dynamic Transitions)
 
-状態に基づいて遷移先を決定します：
+Determine the destination based on state:
 
 ```python
 from typing import Literal
@@ -37,26 +37,26 @@ def should_continue(state: State) -> Literal["continue", "end"]:
         return "continue"
     return "end"
 
-# 条件付きエッジを追加
+# Add conditional edge
 builder.add_conditional_edges(
     "agent",
     should_continue,
     {
-        "continue": "tools",  # continueの場合はtoolsへ
-        "end": END            # endの場合は終了
+        "continue": "tools",  # Go to tools if continue
+        "end": END            # End if end
     }
 )
 ```
 
-### 3. エントリーポイント
+### 3. Entry Points
 
-グラフの開始点を定義：
+Define the starting point of the graph:
 
 ```python
-# 単純なエントリー
+# Simple entry
 builder.add_edge(START, "first_node")
 
-# 条件付きエントリー
+# Conditional entry
 builder.add_conditional_edges(
     START,
     route_start,
@@ -67,30 +67,30 @@ builder.add_conditional_edges(
 )
 ```
 
-## 並列実行
+## Parallel Execution
 
-複数の出力エッジを持つノードは、次のステップで**すべての宛先ノードが並列実行**されます：
+Nodes with multiple outgoing edges will have **all destination nodes execute in parallel** in the next step:
 
 ```python
-# node_aから複数のノードへ
+# From node_a to multiple nodes
 builder.add_edge("node_a", "node_b")
 builder.add_edge("node_a", "node_c")
 
-# node_bとnode_cが並列実行される
+# node_b and node_c execute in parallel
 ```
 
-並列実行の結果を集約するには、Reducerを使用：
+To aggregate results from parallel execution, use a Reducer:
 
 ```python
 from operator import add
 
 class State(TypedDict):
-    results: Annotated[list, add]  # 複数のノードからの結果を集約
+    results: Annotated[list, add]  # Aggregate results from multiple nodes
 ```
 
-## Commandによるエッジ制御
+## Edge Control with Command
 
-ノード内から次の遷移先を指定：
+Specify the next destination from within a node:
 
 ```python
 from langgraph.types import Command
@@ -110,16 +110,16 @@ def smart_node(state: State) -> Command:
         )
 ```
 
-## 条件分岐の実装パターン
+## Conditional Branching Implementation Patterns
 
-### パターン1: ツール呼び出しのループ
+### Pattern 1: Tool Call Loop
 
 ```python
 def should_continue(state: State) -> Literal["continue", "end"]:
     messages = state["messages"]
     last_message = messages[-1]
 
-    # ツール呼び出しがあれば継続
+    # Continue if there are tool calls
     if last_message.tool_calls:
         return "continue"
     return "end"
@@ -134,15 +134,15 @@ builder.add_conditional_edges(
 )
 ```
 
-### パターン2: ルーティング
+### Pattern 2: Routing
 
 ```python
 def route_query(state: State) -> Literal["search", "calculate", "general"]:
     query = state["query"]
 
-    if "計算" in query or "+" in query:
+    if "calculate" in query or "+" in query:
         return "calculate"
-    elif "検索" in query:
+    elif "search" in query:
         return "search"
     return "general"
 
@@ -157,14 +157,14 @@ builder.add_conditional_edges(
 )
 ```
 
-## 重要な原則
+## Important Principles
 
-1. **明示的な制御フロー**: 遷移は透明で追跡可能にする
-2. **型安全性**: Literalで遷移先を明示
-3. **並列実行の活用**: 独立したタスクは並列実行
+1. **Explicit Control Flow**: Transitions should be transparent and traceable
+2. **Type Safety**: Explicitly specify destinations with Literal
+3. **Leverage Parallel Execution**: Execute independent tasks in parallel
 
-## 関連ページ
+## Related Pages
 
-- [Node.md](Node.md) - ノードの実装
-- [02_グラフアーキテクチャ/03_Routing.md](../02_グラフアーキテクチャ/03_Routing.md) - ルーティングパターン
-- [05_応用機能/MapReduce.md](../05_応用機能/MapReduce.md) - 並列処理パターン
+- [Node.md](Node.md) - Node implementation
+- [02_グラフアーキテクチャ/03_Routing.md](../02_グラフアーキテクチャ/03_Routing.md) - Routing patterns
+- [05_応用機能/MapReduce.md](../05_応用機能/MapReduce.md) - Parallel processing patterns

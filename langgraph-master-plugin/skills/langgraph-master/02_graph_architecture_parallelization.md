@@ -1,19 +1,19 @@
-# Parallelization（並列処理）
+# Parallelization (Parallel Processing)
 
-複数の独立したタスクを同時実行するパターン。
+A pattern for executing multiple independent tasks simultaneously.
 
-## 概要
+## Overview
 
-Parallelizationは、**互いに依存しない複数のタスク**を同時に実行し、速度向上や信頼性検証を実現するパターンです。
+Parallelization is a pattern that executes **multiple tasks that don't depend on each other** simultaneously, achieving speed improvements and reliability verification.
 
-## 適用場面
+## Use Cases
 
-- 複数の評価基準でドキュメントを採点
-- 異なる観点からの分析（技術的/ビジネス的/法的）
-- 複数の翻訳エンジンで結果を比較
-- Map-Reduceパターンの実装
+- Scoring documents with multiple evaluation criteria
+- Analysis from different perspectives (technical/business/legal)
+- Comparing results from multiple translation engines
+- Implementing Map-Reduce pattern
 
-## 実装例
+## Implementation Example
 
 ```python
 from typing import Annotated, TypedDict
@@ -21,49 +21,49 @@ from operator import add
 
 class State(TypedDict):
     document: str
-    scores: Annotated[list[dict], add]  # 複数の結果を集約
+    scores: Annotated[list[dict], add]  # Aggregate multiple results
 
 def technical_review(state: State):
-    """技術的観点からレビュー"""
+    """Review from technical perspective"""
     score = llm.invoke(
         f"Technical review: {state['document']}"
     )
     return {"scores": [{"type": "technical", "score": score}]}
 
 def business_review(state: State):
-    """ビジネス観点からレビュー"""
+    """Review from business perspective"""
     score = llm.invoke(
         f"Business review: {state['document']}"
     )
     return {"scores": [{"type": "business", "score": score}]}
 
 def legal_review(state: State):
-    """法的観点からレビュー"""
+    """Review from legal perspective"""
     score = llm.invoke(
         f"Legal review: {state['document']}"
     )
     return {"scores": [{"type": "legal", "score": score}]}
 
 def aggregate_scores(state: State):
-    """スコアを集計"""
+    """Aggregate scores"""
     total = sum(s["score"] for s in state["scores"])
     return {"final_score": total / len(state["scores"])}
 
-# グラフ構築
+# Build graph
 builder = StateGraph(State)
 
-# 並列実行されるノード
+# Nodes to be executed in parallel
 builder.add_node("technical", technical_review)
 builder.add_node("business", business_review)
 builder.add_node("legal", legal_review)
 builder.add_node("aggregate", aggregate_scores)
 
-# 並列実行のエッジ
+# Edges for parallel execution
 builder.add_edge(START, "technical")
 builder.add_edge(START, "business")
 builder.add_edge(START, "legal")
 
-# 集約ノードへ
+# To aggregation node
 builder.add_edge("technical", "aggregate")
 builder.add_edge("business", "aggregate")
 builder.add_edge("legal", "aggregate")
@@ -72,57 +72,57 @@ builder.add_edge("aggregate", END)
 graph = builder.compile()
 ```
 
-## 重要な概念: Reducer
+## Important Concept: Reducer
 
-並列実行の結果を集約するには、**Reducer**が必須です：
+A **Reducer** is essential for aggregating results from parallel execution:
 
 ```python
 from operator import add
 
 class State(TypedDict):
-    # 複数のノードからの結果を追加で集約
+    # Additively aggregate results from multiple nodes
     results: Annotated[list, add]
 
-    # 最大値を保持
+    # Keep maximum value
     max_score: Annotated[int, max]
 
-    # カスタムReducer
+    # Custom Reducer
     combined: Annotated[dict, combine_dicts]
 ```
 
-## 利点
+## Benefits
 
-✅ **高速化**: タスクが並列実行されるため時間短縮
-✅ **信頼性**: 複数の結果を比較して検証
-✅ **スケーラビリティ**: タスク数に応じて並列度を調整
-✅ **ロバスト性**: 一部が失敗しても他が成功すれば継続可能
+✅ **Speed**: Time reduction through parallel task execution
+✅ **Reliability**: Verification by comparing multiple results
+✅ **Scalability**: Adjust parallelism based on task count
+✅ **Robustness**: Can continue if some succeed even if others fail
 
-## 注意点
+## Considerations
 
-⚠️ **Reducerが必要**: 結果の集約方法を明示的に定義
-⚠️ **リソース消費**: 並列実行によるメモリ・API呼び出しの増加
-⚠️ **順序不定**: 実行順序が保証されない
-⚠️ **デバッグの複雑さ**: 並列実行のトラブルシューティングが難しい
+⚠️ **Reducer Required**: Explicitly define result aggregation method
+⚠️ **Resource Consumption**: Increased memory and API calls from parallel execution
+⚠️ **Uncertain Order**: Execution order not guaranteed
+⚠️ **Debugging Complexity**: Parallel execution troubleshooting is difficult
 
-## 応用パターン
+## Advanced Patterns
 
-### パターン1: Fan-out / Fan-in
+### Pattern 1: Fan-out / Fan-in
 
 ```python
-# Fan-out: 1つのノードから複数へ
+# Fan-out: One node to multiple
 builder.add_edge("router", "task_a")
 builder.add_edge("router", "task_b")
 builder.add_edge("router", "task_c")
 
-# Fan-in: 複数から1つへ集約
+# Fan-in: Multiple to one aggregation
 builder.add_edge("task_a", "aggregator")
 builder.add_edge("task_b", "aggregator")
 builder.add_edge("task_c", "aggregator")
 ```
 
-### パターン2: バランシング（defer=True）
+### Pattern 2: Balancing (defer=True)
 
-長さの異なるブランチを待機：
+Wait for branches of different lengths:
 
 ```python
 from operator import add
@@ -133,50 +133,50 @@ def add_with_defer(left: list, right: list) -> list:
 class State(TypedDict):
     results: Annotated[list, add_with_defer]
 
-# コンパイル時にdefer=Trueを指定
+# Specify defer=True at compile time
 graph = builder.compile(
     checkpointer=checkpointer,
-    # 全てのブランチが完了するまで待機
+    # Wait until all branches complete
 )
 ```
 
-### パターン3: 冗長性による信頼性
+### Pattern 3: Reliability Through Redundancy
 
 ```python
 def provider_a(state: State):
-    """プロバイダーA"""
+    """Provider A"""
     return {"responses": [call_api_a(state["query"])]}
 
 def provider_b(state: State):
-    """プロバイダーB（バックアップ）"""
+    """Provider B (backup)"""
     return {"responses": [call_api_b(state["query"])]}
 
 def provider_c(state: State):
-    """プロバイダーC（バックアップ）"""
+    """Provider C (backup)"""
     return {"responses": [call_api_c(state["query"])]}
 
 def select_best(state: State):
-    """最良の応答を選択"""
+    """Select best response"""
     responses = state["responses"]
     best = max(responses, key=lambda r: r.confidence)
     return {"result": best}
 ```
 
-## vs 他のパターン
+## vs Other Patterns
 
-| パターン | Parallelization | Prompt Chaining |
+| Pattern | Parallelization | Prompt Chaining |
 |---------|----------------|-----------------|
-| 実行順序 | 並列 | 順次 |
-| 依存関係 | なし | あり |
-| 実行時間 | 短い | 長い |
-| 結果の集約 | Reducer必須 | 不要 |
+| Execution Order | Parallel | Sequential |
+| Dependencies | None | Yes |
+| Execution Time | Short | Long |
+| Result Aggregation | Reducer required | Not required |
 
-## まとめ
+## Summary
 
-Parallelizationは**独立したタスクの同時実行**に最適です。Reducerを使って結果を適切に集約することが重要です。
+Parallelization is optimal for **simultaneous execution of independent tasks**. It's important to properly aggregate results using a Reducer.
 
-## 関連ページ
+## Related Pages
 
-- [04_OrchestratorWorker.md](04_OrchestratorWorker.md) - 動的な並列処理
-- [05_応用機能/MapReduce.md](../05_応用機能/MapReduce.md) - Map-Reduceパターン
-- [01_基本概念/State.md](../01_基本概念/State.md) - Reducerの詳細
+- [04_OrchestratorWorker.md](04_OrchestratorWorker.md) - Dynamic parallel processing
+- [05_Advanced_Features/MapReduce.md](../05_Advanced_Features/MapReduce.md) - Map-Reduce pattern
+- [01_Basic_Concepts/State.md](../01_Basic_Concepts/State.md) - Reducer details

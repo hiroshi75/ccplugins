@@ -1,74 +1,74 @@
-# LLM モデル ID リファレンス
+# LLM Model ID Reference
 
-LangGraph でよく使用される主要な LLM プロバイダーのモデル ID 一覧。各プロバイダーの詳細な情報とベストプラクティスについては、個別のページを参照してください。
+List of model IDs for major LLM providers commonly used in LangGraph. For detailed information and best practices for each provider, please refer to the individual pages.
 
-> **最終更新**: 2025-11-24
-> **注意**: モデルの可用性や名称は変更される可能性があります。最新情報は各プロバイダーの公式ドキュメントを参照してください。
+> **Last Updated**: 2025-11-24
+> **Note**: Model availability and names may change. Please refer to each provider's official documentation for the latest information.
 
-## 📚 プロバイダー別ドキュメント
+## 📚 Provider-Specific Documentation
 
-### [Google Gemini モデル](06_llm_model_ids_gemini.md)
+### [Google Gemini Models](06_llm_model_ids_gemini.md)
 
-Google の最新 LLM モデル。大規模コンテキスト（最大 1M トークン）が特徴。
+Google's latest LLM models featuring large-scale context (up to 1M tokens).
 
-**主要モデル**:
+**Key Models**:
 
-- `google/gemini-3-pro-preview` - 最新の高性能モデル
-- `gemini-2.5-flash` - 高速応答版（1M トークン）
-- `gemini-2.5-flash-lite` - 軽量高速版
+- `google/gemini-3-pro-preview` - Latest high-performance model
+- `gemini-2.5-flash` - Fast response version (1M tokens)
+- `gemini-2.5-flash-lite` - Lightweight fast version
 
-**詳細**: [Gemini モデル ID 完全ガイド](06_llm_model_ids_gemini.md)
-
----
-
-### [Anthropic Claude モデル](06_llm_model_ids_claude.md)
-
-Anthropic の Claude 4.x シリーズ。バランスの取れた性能とコストが特徴。
-
-**主要モデル**:
-
-- `claude-opus-4-1-20250805` - 最強モデル
-- `claude-sonnet-4-5` - バランス型（推奨）
-- `claude-haiku-4-5-20251001` - 高速・低コスト
-
-**詳細**: [Claude モデル ID 完全ガイド](06_llm_model_ids_claude.md)
+**Details**: [Gemini Model ID Complete Guide](06_llm_model_ids_gemini.md)
 
 ---
 
-### [OpenAI GPT モデル](06_llm_model_ids_openai.md)
+### [Anthropic Claude Models](06_llm_model_ids_claude.md)
 
-OpenAI の GPT-5 シリーズ。幅広いタスクに対応し、400K コンテキストと高度な推論能力が特徴。
+Anthropic's Claude 4.x series featuring balanced performance and cost.
 
-**主要モデル**:
+**Key Models**:
 
-- `gpt-5` - GPT-5 標準版
-- `gpt-5-mini` - 小型版（コスト効率 ◎）
-- `gpt-5.1-thinking` - 適応的推論モデル
+- `claude-opus-4-1-20250805` - Most powerful model
+- `claude-sonnet-4-5` - Balanced (recommended)
+- `claude-haiku-4-5-20251001` - Fast and low-cost
 
-**詳細**: [OpenAI モデル ID 完全ガイド](06_llm_model_ids_openai.md)
+**Details**: [Claude Model ID Complete Guide](06_llm_model_ids_claude.md)
 
 ---
 
-## 🚀 クイックスタート
+### [OpenAI GPT Models](06_llm_model_ids_openai.md)
 
-### 基本的な使用方法
+OpenAI's GPT-5 series supporting a wide range of tasks, with 400K context and advanced reasoning capabilities.
+
+**Key Models**:
+
+- `gpt-5` - GPT-5 standard version
+- `gpt-5-mini` - Small version (cost-efficient ◎)
+- `gpt-5.1-thinking` - Adaptive reasoning model
+
+**Details**: [OpenAI Model ID Complete Guide](06_llm_model_ids_openai.md)
+
+---
+
+## 🚀 Quick Start
+
+### Basic Usage
 
 ```python
 from langchain_anthropic import ChatAnthropic
 from langchain_openai import ChatOpenAI
 from langchain_google_genai import ChatGoogleGenerativeAI
 
-# Claude を使用
+# Use Claude
 claude_llm = ChatAnthropic(model="claude-sonnet-4-5")
 
-# OpenAI を使用
+# Use OpenAI
 openai_llm = ChatOpenAI(model="gpt-5")
 
-# Gemini を使用
+# Use Gemini
 gemini_llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash")
 ```
 
-### LangGraph での使用
+### Using with LangGraph
 
 ```python
 from langgraph.graph import StateGraph
@@ -76,19 +76,19 @@ from langchain_anthropic import ChatAnthropic
 from typing import TypedDict, Annotated
 from langgraph.graph.message import add_messages
 
-# 状態定義
+# State definition
 class State(TypedDict):
     messages: Annotated[list, add_messages]
 
-# モデルの初期化
+# Model initialization
 llm = ChatAnthropic(model="claude-sonnet-4-5")
 
-# ノード定義
+# Node definition
 def chat_node(state: State):
     response = llm.invoke(state["messages"])
     return {"messages": [response]}
 
-# グラフ構築
+# Graph construction
 graph = StateGraph(State)
 graph.add_node("chat", chat_node)
 graph.set_entry_point("chat")
@@ -97,25 +97,25 @@ graph.set_finish_point("chat")
 app = graph.compile()
 ```
 
-## 📊 モデル選択ガイド
+## 📊 Model Selection Guide
 
-### 用途別おすすめモデル
+### Recommended Models by Use Case
 
-| 用途                   | 推奨モデル                                                    | 理由                      |
+| Use Case | Recommended Model | Reason |
 | ---------------------- | ------------------------------------------------------------- | ------------------------- |
-| **コスト重視**         | `claude-haiku-4-5`<br>`gpt-5-mini`<br>`gemini-2.5-flash-lite` | 低コストで高速            |
-| **バランス重視**       | `claude-sonnet-4-5`<br>`gpt-5`<br>`gemini-2.5-flash`          | 性能とコストのバランス    |
-| **性能重視**           | `claude-opus-4-1`<br>`gpt-5-pro`<br>`gemini-3-pro`            | 最高性能                  |
-| **推論特化**           | `gpt-5.1-thinking`<br>`gpt-5.1-instant`                       | 適応的推論・数学・科学    |
-| **大規模コンテキスト** | `gemini-2.5-pro`                                              | 1M トークンのコンテキスト |
+| **Cost-focused** | `claude-haiku-4-5`<br>`gpt-5-mini`<br>`gemini-2.5-flash-lite` | Low cost and fast |
+| **Balance-focused** | `claude-sonnet-4-5`<br>`gpt-5`<br>`gemini-2.5-flash` | Balance of performance and cost |
+| **Performance-focused** | `claude-opus-4-1`<br>`gpt-5-pro`<br>`gemini-3-pro` | Maximum performance |
+| **Reasoning-specialized** | `gpt-5.1-thinking`<br>`gpt-5.1-instant` | Adaptive reasoning, math, science |
+| **Large-scale context** | `gemini-2.5-pro` | 1M token context |
 
-### タスク複雑さによる選択
+### Selection by Task Complexity
 
 ```python
 def select_model(task_complexity: str, budget: str = "normal"):
-    """タスクと予算に応じて最適なモデルを選択"""
+    """Select optimal model based on task and budget"""
 
-    # 予算重視
+    # Budget-focused
     if budget == "low":
         models = {
             "simple": "claude-haiku-4-5-20251001",
@@ -124,7 +124,7 @@ def select_model(task_complexity: str, budget: str = "normal"):
         }
         return models.get(task_complexity, "gpt-5-mini")
 
-    # 性能重視
+    # Performance-focused
     if budget == "high":
         models = {
             "simple": "claude-sonnet-4-5",
@@ -133,7 +133,7 @@ def select_model(task_complexity: str, budget: str = "normal"):
         }
         return models.get(task_complexity, "claude-opus-4-1-20250805")
 
-    # バランス重視（デフォルト）
+    # Balance-focused (default)
     models = {
         "simple": "gpt-5-mini",
         "medium": "claude-sonnet-4-5",
@@ -142,26 +142,26 @@ def select_model(task_complexity: str, budget: str = "normal"):
     return models.get(task_complexity, "claude-sonnet-4-5")
 ```
 
-## 🔄 マルチモデル戦略
+## 🔄 Multi-Model Strategy
 
-### プロバイダー間のフォールバック
+### Fallback Between Providers
 
 ```python
 from langchain_anthropic import ChatAnthropic
 from langchain_openai import ChatOpenAI
 
-# メインモデルとフォールバック
+# Primary model and fallback
 primary = ChatAnthropic(model="claude-sonnet-4-5")
 fallback1 = ChatOpenAI(model="gpt-5")
 fallback2 = ChatGoogleGenerativeAI(model="gemini-2.5-flash")
 
 llm_with_fallback = primary.with_fallbacks([fallback1, fallback2])
 
-# いずれかのモデルが成功するまで自動的にフォールバック
-response = llm_with_fallback.invoke("質問内容")
+# Automatically fallback until one model succeeds
+response = llm_with_fallback.invoke("Question content")
 ```
 
-### コスト最適化の自動ルーティング
+### Cost-Optimized Auto-Routing
 
 ```python
 from langgraph.graph import StateGraph
@@ -172,15 +172,15 @@ class State(TypedDict):
     messages: Annotated[list, add_messages]
     complexity: Literal["simple", "medium", "complex"]
 
-# 複雑さに応じて異なるモデルを使用
-simple_llm = ChatAnthropic(model="claude-haiku-4-5-20251001")  # 低コスト
-medium_llm = ChatOpenAI(model="gpt-5-mini")  # バランス
-complex_llm = ChatAnthropic(model="claude-opus-4-1-20250805")  # 高性能
+# Use different models based on complexity
+simple_llm = ChatAnthropic(model="claude-haiku-4-5-20251001")  # Low cost
+medium_llm = ChatOpenAI(model="gpt-5-mini")  # Balance
+complex_llm = ChatAnthropic(model="claude-opus-4-1-20250805")  # High performance
 
 def analyze_complexity(state: State):
-    """メッセージの複雑さを分析"""
+    """Analyze message complexity"""
     message = state["messages"][-1].content
-    # 簡易的な複雑さ判定
+    # Simple complexity determination
     if len(message) < 50:
         complexity = "simple"
     elif len(message) < 200:
@@ -190,7 +190,7 @@ def analyze_complexity(state: State):
     return {"complexity": complexity}
 
 def route_by_complexity(state: State):
-    """複雑さに応じてルーティング"""
+    """Route based on complexity"""
     routes = {
         "simple": "simple_node",
         "medium": "medium_node",
@@ -210,7 +210,7 @@ def complex_node(state: State):
     response = complex_llm.invoke(state["messages"])
     return {"messages": [response]}
 
-# グラフ構築
+# Graph construction
 graph = StateGraph(State)
 graph.add_node("analyze", analyze_complexity)
 graph.add_node("simple_node", simple_node)
@@ -223,19 +223,19 @@ graph.add_conditional_edges("analyze", route_by_complexity)
 app = graph.compile()
 ```
 
-## 🔧 ベストプラクティス
+## 🔧 Best Practices
 
-### 1. 環境変数での管理
+### 1. Environment Variable Management
 
 ```python
 import os
 
-# 環境変数でモデルを柔軟に管理
+# Flexibly manage models with environment variables
 DEFAULT_MODEL = os.getenv("DEFAULT_LLM_MODEL", "claude-sonnet-4-5")
 FAST_MODEL = os.getenv("FAST_LLM_MODEL", "claude-haiku-4-5-20251001")
 SMART_MODEL = os.getenv("SMART_LLM_MODEL", "claude-opus-4-1-20250805")
 
-# 環境に応じてプロバイダーを切り替え
+# Switch provider based on environment
 PROVIDER = os.getenv("LLM_PROVIDER", "anthropic")
 
 if PROVIDER == "anthropic":
@@ -246,53 +246,53 @@ elif PROVIDER == "google":
     llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash")
 ```
 
-### 2. モデルバージョンの固定（本番環境）
+### 2. Fixed Model Version (Production)
 
 ```python
-# ✅ 推奨: 日付付きバージョンを使用（本番環境）
+# ✅ Recommended: Use dated version (production)
 prod_llm = ChatAnthropic(model="claude-sonnet-4-20250514")
 
-# ⚠️ 注意: バージョン指定なし（予期しない更新の可能性）
+# ⚠️ Caution: No version specified (potential unexpected updates)
 dev_llm = ChatAnthropic(model="claude-sonnet-4")
 ```
 
-### 3. コスト監視
+### 3. Cost Monitoring
 
 ```python
 from langchain.callbacks import get_openai_callback
 
-# OpenAI のコスト追跡
+# OpenAI cost tracking
 with get_openai_callback() as cb:
-    response = openai_llm.invoke("質問")
+    response = openai_llm.invoke("question")
     print(f"Total Cost: ${cb.total_cost}")
     print(f"Tokens: {cb.total_tokens}")
 
-# その他のプロバイダーは手動で追跡
-# 各プロバイダーの詳細ページを参照
+# For other providers, track manually
+# Refer to each provider's detail pages
 ```
 
-## 📖 詳細ドキュメント
+## 📖 Detailed Documentation
 
-各プロバイダーの詳細な情報については、以下のページを参照してください：
+For detailed information on each provider, please refer to the following pages:
 
-- **[Gemini モデル ID](06_llm_model_ids_gemini.md)**: モデル一覧、使用方法、高度な設定、マルチモーダル機能
-- **[Claude モデル ID](06_llm_model_ids_claude.md)**: モデル一覧、プラットフォーム別 ID、ツール使用、廃止モデル情報
-- **[OpenAI モデル ID](06_llm_model_ids_openai.md)**: モデル一覧、推論モデル、ビジョン機能、Azure OpenAI
+- **[Gemini Model ID](06_llm_model_ids_gemini.md)**: Model list, usage, advanced settings, multimodal features
+- **[Claude Model ID](06_llm_model_ids_claude.md)**: Model list, platform-specific IDs, tool usage, deprecated model information
+- **[OpenAI Model ID](06_llm_model_ids_openai.md)**: Model list, reasoning models, vision features, Azure OpenAI
 
-## 🔗 参考リンク
+## 🔗 Reference Links
 
-### 公式ドキュメント
+### Official Documentation
 
 - [Google Gemini API](https://ai.google.dev/gemini-api/docs/models)
 - [Anthropic Claude API](https://docs.anthropic.com/en/docs/about-claude/models/overview)
 - [OpenAI Platform](https://platform.openai.com/docs/models)
 
-### 統合ガイド
+### Integration Guides
 
 - [LangChain Chat Models](https://docs.langchain.com/oss/python/modules/model_io/chat/)
 - [LangGraph Documentation](https://langchain-ai.github.io/langgraph/)
 
-### 料金情報
+### Pricing Information
 
 - [Gemini Pricing](https://ai.google.dev/pricing)
 - [Claude Pricing](https://www.anthropic.com/pricing)

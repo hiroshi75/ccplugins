@@ -1,64 +1,64 @@
-# Streaming（ストリーミング）
+# Streaming
 
-リアルタイムでグラフ実行の進捗を監視する機能。
+A feature to monitor graph execution progress in real-time.
 
-## 概要
+## Overview
 
-Streamingは、グラフ実行中に**リアルタイムで更新**を受け取る機能です。LLMトークン、状態変更、カスタムイベントなどをストリーミングできます。
+Streaming is a feature that receives **real-time updates** during graph execution. You can stream LLM tokens, state changes, custom events, and more.
 
-## stream_modeの種類
+## Types of stream_mode
 
-### 1. values（状態の完全なスナップショット）
+### 1. values (Complete State Snapshot)
 
-各ステップ後の完全な状態：
+Complete state after each step:
 
 ```python
 for chunk in graph.stream(input, stream_mode="values"):
     print(chunk)
 
-# 出力例
+# Example output
 # {"messages": [{"role": "user", "content": "Hello"}]}
 # {"messages": [{"role": "user", "content": "Hello"}, {"role": "assistant", "content": "Hi!"}]}
 ```
 
-### 2. updates（状態の変更のみ）
+### 2. updates (Only State Changes)
 
-各ステップでの変更のみ：
+Only changes at each step:
 
 ```python
 for chunk in graph.stream(input, stream_mode="updates"):
     print(chunk)
 
-# 出力例
+# Example output
 # {"messages": [{"role": "assistant", "content": "Hi!"}]}
 ```
 
-### 3. messages（LLMトークン）
+### 3. messages (LLM Tokens)
 
-LLMのトークン単位でストリーミング：
+Stream at token level from LLM:
 
 ```python
 for msg, metadata in graph.stream(input, stream_mode="messages"):
     if msg.content:
         print(msg.content, end="", flush=True)
 
-# 出力: "H" "i" "!" "␣" "H" "o" "w" ...（トークンごと）
+# Output: "H" "i" "!" " " "H" "o" "w" ... (token by token)
 ```
 
-### 4. debug（デバッグ情報）
+### 4. debug (Debug Information)
 
-グラフ実行の詳細情報：
+Detailed graph execution information:
 
 ```python
 for chunk in graph.stream(input, stream_mode="debug"):
     print(chunk)
 
-# ノード実行、エッジ遷移などの詳細
+# Details like node execution, edge transitions, etc.
 ```
 
-### 5. custom（カスタムデータ）
+### 5. custom (Custom Data)
 
-ノードから独自データを送信：
+Send custom data from nodes:
 
 ```python
 from langgraph.config import get_stream_writer
@@ -67,7 +67,7 @@ def my_node(state: State):
     writer = get_stream_writer()
 
     for i in range(10):
-        writer({"progress": i * 10})  # カスタムデータ
+        writer({"progress": i * 10})  # Custom data
 
     return {"result": "done"}
 
@@ -76,24 +76,24 @@ for mode, chunk in graph.stream(input, stream_mode=["updates", "custom"]):
         print(f"Progress: {chunk['progress']}%")
 ```
 
-## LLMトークンのストリーミング
+## LLM Token Streaming
 
-### 特定のノードのみストリーミング
+### Stream Only Specific Nodes
 
 ```python
 for msg, metadata in graph.stream(input, stream_mode="messages"):
-    # 特定のノードからのトークンのみ表示
+    # Display tokens only from specific node
     if metadata["langgraph_node"] == "chatbot":
         if msg.content:
             print(msg.content, end="", flush=True)
 
-print()  # 改行
+print()  # Newline
 ```
 
-### タグでフィルタリング
+### Filter by Tags
 
 ```python
-# LLMにタグを設定
+# Set tags on LLM
 llm = init_chat_model("gpt-5", tags=["main_llm"])
 
 for msg, metadata in graph.stream(input, stream_mode="messages"):
@@ -102,7 +102,7 @@ for msg, metadata in graph.stream(input, stream_mode="messages"):
             print(msg.content, end="", flush=True)
 ```
 
-## 複数モードの同時使用
+## Using Multiple Modes Simultaneously
 
 ```python
 for mode, chunk in graph.stream(input, stream_mode=["values", "messages"]):
@@ -113,25 +113,25 @@ for mode, chunk in graph.stream(input, stream_mode=["values", "messages"]):
             print(chunk[0].content, end="", flush=True)
 ```
 
-## サブグラフのストリーミング
+## Subgraph Streaming
 
 ```python
-# サブグラフの出力も含める
+# Include subgraph outputs
 for chunk in graph.stream(
     input,
     stream_mode="updates",
-    subgraphs=True  # サブグラフも含める
+    subgraphs=True  # Include subgraphs
 ):
     print(chunk)
 ```
 
-## 実践例: プログレスバー
+## Practical Example: Progress Bar
 
 ```python
 from tqdm import tqdm
 
 def process_with_progress(items: list):
-    """プログレスバー付き処理"""
+    """Processing with progress bar"""
     total = len(items)
 
     with tqdm(total=total) as pbar:
@@ -145,13 +145,13 @@ def process_with_progress(items: list):
     return "Complete!"
 ```
 
-## 実践例: リアルタイムUI更新
+## Practical Example: Real-time UI Updates
 
 ```python
 import streamlit as st
 
 def run_with_ui_updates(user_input: str):
-    """Streamlit UIをリアルタイム更新"""
+    """Update Streamlit UI in real-time"""
     status = st.empty()
     output = st.empty()
 
@@ -171,50 +171,50 @@ def run_with_ui_updates(user_input: str):
     status.text("Complete!")
 ```
 
-## 非同期ストリーミング
+## Async Streaming
 
 ```python
 async def async_stream_example():
-    """非同期ストリーミング"""
+    """Async streaming"""
     async for chunk in graph.astream(input, stream_mode="updates"):
         print(chunk)
-        await asyncio.sleep(0)  # 他のタスクに譲る
+        await asyncio.sleep(0)  # Yield to other tasks
 ```
 
-## カスタムイベントの送信
+## Sending Custom Events
 
 ```python
 from langgraph.config import get_stream_writer
 
 def multi_step_node(state: State):
-    """複数ステップの進捗を報告"""
+    """Report progress of multiple steps"""
     writer = get_stream_writer()
 
-    # ステップ1
+    # Step 1
     writer({"status": "Analyzing..."})
     analysis = analyze_data(state["data"])
 
-    # ステップ2
+    # Step 2
     writer({"status": "Processing..."})
     result = process_analysis(analysis)
 
-    # ステップ3
+    # Step 3
     writer({"status": "Finalizing..."})
     final = finalize(result)
 
     return {"result": final}
 
-# 受信
+# Receive
 for mode, chunk in graph.stream(input, stream_mode=["updates", "custom"]):
     if mode == "custom":
         print(chunk["status"])
 ```
 
-## まとめ
+## Summary
 
-Streamingはリアルタイムで進捗を監視し、ユーザー体験を向上させます。用途に応じて適切なstream_modeを選択します。
+Streaming monitors progress in real-time and improves user experience. Choose the appropriate stream_mode based on your use case.
 
-## 関連ページ
+## Related Pages
 
-- [02_グラフアーキテクチャ/06_Agent.md](../02_グラフアーキテクチャ/06_Agent.md) - エージェントのストリーミング
-- [HumanInTheLoop.md](HumanInTheLoop.md) - ストリーミングと承認の組み合わせ
+- [02_Graph_Architecture/06_Agent.md](../02_Graph_Architecture/06_Agent.md) - Agent streaming
+- [HumanInTheLoop.md](HumanInTheLoop.md) - Combining streaming and approval

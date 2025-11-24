@@ -1,26 +1,26 @@
-# Subgraph（サブグラフ）
+# Subgraph
 
-階層的なグラフ構造を構築し、複雑なシステムをモジュール化するパターン。
+A pattern for building hierarchical graph structures and modularizing complex systems.
 
-## 概要
+## Overview
 
-Subgraphは、**グラフをノードとして別のグラフに組み込む**ことで、複雑なシステムを階層的に整理するパターンです。
+Subgraph is a pattern for hierarchically organizing complex systems by **embedding graphs as nodes in other graphs**.
 
-## 適用場面
+## Use Cases
 
-- 大規模なエージェントシステムのモジュール化
-- 複数の専門エージェントの統合
-- 再利用可能なワークフローコンポーネント
-- マルチレベルの階層構造
+- Modularizing large-scale agent systems
+- Integrating multiple specialized agents
+- Reusable workflow components
+- Multi-level hierarchical structures
 
-## 2つの実装アプローチ
+## Two Implementation Approaches
 
-### アプローチ1: グラフをノードとして追加
+### Approach 1: Add Graph as Node
 
-**状態キーを共有**する場合に使用します。
+Use when **sharing state keys**.
 
 ```python
-# サブグラフの定義
+# Subgraph definition
 class SubState(TypedDict):
     messages: Annotated[list, add_messages]
     sub_result: str
@@ -31,7 +31,7 @@ def sub_node_a(state: SubState):
 def sub_node_b(state: SubState):
     return {"sub_result": "Sub B completed"}
 
-# サブグラフを構築
+# Build subgraph
 sub_builder = StateGraph(SubState)
 sub_builder.add_node("sub_a", sub_node_a)
 sub_builder.add_node("sub_b", sub_node_b)
@@ -41,15 +41,15 @@ sub_builder.add_edge("sub_b", END)
 
 sub_graph = sub_builder.compile()
 
-# 親グラフでサブグラフをノードとして使用
+# Use subgraph as node in parent graph
 class ParentState(TypedDict):
-    messages: Annotated[list, add_messages]  # 共有キー
-    sub_result: str  # 共有キー
+    messages: Annotated[list, add_messages]  # Shared key
+    sub_result: str  # Shared key
     parent_data: str
 
 parent_builder = StateGraph(ParentState)
 
-# サブグラフを直接ノードとして追加
+# Add subgraph directly as node
 parent_builder.add_node("subgraph", sub_graph)
 
 parent_builder.add_edge(START, "subgraph")
@@ -58,12 +58,12 @@ parent_builder.add_edge("subgraph", END)
 parent_graph = parent_builder.compile()
 ```
 
-### アプローチ2: ノード内からグラフを呼び出し
+### Approach 2: Call Graph from Within Node
 
-**異なる状態スキーマ**を持つ場合に使用します。
+Use when having **different state schemas**.
 
 ```python
-# サブグラフ（独自の状態）
+# Subgraph (own state)
 class SubGraphState(TypedDict):
     input_text: str
     output_text: str
@@ -78,20 +78,20 @@ sub_builder.add_edge("process", END)
 
 sub_graph = sub_builder.compile()
 
-# 親グラフ（異なる状態）
+# Parent graph (different state)
 class ParentState(TypedDict):
     user_query: str
     result: str
 
 def invoke_subgraph_node(state: ParentState):
-    """ノード内でサブグラフを呼び出し"""
-    # 親の状態をサブグラフの状態に変換
+    """Call subgraph within node"""
+    # Convert parent state to subgraph state
     sub_input = {"input_text": state["user_query"]}
 
-    # サブグラフを実行
+    # Execute subgraph
     sub_output = sub_graph.invoke(sub_input)
 
-    # サブグラフの出力を親の状態に変換
+    # Convert subgraph output to parent state
     return {"result": sub_output["output_text"]}
 
 parent_builder = StateGraph(ParentState)
@@ -102,12 +102,12 @@ parent_builder.add_edge("call_subgraph", END)
 parent_graph = parent_builder.compile()
 ```
 
-## 多階層のサブグラフ
+## Multi-Level Subgraphs
 
-複数レベルのサブグラフ（親 → 子 → 孫）も実装可能です：
+Multiple levels of subgraphs (parent → child → grandchild) are also possible:
 
 ```python
-# 孫グラフ
+# Grandchild graph
 class GrandchildState(TypedDict):
     data: str
 
@@ -117,40 +117,40 @@ grandchild_builder.add_edge(START, "process")
 grandchild_builder.add_edge("process", END)
 grandchild_graph = grandchild_builder.compile()
 
-# 子グラフ（孫グラフを含む）
+# Child graph (includes grandchild graph)
 class ChildState(TypedDict):
     data: str
 
 child_builder = StateGraph(ChildState)
-child_builder.add_node("grandchild", grandchild_graph)  # 孫グラフを追加
+child_builder.add_node("grandchild", grandchild_graph)  # Add grandchild graph
 child_builder.add_edge(START, "grandchild")
 child_builder.add_edge("grandchild", END)
 child_graph = child_builder.compile()
 
-# 親グラフ（子グラフを含む）
+# Parent graph (includes child graph)
 class ParentState(TypedDict):
     data: str
 
 parent_builder = StateGraph(ParentState)
-parent_builder.add_node("child", child_graph)  # 子グラフを追加
+parent_builder.add_node("child", child_graph)  # Add child graph
 parent_builder.add_edge(START, "child")
 parent_builder.add_edge("child", END)
 parent_graph = parent_builder.compile()
 ```
 
-## サブグラフ間のナビゲーション
+## Navigation Between Subgraphs
 
-サブグラフから親グラフの別のノードへ遷移：
+Transition from subgraph to another node in parent graph:
 
 ```python
 from langgraph.types import Command
 
 def sub_node_with_navigation(state: SubState):
-    """サブグラフのノードから親グラフへナビゲート"""
+    """Navigate from subgraph node to parent graph"""
     result = process(state["data"])
 
     if need_parent_intervention(result):
-        # 親グラフの別のノードへ遷移
+        # Transition to another node in parent graph
         return Command(
             update={"result": result},
             goto="parent_handler",
@@ -160,37 +160,37 @@ def sub_node_with_navigation(state: SubState):
     return {"result": result}
 ```
 
-## 永続化とデバッグ
+## Persistence and Debugging
 
-### チェックポインターの自動伝播
+### Automatic Checkpointer Propagation
 
 ```python
 from langgraph.checkpoint.memory import MemorySaver
 
-# 親グラフのみにチェックポインターを設定
+# Set checkpointer only on parent graph
 checkpointer = MemorySaver()
 
 parent_graph = parent_builder.compile(
-    checkpointer=checkpointer  # 子グラフに自動伝播
+    checkpointer=checkpointer  # Automatically propagates to child graphs
 )
 ```
 
-### サブグラフの出力を含めたストリーミング
+### Streaming Including Subgraph Output
 
 ```python
-# サブグラフの詳細も含めてストリーミング
+# Stream including subgraph details
 for chunk in parent_graph.stream(
     inputs,
     stream_mode="values",
-    subgraphs=True  # サブグラフの出力も含める
+    subgraphs=True  # Include subgraph output
 ):
     print(chunk)
 ```
 
-## 実践例: マルチエージェントシステム
+## Practical Example: Multi-Agent System
 
 ```python
-# 研究エージェント（サブグラフ）
+# Research agent (subgraph)
 class ResearchState(TypedDict):
     messages: Annotated[list, add_messages]
     research_result: str
@@ -203,7 +203,7 @@ research_builder.add_edge("search", "analyze")
 research_builder.add_edge("analyze", END)
 research_graph = research_builder.compile()
 
-# コーディングエージェント（サブグラフ）
+# Coding agent (subgraph)
 class CodingState(TypedDict):
     messages: Annotated[list, add_messages]
     code: str
@@ -216,7 +216,7 @@ coding_builder.add_edge("generate", "test")
 coding_builder.add_edge("test", END)
 coding_graph = coding_builder.compile()
 
-# 統合システム（親グラフ）
+# Integrated system (parent graph)
 class SystemState(TypedDict):
     messages: Annotated[list, add_messages]
     research_result: str
@@ -224,17 +224,17 @@ class SystemState(TypedDict):
     task_type: str
 
 def router(state: SystemState):
-    if "研究" in state["messages"][-1].content:
+    if "research" in state["messages"][-1].content:
         return "research"
     return "coding"
 
 system_builder = StateGraph(SystemState)
 
-# サブグラフを追加
+# Add subgraphs
 system_builder.add_node("research_agent", research_graph)
 system_builder.add_node("coding_agent", coding_graph)
 
-# ルーティング
+# Routing
 system_builder.add_conditional_edges(
     START,
     router,
@@ -250,33 +250,33 @@ system_builder.add_edge("coding_agent", END)
 system_graph = system_builder.compile()
 ```
 
-## 利点
+## Benefits
 
-✅ **モジュール化**: 複雑なシステムを小さな部分に分割
-✅ **再利用性**: サブグラフを複数の親グラフで使用
-✅ **保守性**: 各サブグラフを独立して改善
-✅ **テスト容易性**: サブグラフを個別にテスト
+✅ **Modularization**: Divide complex systems into smaller parts
+✅ **Reusability**: Use subgraphs in multiple parent graphs
+✅ **Maintainability**: Improve each subgraph independently
+✅ **Testability**: Test subgraphs individually
 
-## 注意点
+## Considerations
 
-⚠️ **状態の共有**: どのキーを共有するか慎重に設計
-⚠️ **デバッグの複雑さ**: 階層が深いと追跡が困難
-⚠️ **パフォーマンス**: 多階層だとオーバーヘッドが増加
-⚠️ **循環参照**: サブグラフ間の循環依存に注意
+⚠️ **State Sharing**: Carefully design which keys to share
+⚠️ **Debugging Complexity**: Deep hierarchies are hard to track
+⚠️ **Performance**: Multi-level increases overhead
+⚠️ **Circular References**: Watch for circular dependencies between subgraphs
 
-## ベストプラクティス
+## Best Practices
 
-1. **浅い階層**: 可能な限り階層を浅く保つ（2-3レベル）
-2. **明確な責任**: 各サブグラフの役割を明確に定義
-3. **状態の最小化**: 共有する状態キーを必要最小限に
-4. **独立性**: サブグラフはできるだけ独立して動作するように
+1. **Shallow Hierarchy**: Keep hierarchy as shallow as possible (2-3 levels)
+2. **Clear Responsibilities**: Clearly define role of each subgraph
+3. **Minimize State**: Share only necessary state keys
+4. **Independence**: Subgraphs should operate as independently as possible
 
-## まとめ
+## Summary
 
-Subgraphは**複雑なシステムの階層的な整理**に最適です。状態の共有方法に応じて2つのアプローチを使い分けます。
+Subgraph is optimal for **hierarchical organization of complex systems**. Choose between two approaches depending on state sharing method.
 
-## 関連ページ
+## Related Pages
 
-- [06_Agent.md](06_Agent.md) - マルチエージェントとの組み合わせ
-- [01_基本概念/State.md](../01_基本概念/State.md) - 状態の設計
-- [03_メモリ管理/Persistence.md](../03_メモリ管理/Persistence.md) - チェックポインターの伝播
+- [06_Agent.md](06_Agent.md) - Combination with multi-agent
+- [01_Basic_Concepts/State.md](../01_Basic_Concepts/State.md) - State design
+- [03_Memory_Management/Persistence.md](../03_Memory_Management/Persistence.md) - Checkpointer propagation

@@ -1,57 +1,57 @@
-# 01. 基本概念
+# 01. Core Concepts
 
-LangGraphの核となる3つの要素を理解する。
+Understanding the three core elements of LangGraph.
 
-## 概要
+## Overview
 
-LangGraphは、エージェントワークフローを**グラフ**としてモデル化するフレームワークです。複雑なワークフローを**離散的なステップ（ノード）**に分解することで、以下を実現します：
+LangGraph is a framework that models agent workflows as **graphs**. By decomposing complex workflows into **discrete steps (nodes)**, it achieves the following:
 
-- **耐性向上**: ノード境界でチェックポイント作成
-- **可視性向上**: 各ステップ間で状態検査が可能
-- **独立テスト**: 個別ノードの単体テストが容易
-- **エラーハンドリング**: エラータイプごとに異なる戦略を適用可能
+- **Improved Resilience**: Create checkpoints at node boundaries
+- **Enhanced Visibility**: Enable state inspection between each step
+- **Independent Testing**: Easy unit testing of individual nodes
+- **Error Handling**: Apply different strategies for each error type
 
-## 3つの主要要素
+## Three Core Elements
 
-### 1. [State（状態）](State.md)
-- グラフ内のすべてのノードで共有されるメモリ
-- 現在の実行状態のスナップショット
-- TypedDictまたはPydanticモデルで定義
+### 1. [State](State.md)
+- Memory shared across all nodes in the graph
+- Snapshot of the current execution state
+- Defined with TypedDict or Pydantic models
 
-### 2. [Node（ノード）](Node.md)
-- 個別のタスクを実行するPython関数
-- 現在の状態を受け取り、更新を返す
-- 処理の基本単位
+### 2. [Node](Node.md)
+- Python functions that execute individual tasks
+- Receive the current state and return updates
+- Basic unit of processing
 
-### 3. [Edge（エッジ）](Edge.md)
-- ノード間の遷移を定義
-- 固定遷移または条件分岐
-- 制御フローを決定
+### 3. [Edge](Edge.md)
+- Define transitions between nodes
+- Fixed transitions or conditional branching
+- Determine control flow
 
-## 設計哲学
+## Design Philosophy
 
-LangGraphの核となる考え方は、**離散的なステップへの分解**です：
+The core concept of LangGraph is **decomposition into discrete steps**:
 
 ```python
-# エージェントを個別のノードに分割
+# Split agent into individual nodes
 graph = StateGraph(State)
-graph.add_node("analyze", analyze_node)  # 分析ステップ
-graph.add_node("decide", decide_node)     # 判断ステップ
-graph.add_node("execute", execute_node)   # 実行ステップ
+graph.add_node("analyze", analyze_node)  # Analysis step
+graph.add_node("decide", decide_node)     # Decision step
+graph.add_node("execute", execute_node)   # Execution step
 ```
 
-このアプローチにより、各ステップが独立して動作し、全体として堅牢なシステムを構築できます。
+This approach allows each step to operate independently, building a robust system as a whole.
 
-## 重要な原則
+## Important Principles
 
-1. **生データを保存**: Stateには生データを保存し、プロンプトのフォーマットはノード内で動的に行う
-2. **更新を返す**: ノードは状態を直接変更せず、更新内容を返す
-3. **透明な制御フロー**: Commandオブジェクトで次の遷移先を明示的に宣言
+1. **Store Raw Data**: Store raw data in State, format prompts dynamically within nodes
+2. **Return Updates**: Nodes return update contents instead of directly modifying state
+3. **Transparent Control Flow**: Explicitly declare the next destination with Command objects
 
-## 次のステップ
+## Next Steps
 
-各要素の詳細については、以下のページを参照してください：
+For details on each element, refer to the following pages:
 
-- [State.md](State.md) - 状態管理の詳細
-- [Node.md](Node.md) - ノードの実装方法
-- [Edge.md](Edge.md) - エッジと制御フロー
+- [State.md](State.md) - State management details
+- [Node.md](Node.md) - How to implement nodes
+- [Edge.md](Edge.md) - Edges and control flow

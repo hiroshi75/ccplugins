@@ -1,19 +1,19 @@
-# Orchestrator-Worker（マスターワーカー）
+# Orchestrator-Worker (Master-Worker)
 
-オーケストレーターがタスク分解し、複数のワーカーに委譲するパターン。
+A pattern where an orchestrator decomposes tasks and delegates them to multiple workers.
 
-## 概要
+## Overview
 
-Orchestrator-Workerは、**マスターノード**がタスクを複数のサブタスクに分解し、**ワーカーノード**に並列に委譲するパターンです。Map-Reduceパターンとも呼ばれます。
+Orchestrator-Worker is a pattern where a **master node** decomposes tasks into multiple subtasks and delegates them in parallel to **worker nodes**. Also known as the Map-Reduce pattern.
 
-## 適用場面
+## Use Cases
 
-- 複数の文書を並列処理
-- 大きなタスクを小さなサブタスクに分割
-- データセットの分散処理
-- 複数のAPIを並列呼び出し
+- Parallel processing of multiple documents
+- Dividing large tasks into smaller subtasks
+- Distributed processing of datasets
+- Parallel API calls
 
-## 実装例: 複数文書の要約
+## Implementation Example: Summarizing Multiple Documents
 
 ```python
 from langgraph.types import Send
@@ -30,79 +30,79 @@ class WorkerState(TypedDict):
     summary: str
 
 def orchestrator_node(state: State):
-    """タスクを分解してワーカーに委譲"""
-    # 各文書をワーカーに送信
+    """Decompose task and delegate to workers"""
+    # Send each document to a worker
     return [
         Send("worker", {"document": doc})
         for doc in state["documents"]
     ]
 
 def worker_node(state: WorkerState):
-    """個別の文書を要約"""
+    """Summarize individual document"""
     summary = llm.invoke(f"Summarize: {state['document']}")
     return {"summaries": [summary]}
 
 def reducer_node(state: State):
-    """すべての要約を統合"""
+    """Integrate all summaries"""
     all_summaries = "\n".join(state["summaries"])
     final = llm.invoke(f"Create final summary from:\n{all_summaries}")
     return {"final_summary": final}
 
-# グラフ構築
+# Build graph
 builder = StateGraph(State)
 
 builder.add_node("orchestrator", orchestrator_node)
 builder.add_node("worker", worker_node)
 builder.add_node("reducer", reducer_node)
 
-# オーケストレーターからワーカーへ（動的）
+# Orchestrator to workers (dynamic)
 builder.add_edge(START, "orchestrator")
 
-# ワーカーから集約ノードへ
+# Workers to aggregation node
 builder.add_edge("worker", "reducer")
 builder.add_edge("reducer", END)
 
 graph = builder.compile()
 ```
 
-## Send APIの使用
+## Using the Send API
 
-`Send`オブジェクトで**動的にノードインスタンスを生成**します：
+Generate **node instances dynamically** with `Send` objects:
 
 ```python
 def orchestrator(state: State):
-    # 各アイテムごとにワーカーインスタンスを生成
+    # Generate worker instance for each item
     return [
         Send("worker", {"item": item, "index": i})
         for i, item in enumerate(state["items"])
     ]
 ```
 
-## 応用パターン
+## Advanced Patterns
 
-### パターン1: 階層的処理
+### Pattern 1: Hierarchical Processing
 
 ```python
 def master_orchestrator(state: State):
-    """マスターが複数のサブオーケストレーターに委譲"""
+    """Master delegates to multiple sub-orchestrators"""
     return [
         Send("sub_orchestrator", {"category": cat, "items": items})
         for cat, items in group_by_category(state["all_items"])
     ]
 
 def sub_orchestrator(state: SubState):
-    """サブオーケストレーターが個別ワーカーに委譲"""
+    """Sub-orchestrator delegates to individual workers"""
     return [
         Send("worker", {"item": item})
         for item in state["items"]
     ]
 ```
 
-### パターン2: 条件付きワーカー選択
+### Pattern 2: Conditional Worker Selection
 
 ```python
 def smart_orchestrator(state: State):
-    """タスクの特性に応じて異なるワーカーを選択"""
+    """Select different workers based on task characteristics"""
     tasks = []
 
     for item in state["items"]:
@@ -114,11 +114,11 @@ def smart_orchestrator(state: State):
     return tasks
 ```
 
-### パターン3: バッチ処理
+### Pattern 3: Batch Processing
 
 ```python
 def batch_orchestrator(state: State):
-    """アイテムをバッチに分割"""
+    """Divide items into batches"""
     batch_size = 10
     batches = [
         state["items"][i:i+batch_size]
@@ -131,12 +131,12 @@ def batch_orchestrator(state: State):
     ]
 
 def batch_worker(state: BatchState):
-    """バッチを処理"""
+    """Process batch"""
     results = [process(item) for item in state["batch"]]
     return {"results": results}
 ```
 
-### パターン4: エラー処理とリトライ
+### Pattern 4: Error Handling and Retry
 
 ```python
 class WorkerState(TypedDict):
@@ -146,32 +146,32 @@ class WorkerState(TypedDict):
     error: str | None
 
 def robust_worker(state: WorkerState):
-    """エラー処理付きワーカー"""
+    """Worker with error handling"""
     try:
         result = process_item(state["item"])
         return {"result": result, "error": None}
     except Exception as e:
         if state.get("retry_count", 0) < 3:
-            # リトライ
+            # Retry
             return Send("worker", {
                 "item": state["item"],
                 "retry_count": state.get("retry_count", 0) + 1
             })
         else:
-            # 最大リトライ数に到達
+            # Maximum retries reached
             return {"error": str(e)}
 ```
 
-## 動的な並列度制御
+## Dynamic Parallelism Control
 
 ```python
 import os
 
 def adaptive_orchestrator(state: State):
-    """システムリソースに応じて並列度を調整"""
+    """Adjust parallelism based on system resources"""
     max_workers = int(os.getenv("MAX_WORKERS", "5"))
 
-    # アイテムをチャンクに分割
+    # Divide items into chunks
     items = state["items"]
     chunk_size = max(1, len(items) // max_workers)
 
@@ -186,9 +186,9 @@ def adaptive_orchestrator(state: State):
     ]
 ```
 
-## Reducer の実装パターン
+## Reducer Implementation Patterns
 
-### パターン1: 単純な集約
+### Pattern 1: Simple Aggregation
 
 ```python
 from operator import add
@@ -197,15 +197,15 @@ class State(TypedDict):
     results: Annotated[list, add]
 
 def reducer(state: State):
-    """結果をシンプルに集約"""
+    """Simple aggregation of results"""
     return {"total": sum(state["results"])}
 ```
 
-### パターン2: 複雑な集約
+### Pattern 2: Complex Aggregation
 
 ```python
 def advanced_reducer(state: State):
-    """統計情報を計算"""
+    """Calculate statistics"""
     results = state["results"]
 
     return {
@@ -216,11 +216,11 @@ def advanced_reducer(state: State):
     }
 ```
 
-### パターン3: LLMによる統合
+### Pattern 3: LLM-Based Integration
 
 ```python
 def llm_reducer(state: State):
-    """LLMで複数の結果を統合"""
+    """Integrate multiple results with LLM"""
     all_results = "\n".join(state["summaries"])
 
     final = llm.invoke(
@@ -230,33 +230,33 @@ def llm_reducer(state: State):
     return {"final_summary": final}
 ```
 
-## 利点
+## Benefits
 
-✅ **スケーラビリティ**: タスク数に応じて自動的にワーカー生成
-✅ **並列処理**: 大量のデータを高速処理
-✅ **柔軟性**: 動的にワーカー数を調整可能
-✅ **分散処理**: 複数のサーバーに分散可能
+✅ **Scalability**: Workers automatically generated based on task count
+✅ **Parallel Processing**: High-speed processing of large amounts of data
+✅ **Flexibility**: Dynamically adjustable worker count
+✅ **Distributed Processing**: Distributable across multiple servers
 
-## 注意点
+## Considerations
 
-⚠️ **メモリ消費**: 多数のワーカーインスタンスが生成される
-⚠️ **Reducer設計**: 結果の集約方法を適切に設計
-⚠️ **エラーハンドリング**: 一部のワーカーが失敗した場合の対処
-⚠️ **リソース管理**: 並列度の制限が必要な場合がある
+⚠️ **Memory Consumption**: Many worker instances are generated
+⚠️ **Reducer Design**: Appropriately design result aggregation method
+⚠️ **Error Handling**: Handle cases where some workers fail
+⚠️ **Resource Management**: May need to limit parallelism
 
-## ベストプラクティス
+## Best Practices
 
-1. **バッチサイズの調整**: 小さすぎるとオーバーヘッド、大きすぎると並列性が低下
-2. **エラーの分離**: 1つの失敗が全体に影響しないように
-3. **進捗の追跡**: 大量タスクの場合、進捗を可視化
-4. **リソースの制限**: 並列度の上限を設定
+1. **Batch Size Adjustment**: Too small causes overhead, too large reduces parallelism
+2. **Error Isolation**: One failure shouldn't affect the whole
+3. **Progress Tracking**: Visualize progress for large task counts
+4. **Resource Limits**: Set upper limit on parallelism
 
-## まとめ
+## Summary
 
-Orchestrator-Workerは**大量のタスクを並列処理**する場合に最適です。Send APIで動的にワーカーを生成し、Reducerで結果を集約します。
+Orchestrator-Worker is optimal for **parallel processing of large task volumes**. Workers are generated dynamically with the Send API, and results are aggregated with a Reducer.
 
-## 関連ページ
+## Related Pages
 
-- [02_Parallelization.md](02_Parallelization.md) - 静的な並列処理との比較
-- [05_応用機能/MapReduce.md](../05_応用機能/MapReduce.md) - Map-Reduce詳細
-- [01_基本概念/State.md](../01_基本概念/State.md) - Reducerの詳細
+- [02_Parallelization.md](02_Parallelization.md) - Comparison with static parallel processing
+- [05_Advanced_Features/MapReduce.md](../05_Advanced_Features/MapReduce.md) - Map-Reduce details
+- [01_Basic_Concepts/State.md](../01_Basic_Concepts/State.md) - Reducer details

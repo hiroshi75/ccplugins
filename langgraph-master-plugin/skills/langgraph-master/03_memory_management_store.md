@@ -1,64 +1,64 @@
-# Store（長期記憶）
+# Store (Long-term Memory)
 
-複数スレッド間で情報を共有する長期記憶。
+Long-term memory for sharing information across multiple threads.
 
-## 概要
+## Overview
 
-Checkpointerは単一スレッド内の状態のみを保存します。複数スレッド間で情報を共有するには**Store**を使用します。
+Checkpointer only saves state within a single thread. To share information across multiple threads, use **Store**.
 
 ## Checkpointer vs Store
 
-| 機能 | Checkpointer | Store |
-|------|-------------|-------|
-| スコープ | 単一スレッド | 全スレッド |
-| 用途 | 会話状態 | ユーザー情報 |
-| 自動保存 | Yes | No（手動） |
-| 検索 | thread_id | 名前空間 |
+| Feature | Checkpointer | Store |
+|---------|-------------|-------|
+| Scope | Single thread | All threads |
+| Purpose | Conversation state | User information |
+| Auto-save | Yes | No (manual) |
+| Search | thread_id | Namespace |
 
-## 基本的な使用
+## Basic Usage
 
 ```python
 from langgraph.store.memory import InMemoryStore
 
-# Storeの作成
+# Create Store
 store = InMemoryStore()
 
-# ユーザー情報を保存
+# Save user information
 store.put(
     namespace=("users", "user-123"),
     key="preferences",
     value={
-        "language": "ja",
+        "language": "en",
         "theme": "dark",
         "notifications": True
     }
 )
 
-# ユーザー情報を取得
+# Retrieve user information
 user_prefs = store.get(("users", "user-123"), "preferences")
 ```
 
-## 名前空間（Namespace）
+## Namespace
 
-名前空間は**タプル**でグループ化：
+Namespaces are grouped by **tuples**:
 
 ```python
-# ユーザー情報
+# User information
 ("users", user_id)
 
-# セッション情報
+# Session information
 ("sessions", session_id)
 
-# プロジェクト情報
+# Project information
 ("projects", project_id, "documents")
 
-# 階層的な構造
+# Hierarchical structure
 ("organization", org_id, "department", dept_id)
 ```
 
-## Storeの操作
+## Store Operations
 
-### 保存
+### Save
 
 ```python
 store.put(
@@ -72,89 +72,89 @@ store.put(
 )
 ```
 
-### 取得
+### Retrieve
 
 ```python
-# 単一アイテム
+# Single item
 profile = store.get(("users", "alice"), "profile")
 
-# 名前空間内の全アイテム
+# All items in namespace
 items = store.search(("users", "alice"))
 ```
 
-### 検索
+### Search
 
 ```python
-# 名前空間でフィルタ
+# Filter by namespace
 all_users = store.search(("users",))
 
-# キーでフィルタ
+# Filter by key
 profiles = store.search(("users",), filter={"key": "profile"})
 ```
 
-### 削除
+### Delete
 
 ```python
-# 単一アイテム
+# Single item
 store.delete(("users", "alice"), "profile")
 
-# 名前空間全体
+# Entire namespace
 store.delete_namespace(("users", "alice"))
 ```
 
-## グラフとの統合
+## Integration with Graph
 
 ```python
 from langgraph.store.memory import InMemoryStore
 
 store = InMemoryStore()
 
-# Storeをグラフに統合
+# Integrate Store with graph
 graph = builder.compile(
     checkpointer=checkpointer,
     store=store
 )
 
-# ノード内でStoreを使用
+# Use Store within nodes
 def personalized_node(state: State, *, store):
     user_id = state["user_id"]
 
-    # ユーザー設定を取得
+    # Get user preferences
     prefs = store.get(("users", user_id), "preferences")
 
-    # 設定に基づいて処理
-    if prefs and prefs.value.get("language") == "ja":
-        response = generate_japanese_response(state)
-    else:
+    # Process based on preferences
+    if prefs and prefs.value.get("language") == "en":
         response = generate_english_response(state)
+    else:
+        response = generate_default_response(state)
 
     return {"response": response}
 ```
 
-## セマンティック検索
+## Semantic Search
 
-ベクトル検索機能を持つStore実装：
+Store implementations with vector search capability:
 
 ```python
 from langgraph.store.memory import InMemoryStore
 
 store = InMemoryStore(index={"embed": True})
 
-# ドキュメントを保存（自動的にベクトル化）
+# Save documents (automatically vectorized)
 store.put(
     ("documents", "doc-1"),
     "content",
-    {"text": "LangGraphはエージェントフレームワークです"}
+    {"text": "LangGraph is an agent framework"}
 )
 
-# セマンティック検索
+# Semantic search
 results = store.search(
     ("documents",),
-    query="エージェント開発"
+    query="agent development"
 )
 ```
 
-## 実践例: ユーザープロファイル
+## Practical Example: User Profile
 
 ```python
 class ProfileState(TypedDict):
@@ -162,19 +162,19 @@ class ProfileState(TypedDict):
     messages: Annotated[list, add_messages]
 
 def save_user_info(state: ProfileState, *, store):
-    """会話からユーザー情報を抽出して保存"""
+    """Extract and save user information from conversation"""
     messages = state["messages"]
     user_id = state["user_id"]
 
-    # LLMで情報抽出
+    # Extract information with LLM
     info = extract_user_info(messages)
 
     if info:
-        # Storeに保存
+        # Save to Store
         current = store.get(("users", user_id), "profile")
 
         if current:
-            # 既存情報と統合
+            # Merge with existing information
             updated = {**current.value, **info}
         else:
             updated = info
@@ -188,10 +188,10 @@ def save_user_info(state: ProfileState, *, store):
     return {}
 
 def personalized_response(state: ProfileState, *, store):
-    """ユーザー情報を使って個別化"""
+    """Personalize using user information"""
     user_id = state["user_id"]
 
-    # ユーザー情報を取得
+    # Get user information
     profile = store.get(("users", user_id), "profile")
 
     if profile:
@@ -207,27 +207,27 @@ def personalized_response(state: ProfileState, *, store):
     return {"messages": [response]}
 ```
 
-## 実践例: 知識ベース
+## Practical Example: Knowledge Base
 
 ```python
 def query_knowledge_base(state: State, *, store):
-    """質問に関連する知識を検索"""
+    """Search for knowledge related to question"""
     query = state["messages"][-1].content
 
-    # セマンティック検索
+    # Semantic search
     relevant_docs = store.search(
         ("knowledge",),
         query=query,
         limit=3
     )
 
-    # 関連情報をコンテキストに追加
+    # Add relevant information to context
     context = "\n".join([
         doc.value["text"]
         for doc in relevant_docs
     ])
 
-    # LLMに渡す
+    # Pass to LLM
     response = llm.invoke([
         {"role": "system", "content": f"Context:\n{context}"},
         *state["messages"]
@@ -236,7 +236,7 @@ def query_knowledge_base(state: State, *, store):
     return {"messages": [response]}
 ```
 
-## Store実装
+## Store Implementations
 
 ### InMemoryStore
 
@@ -246,7 +246,7 @@ from langgraph.store.memory import InMemoryStore
 store = InMemoryStore()
 ```
 
-### カスタムStore
+### Custom Store
 
 ```python
 from langgraph.store.base import BaseStore
@@ -270,18 +270,18 @@ class RedisStore(BaseStore):
         return [self.get_by_key(k) for k in keys]
 ```
 
-## ベストプラクティス
+## Best Practices
 
-1. **名前空間の設計**: 階層的で意味のある構造
-2. **キーの命名**: 明確で一貫性のある命名規則
-3. **データサイズ**: 大きなデータは参照のみ保存
-4. **クリーンアップ**: 古いデータの定期削除
+1. **Namespace Design**: Hierarchical and meaningful structure
+2. **Key Naming**: Clear and consistent naming conventions
+3. **Data Size**: Store references only for large data
+4. **Cleanup**: Periodic deletion of old data
 
-## まとめ
+## Summary
 
-Storeは複数スレッド間で情報を共有する長期記憶です。ユーザープロファイル、知識ベース、設定などの永続化に使用します。
+Store is long-term memory for sharing information across multiple threads. Use it for persisting user profiles, knowledge bases, settings, etc.
 
-## 関連ページ
+## Related Pages
 
-- [Checkpointer.md](Checkpointer.md) - 短期記憶との違い
-- [Persistence.md](Persistence.md) - 永続化の基本
+- [Checkpointer.md](Checkpointer.md) - Differences from short-term memory
+- [Persistence.md](Persistence.md) - Persistence basics

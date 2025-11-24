@@ -1,19 +1,19 @@
-# Evaluator-Optimizer（評価改善ループ）
+# Evaluator-Optimizer (Evaluation-Improvement Loop)
 
-生成と評価を繰り返し、許容基準に達するまで反復改善するパターン。
+A pattern that repeats generation and evaluation, continuing iterative improvement until acceptable criteria are met.
 
-## 概要
+## Overview
 
-Evaluator-Optimizerは、**生成 → 評価 → 改善**のループを繰り返し、品質基準を満たすまで継続するパターンです。
+Evaluator-Optimizer is a pattern that repeats the **generate → evaluate → improve** loop, continuing until quality standards are met.
 
-## 適用場面
+## Use Cases
 
-- コード生成と品質検証
-- 翻訳の精度向上
-- コンテンツの段階的改善
-- 最適化問題の反復解法
+- Code generation and quality verification
+- Translation accuracy improvement
+- Gradual content improvement
+- Iterative solution for optimization problems
 
-## 実装例: 翻訳品質の向上
+## Implementation Example: Translation Quality Improvement
 
 ```python
 from typing import TypedDict
@@ -27,9 +27,9 @@ class State(TypedDict):
     feedback: str
 
 def generator_node(state: State):
-    """翻訳を生成または改善"""
+    """Generate or improve translation"""
     if state.get("translated_text"):
-        # 既存の翻訳を改善
+        # Improve existing translation
         prompt = f"""
         Original: {state['original_text']}
         Current translation: {state['translated_text']}
@@ -38,7 +38,7 @@ def generator_node(state: State):
         Improve the translation based on the feedback.
         """
     else:
-        # 初回翻訳
+        # Initial translation
         prompt = f"Translate to Japanese: {state['original_text']}"
 
     translated = llm.invoke(prompt)
@@ -49,7 +49,7 @@ def generator_node(state: State):
     }
 
 def evaluator_node(state: State):
-    """翻訳の品質を評価"""
+    """Evaluate translation quality"""
     evaluation_prompt = f"""
     Original: {state['original_text']}
     Translation: {state['translated_text']}
@@ -60,7 +60,7 @@ def evaluator_node(state: State):
 
     result = llm.invoke(evaluation_prompt)
 
-    # スコアとフィードバックを抽出
+    # Extract score and feedback
     score = extract_score(result)
     feedback = extract_feedback(result)
 
@@ -70,18 +70,18 @@ def evaluator_node(state: State):
     }
 
 def should_continue(state: State) -> Literal["improve", "done"]:
-    """継続判定"""
-    # 品質基準を満たしているか
+    """Continuation decision"""
+    # Check if quality standard is met
     if state["quality_score"] >= 0.9:
         return "done"
 
-    # 最大イテレーション数に到達したか
+    # Check if maximum iterations reached
     if state["iteration"] >= state["max_iterations"]:
         return "done"
 
     return "improve"
 
-# グラフ構築
+# Build graph
 builder = StateGraph(State)
 
 builder.add_node("generator", generator_node)
@@ -94,7 +94,7 @@ builder.add_conditional_edges(
     "evaluator",
     should_continue,
     {
-        "improve": "generator",  # ループ
+        "improve": "generator",  # Loop
         "done": END
     }
 )
@@ -102,21 +102,21 @@ builder.add_conditional_edges(
 graph = builder.compile()
 ```
 
-## 応用パターン
+## Advanced Patterns
 
-### パターン1: 複数の評価基準
+### Pattern 1: Multiple Evaluation Criteria
 
 ```python
 class MultiEvalState(TypedDict):
     content: str
-    scores: dict[str, float]  # 複数の評価スコア
-    min_scores: dict[str, float]  # 各基準の最小値
+    scores: dict[str, float]  # Multiple evaluation scores
+    min_scores: dict[str, float]  # Minimum value for each criterion
 
 def multi_evaluator(state: State):
-    """複数の観点で評価"""
+    """Evaluate from multiple perspectives"""
     content = state["content"]
 
-    # 各観点で評価
+    # Evaluate each perspective
     scores = {
         "accuracy": evaluate_accuracy(content),
         "readability": evaluate_readability(content),
@@ -126,7 +126,7 @@ def multi_evaluator(state: State):
     return {"scores": scores}
 
 def multi_should_continue(state: MultiEvalState):
-    """すべての基準を満たしているか確認"""
+    """Check if all criteria are met"""
     for criterion, min_score in state["min_scores"].items():
         if state["scores"][criterion] < min_score:
             return "improve"
@@ -134,16 +134,16 @@ def multi_should_continue(state: MultiEvalState):
     return "done"
 ```
 
-### パターン2: 段階的な基準引き上げ
+### Pattern 2: Progressive Criteria Increase
 
 ```python
 def adaptive_evaluator(state: State):
-    """イテレーションに応じて基準を調整"""
+    """Adjust criteria based on iteration"""
     iteration = state["iteration"]
 
-    # 最初は緩い基準、徐々に厳しく
+    # Start with lenient criteria, gradually stricter
     threshold = 0.7 + (iteration * 0.05)
-    threshold = min(threshold, 0.95)  # 最大0.95
+    threshold = min(threshold, 0.95)  # Maximum 0.95
 
     score = evaluate(state["content"])
 
@@ -162,29 +162,29 @@ def adaptive_should_continue(state: State):
     return "improve"
 ```
 
-### パターン3: 複数の改善戦略
+### Pattern 3: Multiple Improvement Strategies
 
 ```python
 from typing import Literal
 
 def strategy_router(state: State) -> Literal["minor_fix", "major_rewrite"]:
-    """スコアに応じて改善戦略を選択"""
+    """Select improvement strategy based on score"""
     score = state["quality_score"]
 
     if score >= 0.7:
-        # 微調整で十分
+        # Minor adjustments sufficient
         return "minor_fix"
     else:
-        # 大幅な書き直しが必要
+        # Major rewrite needed
         return "major_rewrite"
 
 def minor_fix_node(state: State):
-    """小さな改善"""
+    """Small improvements"""
     prompt = f"Make minor improvements: {state['content']}\n{state['feedback']}"
     return {"content": llm.invoke(prompt)}
 
 def major_rewrite_node(state: State):
-    """大幅な書き直し"""
+    """Major rewrite"""
     prompt = f"Completely rewrite: {state['content']}\n{state['feedback']}"
     return {"content": llm.invoke(prompt)}
 
@@ -198,7 +198,7 @@ builder.add_conditional_edges(
 )
 ```
 
-### パターン4: 早期終了とタイムアウト
+### Pattern 4: Early Termination and Timeout
 
 ```python
 import time
@@ -208,20 +208,20 @@ class TimedState(TypedDict):
     quality_score: float
     iteration: int
     start_time: float
-    max_duration: float  # 秒
+    max_duration: float  # seconds
 
 def timed_should_continue(state: TimedState):
-    """品質基準とタイムアウトの両方をチェック"""
-    # 品質基準を満たした
+    """Check both quality criteria and timeout"""
+    # Quality standard met
     if state["quality_score"] >= 0.9:
         return "done"
 
-    # タイムアウト
+    # Timeout
     elapsed = time.time() - state["start_time"]
     if elapsed >= state["max_duration"]:
         return "timeout"
 
-    # 最大イテレーション
+    # Maximum iterations
     if state["iteration"] >= 10:
         return "max_iterations"
 
@@ -239,24 +239,24 @@ builder.add_conditional_edges(
 )
 ```
 
-## 評価器の実装パターン
+## Evaluator Implementation Patterns
 
-### パターン1: ルールベース評価
+### Pattern 1: Rule-Based Evaluation
 
 ```python
 def rule_based_evaluator(state: State):
-    """ルールベースで評価"""
+    """Rule-based evaluation"""
     content = state["content"]
     score = 0.0
     feedback = []
 
-    # 長さチェック
+    # Length check
     if 100 <= len(content) <= 500:
         score += 0.3
     else:
         feedback.append("Length should be 100-500 characters")
 
-    # キーワードチェック
+    # Keyword check
     required_keywords = state["required_keywords"]
     if all(kw in content for kw in required_keywords):
         score += 0.3
@@ -264,7 +264,7 @@ def rule_based_evaluator(state: State):
         missing = [kw for kw in required_keywords if kw not in content]
         feedback.append(f"Missing keywords: {missing}")
 
-    # 構造チェック
+    # Structure check
     if has_proper_structure(content):
         score += 0.4
     else:
@@ -276,11 +276,11 @@ def rule_based_evaluator(state: State):
     }
 ```
 
-### パターン2: LLMベース評価
+### Pattern 2: LLM-Based Evaluation
 
 ```python
 def llm_evaluator(state: State):
-    """LLMで評価"""
+    """LLM evaluation"""
     evaluation_prompt = f"""
     Evaluate this content on a scale of 0-1:
     {state['content']}
@@ -303,33 +303,33 @@ def llm_evaluator(state: State):
     }
 ```
 
-## 利点
+## Benefits
 
-✅ **品質保証**: 基準を満たすまで改善を継続
-✅ **自動最適化**: 手動介入なしで品質向上
-✅ **フィードバックループ**: 評価結果を次の改善に活用
-✅ **適応的**: 問題の難易度に応じてイテレーション数が変動
+✅ **Quality Assurance**: Continue improvement until standards are met
+✅ **Automatic Optimization**: Quality improvement without manual intervention
+✅ **Feedback Loop**: Use evaluation results for next improvement
+✅ **Adaptive**: Iteration count varies based on problem difficulty
 
-## 注意点
+## Considerations
 
-⚠️ **無限ループ**: 終了条件を適切に設定
-⚠️ **コスト**: LLM呼び出しが複数回発生
-⚠️ **収束保証なし**: 必ずしも基準を満たすとは限らない
-⚠️ **局所最適**: 改善が行き詰まる可能性
+⚠️ **Infinite Loops**: Set termination conditions appropriately
+⚠️ **Cost**: Multiple LLM calls occur
+⚠️ **No Convergence Guarantee**: May not always meet standards
+⚠️ **Local Optima**: Improvement may get stuck
 
-## ベストプラクティス
+## Best Practices
 
-1. **明確な終了条件**: 最大イテレーション数とタイムアウトを設定
-2. **段階的フィードバック**: 具体的な改善点を提示
-3. **進捗の追跡**: イテレーションごとにスコアを記録
-4. **フォールバック**: 基準を満たせない場合の対処
+1. **Clear Termination Conditions**: Set maximum iterations and timeout
+2. **Progressive Feedback**: Provide specific improvement points
+3. **Progress Tracking**: Record scores for each iteration
+4. **Fallback**: Handle cases where standards cannot be met
 
-## まとめ
+## Summary
 
-Evaluator-Optimizerは**品質基準を満たすまで反復改善**が必要な場合に最適です。明確な評価基準と終了条件が成功の鍵です。
+Evaluator-Optimizer is optimal when **iterative improvement is needed until quality standards are met**. Clear evaluation criteria and termination conditions are key to success.
 
-## 関連ページ
+## Related Pages
 
-- [01_PromptChaining.md](01_PromptChaining.md) - 基本的な順次処理
-- [06_Agent.md](06_Agent.md) - Agentとの組み合わせ
-- [05_応用機能/HumanInTheLoop.md](../05_応用機能/HumanInTheLoop.md) - 人間による評価
+- [01_PromptChaining.md](01_PromptChaining.md) - Basic sequential processing
+- [06_Agent.md](06_Agent.md) - Combining with Agent
+- [05_Advanced_Features/HumanInTheLoop.md](../05_Advanced_Features/HumanInTheLoop.md) - Human evaluation

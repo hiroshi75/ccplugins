@@ -1,63 +1,63 @@
-# Agent（自律的ツール使用）
+# Agent (Autonomous Tool Usage)
 
-LLMがツール選択を動的に判断し、予測不可能な問題解決に対応するパターン。
+A pattern where the LLM dynamically determines tool selection to handle unpredictable problem-solving.
 
-## 概要
+## Overview
 
-Agentパターンは、LLMが**ReAct**（Reasoning + Acting）に従い、ツールを動的に選択・実行して問題を解決します。
+The Agent pattern follows **ReAct** (Reasoning + Acting), where the LLM dynamically selects and executes tools to solve problems.
 
-## ReActパターン
+## ReAct Pattern
 
-**ReAct** = Reasoning（推論） + Acting（行動）
+**ReAct** = Reasoning + Acting
 
-1. **Reasoning**: 「次に何をすべきか？」を考える
-2. **Acting**: ツールを使って行動する
-3. **Observing**: 結果を観察する
-4. 最終回答を出すまで **1-3を繰り返す**
+1. **Reasoning**: Think "What should I do next?"
+2. **Acting**: Take action using tools
+3. **Observing**: Observe the results
+4. **Repeat steps 1-3** until reaching a final answer
 
-## 実装例: 基本的なエージェント
+## Implementation Example: Basic Agent
 
 ```python
 from langgraph.graph import StateGraph, START, END, MessagesState
 from langgraph.prebuilt import ToolNode
 from typing import Literal
 
-# ツールの定義
+# Tool definitions
 @tool
 def search(query: str) -> str:
-    """ウェブ検索を実行"""
+    """Execute web search"""
     return perform_search(query)
 
 @tool
 def calculator(expression: str) -> float:
-    """計算を実行"""
+    """Execute calculation"""
     return eval(expression)
 
 tools = [search, calculator]
 
-# エージェントノード
+# Agent node
 def agent_node(state: MessagesState):
-    """LLMがツール使用を判断"""
+    """LLM determines tool usage"""
     messages = state["messages"]
 
-    # ツールを持つLLMを呼び出し
+    # Invoke LLM with tools
     response = llm_with_tools.invoke(messages)
 
     return {"messages": [response]}
 
-# 継続判定
+# Continue decision
 def should_continue(state: MessagesState) -> Literal["tools", "end"]:
-    """ツール呼び出しがあるか確認"""
+    """Check if there are tool calls"""
     last_message = state["messages"][-1]
 
-    # ツール呼び出しがあれば継続
+    # Continue if there are tool calls
     if last_message.tool_calls:
         return "tools"
 
-    # なければ終了（最終回答）
+    # End if no tool calls (final answer)
     return "end"
 
-# グラフ構築
+# Build graph
 builder = StateGraph(MessagesState)
 
 builder.add_node("agent", agent_node)
@@ -65,7 +65,7 @@ builder.add_node("tools", ToolNode(tools))
 
 builder.add_edge(START, "agent")
 
-# ReActループ
+# ReAct loop
 builder.add_conditional_edges(
     "agent",
     should_continue,
@@ -75,41 +75,41 @@ builder.add_conditional_edges(
     }
 )
 
-# ツール実行後はエージェントに戻る
+# Return to agent after tool execution
 builder.add_edge("tools", "agent")
 
 graph = builder.compile()
 ```
 
-## ツールの定義
+## Tool Definitions
 
-### 基本的なツール
+### Basic Tools
 
 ```python
 from langchain_core.tools import tool
 
 @tool
 def get_weather(location: str) -> str:
-    """指定された場所の天気を取得します。
+    """Get weather for the specified location.
 
     Args:
-        location: 都市名（例: "Tokyo", "New York"）
+        location: City name (e.g., "Tokyo", "New York")
     """
     return fetch_weather_data(location)
 
 @tool
 def send_email(to: str, subject: str, body: str) -> str:
-    """メールを送信します。
+    """Send an email.
 
     Args:
-        to: 送信先メールアドレス
-        subject: 件名
-        body: 本文
+        to: Recipient email address
+        subject: Email subject
+        body: Email body
     """
     return send_email_api(to, subject, body)
 ```
 
-### 構造化出力ツール
+### Structured Output Tools
 
 ```python
 from pydantic import BaseModel, Field
@@ -122,7 +122,7 @@ class WeatherResponse(BaseModel):
 
 @tool(response_format="content_and_artifact")
 def get_detailed_weather(location: str) -> tuple[str, WeatherResponse]:
-    """詳細な天気情報を取得"""
+    """Get detailed weather information"""
     data = fetch_weather_data(location)
 
     weather = WeatherResponse(
@@ -132,55 +132,55 @@ def get_detailed_weather(location: str) -> tuple[str, WeatherResponse]:
         humidity=data["humidity"]
     )
 
-    message = f"{location}の天気: {weather.condition}, {weather.temperature}°C"
+    message = f"Weather in {location}: {weather.condition}, {weather.temperature}°C"
 
     return message, weather
 ```
 
-## 応用パターン
+## Advanced Patterns
 
-### パターン1: 複数エージェントの協調
+### Pattern 1: Multi-Agent Collaboration
 
 ```python
-# 専門エージェント
+# Specialist agents
 def research_agent(state: State):
-    """研究専門エージェント"""
+    """Research specialist agent"""
     response = research_llm_with_tools.invoke(state["messages"])
     return {"messages": [response]}
 
 def coding_agent(state: State):
-    """コーディング専門エージェント"""
+    """Coding specialist agent"""
     response = coding_llm_with_tools.invoke(state["messages"])
     return {"messages": [response]}
 
-# ルーター
+# Router
 def route_to_specialist(state: State) -> Literal["research", "coding"]:
-    """タスクに応じて専門家を選択"""
+    """Select specialist based on task"""
     last_message = state["messages"][-1]
 
-    if "調査" in last_message.content or "検索" in last_message.content:
+    if "research" in last_message.content or "search" in last_message.content:
         return "research"
-    elif "コード" in last_message.content or "実装" in last_message.content:
+    elif "code" in last_message.content or "implement" in last_message.content:
         return "coding"
 
-    return "research"  # デフォルト
+    return "research"  # Default
 ```
 
-### パターン2: メモリ付きエージェント
+### Pattern 2: Agent with Memory
 
 ```python
 from langgraph.checkpoint.memory import MemorySaver
 
 class AgentState(TypedDict):
     messages: Annotated[list, add_messages]
-    context: dict  # 長期記憶
+    context: dict  # Long-term memory
 
 def agent_with_memory(state: AgentState):
-    """コンテキストを活用するエージェント"""
+    """Agent utilizing context"""
     messages = state["messages"]
     context = state.get("context", {})
 
-    # コンテキストをプロンプトに追加
+    # Add context to prompt
     system_message = f"Context: {context}"
 
     response = llm_with_tools.invoke([
@@ -190,25 +190,25 @@ def agent_with_memory(state: AgentState):
 
     return {"messages": [response]}
 
-# チェックポインター付きでコンパイル
+# Compile with checkpointer
 checkpointer = MemorySaver()
 graph = builder.compile(checkpointer=checkpointer)
 ```
 
-### パターン3: Human-in-the-Loopエージェント
+### Pattern 3: Human-in-the-Loop Agent
 
 ```python
 from langgraph.types import interrupt
 
 def careful_agent(state: State):
-    """重要な行動前に人間に確認"""
+    """Confirm with human before important actions"""
     response = llm_with_tools.invoke(state["messages"])
 
-    # 重要なツール呼び出しの場合は確認
+    # Request confirmation for important tool calls
     if response.tool_calls:
         for tool_call in response.tool_calls:
             if tool_call["name"] in ["send_email", "delete_data"]:
-                # 人間の承認を待つ
+                # Wait for human approval
                 approved = interrupt({
                     "action": tool_call["name"],
                     "args": tool_call["args"],
@@ -225,7 +225,7 @@ def careful_agent(state: State):
     return {"messages": [response]}
 ```
 
-### パターン4: エラー処理とリトライ
+### Pattern 4: Error Handling and Retry
 
 ```python
 class RobustAgentState(TypedDict):
@@ -234,7 +234,7 @@ class RobustAgentState(TypedDict):
     errors: list[str]
 
 def robust_tool_node(state: RobustAgentState):
-    """エラーハンドリング付きツール実行"""
+    """Tool execution with error handling"""
     last_message = state["messages"][-1]
     tool_results = []
 
@@ -246,7 +246,7 @@ def robust_tool_node(state: RobustAgentState):
         except Exception as e:
             error_msg = f"Tool {tool_call['name']} failed: {str(e)}"
 
-            # リトライ可能か確認
+            # Check if retry is possible
             if state.get("retry_count", 0) < 3:
                 tool_results.append({
                     "tool_call_id": tool_call["id"],
@@ -266,13 +266,13 @@ def robust_tool_node(state: RobustAgentState):
     }
 ```
 
-## ツールの高度な機能
+## Advanced Tool Features
 
-### 動的ツール生成
+### Dynamic Tool Generation
 
 ```python
 def create_tool_for_api(api_spec: dict):
-    """API仕様からツールを動的生成"""
+    """Dynamically generate tool from API specification"""
 
     @tool
     def dynamic_api_tool(**kwargs) -> str:
@@ -286,17 +286,17 @@ def create_tool_for_api(api_spec: dict):
     return dynamic_api_tool
 ```
 
-### ツールの条件付き使用
+### Conditional Tool Usage
 
 ```python
 def conditional_agent(state: State):
-    """状況に応じてツールセットを変更"""
+    """Change toolset based on situation"""
     context = state.get("context", {})
 
-    # 初心者には基本ツールのみ
+    # Basic tools only for beginners
     if context.get("user_level") == "beginner":
         tools = [basic_search, simple_calculator]
-    # 上級者には高度なツールも
+    # Advanced tools for advanced users
     else:
         tools = [advanced_search, scientific_calculator, code_executor]
 
@@ -306,33 +306,33 @@ def conditional_agent(state: State):
     return {"messages": [response]}
 ```
 
-## 利点
+## Benefits
 
-✅ **柔軟性**: 予測不可能な問題に動的に対応
-✅ **自律性**: LLMが最適なツールと戦略を選択
-✅ **拡張性**: ツールを追加するだけで機能拡張
-✅ **適応力**: 複雑なマルチステップタスクを解決
+✅ **Flexibility**: Dynamically responds to unpredictable problems
+✅ **Autonomy**: LLM selects optimal tools and strategies
+✅ **Extensibility**: Extend functionality by simply adding tools
+✅ **Adaptability**: Solves complex multi-step tasks
 
-## 注意点
+## Considerations
 
-⚠️ **予測不可能**: 同じ入力でも異なる行動をする可能性
-⚠️ **コスト**: 複数回のLLM呼び出しが発生
-⚠️ **無限ループ**: 適切な終了条件が必要
-⚠️ **ツール誤用**: LLMがツールを誤って使用する可能性
+⚠️ **Unpredictability**: May behave differently with same input
+⚠️ **Cost**: Multiple LLM calls occur
+⚠️ **Infinite Loops**: Proper termination conditions required
+⚠️ **Tool Misuse**: LLM may use tools incorrectly
 
-## ベストプラクティス
+## Best Practices
 
-1. **明確なツール説明**: ツールのdocstringを詳細に記述
-2. **最大イテレーション**: ループの上限を設定
-3. **エラーハンドリング**: ツール実行のエラーを適切に処理
-4. **ログ記録**: エージェントの行動を追跡可能に
+1. **Clear Tool Descriptions**: Write detailed tool docstrings
+2. **Maximum Iterations**: Set upper limit for loops
+3. **Error Handling**: Handle tool execution errors appropriately
+4. **Logging**: Make agent behavior traceable
 
-## まとめ
+## Summary
 
-Agentパターンは**動的で不確定な問題解決**に最適です。ReActループでツールを使いながら、自律的に問題を解決します。
+The Agent pattern is optimal for **dynamic and uncertain problem-solving**. It autonomously solves problems using tools through the ReAct loop.
 
-## 関連ページ
+## Related Pages
 
-- [Workflow_vs_Agent.md](Workflow_vs_Agent.md) - WorkflowとAgentの違い
-- [04_ツール統合](../04_ツール統合/README.md) - ツールの詳細
-- [05_応用機能/HumanInTheLoop.md](../05_応用機能/HumanInTheLoop.md) - 人間の介入
+- [Workflow_vs_Agent.md](Workflow_vs_Agent.md) - Differences between Workflow and Agent
+- [04_Tool_Integration](../04_Tool_Integration/README.md) - Tool details
+- [05_Advanced_Features/HumanInTheLoop.md](../05_Advanced_Features/HumanInTheLoop.md) - Human intervention

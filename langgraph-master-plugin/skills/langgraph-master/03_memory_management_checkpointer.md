@@ -1,16 +1,16 @@
-# Checkpointer（チェックポインター）
+# Checkpointer
 
-状態を保存・復元する実装の詳細。
+Implementation details for saving and restoring state.
 
-## 概要
+## Overview
 
-Checkpointerは`BaseCheckpointSaver`インターフェースを実装し、状態の永続化を担当します。
+Checkpointer implements the `BaseCheckpointSaver` interface and is responsible for state persistence.
 
-## チェックポインター実装
+## Checkpointer Implementations
 
-### 1. MemorySaver（実験・テスト用）
+### 1. MemorySaver (For Experimentation & Testing)
 
-メモリ内にチェックポイントを保存：
+Saves checkpoints in memory:
 
 ```python
 from langgraph.checkpoint.memory import MemorySaver
@@ -18,22 +18,22 @@ from langgraph.checkpoint.memory import MemorySaver
 checkpointer = MemorySaver()
 graph = builder.compile(checkpointer=checkpointer)
 
-# プロセスが終了すると全て失われる
+# All data is lost when the process terminates
 ```
 
-**用途**: ローカルテスト、プロトタイピング
+**Use Case**: Local testing, prototyping
 
-### 2. SqliteSaver（ローカル開発用）
+### 2. SqliteSaver (For Local Development)
 
-SQLiteデータベースに保存：
+Saves to SQLite database:
 
 ```python
 from langgraph.checkpoint.sqlite import SqliteSaver
 
-# ファイルベース
+# File-based
 checkpointer = SqliteSaver.from_conn_string("checkpoints.db")
 
-# または接続オブジェクトから
+# Or from connection object
 import sqlite3
 conn = sqlite3.connect("checkpoints.db")
 checkpointer = SqliteSaver(conn)
@@ -41,17 +41,17 @@ checkpointer = SqliteSaver(conn)
 graph = builder.compile(checkpointer=checkpointer)
 ```
 
-**用途**: ローカル開発、シングルユーザーアプリ
+**Use Case**: Local development, single-user applications
 
-### 3. PostgresSaver（本番環境用）
+### 3. PostgresSaver (For Production)
 
-PostgreSQLデータベースに保存：
+Saves to PostgreSQL database:
 
 ```python
 from langgraph.checkpoint.postgres import PostgresSaver
 from psycopg_pool import ConnectionPool
 
-# 接続プール
+# Connection pool
 pool = ConnectionPool(
     conninfo="postgresql://user:password@localhost:5432/db"
 )
@@ -60,11 +60,11 @@ checkpointer = PostgresSaver(pool)
 graph = builder.compile(checkpointer=checkpointer)
 ```
 
-**用途**: 本番環境、マルチユーザーアプリ
+**Use Case**: Production environments, multi-user applications
 
-## BaseCheckpointSaverインターフェース
+## BaseCheckpointSaver Interface
 
-全てのチェックポインターは以下のメソッドを実装：
+All checkpointers implement the following methods:
 
 ```python
 class BaseCheckpointSaver:
@@ -74,13 +74,13 @@ class BaseCheckpointSaver:
         checkpoint: Checkpoint,
         metadata: dict
     ) -> RunnableConfig:
-        """チェックポイントを保存"""
+        """Save a checkpoint"""
 
     def get_tuple(
         self,
         config: RunnableConfig
     ) -> CheckpointTuple | None:
-        """チェックポイントを取得"""
+        """Retrieve a checkpoint"""
 
     def list(
         self,
@@ -89,12 +89,12 @@ class BaseCheckpointSaver:
         before: RunnableConfig | None = None,
         limit: int | None = None
     ) -> Iterator[CheckpointTuple]:
-        """チェックポイント一覧を取得"""
+        """Get list of checkpoints"""
 ```
 
-## カスタムチェックポインター
+## Custom Checkpointer
 
-独自の永続化ロジックを実装：
+Implement your own persistence logic:
 
 ```python
 from langgraph.checkpoint.base import BaseCheckpointSaver
@@ -114,81 +114,81 @@ class RedisCheckpointer(BaseCheckpointSaver):
 
     def get_tuple(self, config):
         thread_id = config["configurable"]["thread_id"]
-        # 最新のチェックポイントを取得
+        # Retrieve the latest checkpoint
         # ...
 
     def list(self, config, before=None, limit=None):
-        # チェックポイント一覧を返す
+        # Return list of checkpoints
         # ...
 ```
 
-## チェックポインター設定
+## Checkpointer Configuration
 
-### ネームスペース
+### Namespaces
 
-複数のグラフで同じチェックポインターを共有：
+Share the same checkpointer across multiple graphs:
 
 ```python
 checkpointer = MemorySaver()
 
 graph1 = builder1.compile(
     checkpointer=checkpointer,
-    name="graph1"  # ネームスペース
+    name="graph1"  # Namespace
 )
 
 graph2 = builder2.compile(
     checkpointer=checkpointer,
-    name="graph2"  # 別のネームスペース
+    name="graph2"  # Different namespace
 )
 ```
 
-### 自動伝播
+### Automatic Propagation
 
-親グラフのチェックポインターはサブグラフに自動伝播：
+Parent graph's checkpointer automatically propagates to subgraphs:
 
 ```python
-# 親グラフのみに設定
+# Set only on parent graph
 parent_graph = parent_builder.compile(checkpointer=checkpointer)
 
-# 子グラフにも自動的に伝播
+# Automatically propagates to child graphs
 ```
 
-## チェックポイントの管理
+## Checkpoint Management
 
-### 古いチェックポイントの削除
+### Deleting Old Checkpoints
 
 ```python
-# 一定期間後に削除（実装依存）
+# Delete after a certain period (implementation-dependent)
 import datetime
 
 cutoff = datetime.datetime.now() - datetime.timedelta(days=30)
 
-# 実装例（SQLite）
+# Implementation example (SQLite)
 checkpointer.conn.execute(
     "DELETE FROM checkpoints WHERE created_at < ?",
     (cutoff,)
 )
 ```
 
-### チェックポイントサイズの最適化
+### Optimizing Checkpoint Size
 
 ```python
 class State(TypedDict):
-    # 大きなデータは避ける
+    # Avoid large data
     messages: Annotated[list, add_messages]
 
-    # 参照のみ保存
-    large_data_id: str  # 実データは別ストレージ
+    # Store references only
+    large_data_id: str  # Actual data in separate storage
 
 def node(state: State):
-    # 大きなデータは外部から取得
+    # Retrieve large data from external source
     large_data = fetch_from_storage(state["large_data_id"])
     # ...
 ```
 
-## パフォーマンス考慮
+## Performance Considerations
 
-### 接続プール（PostgreSQL）
+### Connection Pool (PostgreSQL)
 
 ```python
 from psycopg_pool import ConnectionPool
@@ -202,23 +202,23 @@ pool = ConnectionPool(
 checkpointer = PostgresSaver(pool)
 ```
 
-### 非同期チェックポインター
+### Async Checkpointer
 
 ```python
 from langgraph.checkpoint.postgres import AsyncPostgresSaver
 
 async_checkpointer = AsyncPostgresSaver(async_pool)
 
-# 非同期実行
+# Async execution
 async for chunk in graph.astream(input, config):
     print(chunk)
 ```
 
-## まとめ
+## Summary
 
-Checkpointerは状態の永続化方法を決定します。用途に応じた実装を選択することが重要です。
+Checkpointer determines how state is persisted. It's important to choose the appropriate implementation for your use case.
 
-## 関連ページ
+## Related Pages
 
-- [Persistence.md](Persistence.md) - 永続化の使い方
-- [Store.md](Store.md) - 長期記憶との違い
+- [Persistence.md](Persistence.md) - How to use persistence
+- [Store.md](Store.md) - Differences from long-term memory

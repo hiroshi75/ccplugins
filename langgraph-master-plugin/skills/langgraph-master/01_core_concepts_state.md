@@ -1,14 +1,14 @@
-# State（状態）
+# State
 
-グラフ内のすべてのノードで共有されるメモリ。
+Memory shared across all nodes in the graph.
 
-## 概要
+## Overview
 
-Stateは「ノート」のようなもので、エージェントが学習したことや決定したことをすべて記録します。グラフ内のすべてのノードとエッジがアクセスできる**共有データ構造**です。
+State is like a "notebook" that records everything the agent learns and decides. It is a **shared data structure** accessible to all nodes and edges in the graph.
 
-## 定義方法
+## Definition Methods
 
-### TypedDictを使用
+### Using TypedDict
 
 ```python
 from typing import TypedDict
@@ -19,7 +19,7 @@ class State(TypedDict):
     count: int
 ```
 
-### Pydanticモデルを使用
+### Using Pydantic Model
 
 ```python
 from pydantic import BaseModel
@@ -27,25 +27,25 @@ from pydantic import BaseModel
 class State(BaseModel):
     messages: list[str]
     user_name: str
-    count: int = 0  # デフォルト値
+    count: int = 0  # Default value
 ```
 
-## Reducer（更新方法の制御）
+## Reducer (Controlling Update Methods)
 
-各キーの更新方法を指定する関数です。指定しない場合は**値の上書き**になります。
+A function that specifies how each key is updated. If not specified, it defaults to **value overwrite**.
 
-### 追加（リストへの追加）
+### Addition (Adding to List)
 
 ```python
 from typing import Annotated
 from operator import add
 
 class State(TypedDict):
-    messages: Annotated[list[str], add]  # 既存リストに追加
-    count: int  # 上書き
+    messages: Annotated[list[str], add]  # Add to existing list
+    count: int  # Overwrite
 ```
 
-### カスタムReducer
+### Custom Reducer
 
 ```python
 def concat_strings(existing: str, new: str) -> str:
@@ -55,48 +55,48 @@ class State(TypedDict):
     text: Annotated[str, concat_strings]
 ```
 
-## MessagesState（LLM用プリセット）
+## MessagesState (LLM Preset)
 
-LLMとの対話では、LangChainの`MessagesState`が便利です：
+For LLM conversations, LangChain's `MessagesState` is convenient:
 
 ```python
 from langgraph.graph import MessagesState
 
-# これは以下と同等
+# This is equivalent to:
 class MessagesState(TypedDict):
     messages: Annotated[list[AnyMessage], add_messages]
 ```
 
-`add_messages`リデューサーは：
-- 新規メッセージを追加
-- 既存メッセージの更新（IDベース）
-- OpenAI形式のショートハンドにも対応
+The `add_messages` reducer:
+- Adds new messages
+- Updates existing messages (ID-based)
+- Supports OpenAI format shorthand
 
-## 重要な原則
+## Important Principles
 
-1. **生データを保存**: プロンプトのフォーマットはノード内で行う
-2. **スキーマを明確に**: TypedDictやPydanticで型を定義
-3. **Reducerで制御**: 更新方法を明示的に指定
+1. **Store Raw Data**: Format prompts within nodes
+2. **Clear Schema**: Define types with TypedDict or Pydantic
+3. **Control with Reducer**: Explicitly specify update methods
 
-## 例
+## Example
 
 ```python
 from typing import Annotated, TypedDict
 from operator import add
 
 class AgentState(TypedDict):
-    # メッセージはリストに追加
+    # Messages are added to the list
     messages: Annotated[list[str], add]
 
-    # ユーザー情報は上書き
+    # User information is overwritten
     user_id: str
     user_name: str
 
-    # カウンターも上書き
+    # Counter is also overwritten
     iteration_count: int
 ```
 
-## 関連ページ
+## Related Pages
 
-- [Node.md](Node.md) - ノードでStateを使用する方法
-- [03_メモリ管理](../03_メモリ管理/README.md) - Stateの永続化
+- [Node.md](Node.md) - How to use State in nodes
+- [03_メモリ管理](../03_メモリ管理/README.md) - State persistence
