@@ -1,48 +1,48 @@
-# Phase 3: 反復的改善
+# Phase 3: Iterative Improvement
 
-データ駆動で段階的にプロンプトを最適化するフェーズ。
+Phase for data-driven, incremental prompt optimization.
 
-**所要時間**: 各 iteration 1-2時間 × iterations 数（通常 3-5回）
+**Time Required**: 1-2 hours per iteration × number of iterations (typically 3-5)
 
-**📋 関連ドキュメント**: [ワークフロー全体](./workflow.md) | [プロンプト最適化](./prompt_optimization.md)
+**📋 Related Documents**: [Overall Workflow](./workflow.md) | [Prompt Optimization](./prompt_optimization.md)
 
 ---
 
-## Phase 3: 反復的改善
+## Phase 3: Iterative Improvement
 
-### Iteration のサイクル
+### Iteration Cycle
 
-各 iteration で以下を実行：
+Execute the following in each iteration:
 
-1. **優先順位付け** (Step 7)
-2. **改善実施** (Step 8)
-3. **改善後評価** (Step 9)
-4. **結果比較** (Step 10)
-5. **継続判断** (Step 11)
+1. **Prioritization** (Step 7)
+2. **Implement Improvements** (Step 8)
+3. **Post-Improvement Evaluation** (Step 9)
+4. **Compare Results** (Step 10)
+5. **Continue Decision** (Step 11)
 
-### Step 7: 優先順位付け
+### Step 7: Prioritization
 
-**決定基準**:
-1. **目標達成への影響度**
-2. **改善の実現可能性**
-3. **実装コスト**
+**Decision Criteria**:
+1. **Impact on goal achievement**
+2. **Feasibility of improvement**
+3. **Implementation cost**
 
-**優先順位マトリックス**:
+**Priority Matrix**:
 ```markdown
-## 改善優先順位マトリックス
+## Improvement Priority Matrix
 
-| ノード | 影響度 | 実現可能性 | 実装コスト | 総合スコア | 優先度 |
-|--------|--------|-----------|-----------|----------|--------|
-| analyze_intent | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐ | 14/15 | 1位 |
-| generate_response | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ | 12/15 | 2位 |
-| retrieve_context | ⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐ | 8/15 | 3位 |
+| Node | Impact | Feasibility | Impl Cost | Total Score | Priority |
+|------|--------|-------------|-----------|-------------|----------|
+| analyze_intent | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐ | 14/15 | 1st |
+| generate_response | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ | 12/15 | 2nd |
+| retrieve_context | ⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐ | 8/15 | 3rd |
 
-**Iteration 1 の対象**: analyze_intent ノード
+**Iteration 1 Target**: analyze_intent node
 ```
 
-### Step 8: 改善実施
+### Step 8: Implement Improvements
 
-**改善前のプロンプト** (`src/nodes/analyzer.py`):
+**Pre-Improvement Prompt** (`src/nodes/analyzer.py`):
 ```python
 # Before
 def analyze_intent(state: GraphState) -> GraphState:
@@ -61,16 +61,16 @@ def analyze_intent(state: GraphState) -> GraphState:
     return state
 ```
 
-**改善後のプロンプト**:
+**Post-Improvement Prompt**:
 ```python
 # After - Iteration 1
 def analyze_intent(state: GraphState) -> GraphState:
     llm = ChatAnthropic(
         model="claude-3-5-sonnet-20241022",
-        temperature=0.3  # 分類タスクには低めの temperature
+        temperature=0.3  # Lower temperature for classification tasks
     )
 
-    # 明確な分類カテゴリと few-shot examples
+    # Clear classification categories and few-shot examples
     system_prompt = """You are an intent classifier for a customer support chatbot.
 
 Classify user input into one of these categories:
@@ -111,92 +111,92 @@ Output: {"intent": "product_inquiry", "confidence": 0.9, "reasoning": "Question 
 
     response = llm.invoke(messages)
 
-    # JSON パース（エラーハンドリング付き）
+    # JSON parsing (with error handling)
     try:
         intent_data = json.loads(response.content)
         state["intent"] = intent_data["intent"]
         state["confidence"] = intent_data["confidence"]
     except json.JSONDecodeError:
-        # フォールバック
+        # Fallback
         state["intent"] = "general"
         state["confidence"] = 0.5
 
     return state
 ```
 
-**変更内容サマリー**:
-1. ✅ temperature: 1.0 → 0.3（分類タスクに適した設定）
-2. ✅ 明確な分類カテゴリ（4つのインテント）
-3. ✅ Few-shot examples（5個追加）
-4. ✅ JSON 出力形式（構造化された出力）
-5. ✅ エラーハンドリング（JSON パース失敗時のフォールバック）
+**Summary of Changes**:
+1. ✅ temperature: 1.0 → 0.3 (appropriate for classification tasks)
+2. ✅ Clear classification categories (4 intents)
+3. ✅ Few-shot examples (added 5)
+4. ✅ JSON output format (structured output)
+5. ✅ Error handling (fallback for JSON parse failures)
 
-### Step 9: 改善後評価
+### Step 9: Post-Improvement Evaluation
 
-**実行**:
+**Execution**:
 ```bash
-# 改善後の評価を同じ条件で実行
+# Execute post-improvement evaluation under same conditions
 ./evaluation_after_iteration1.sh
 ```
 
-### Step 10: 結果比較
+### Step 10: Compare Results
 
-**比較レポート例**:
+**Comparison Report Example**:
 ```markdown
-# Iteration 1 評価結果
+# Iteration 1 Evaluation Results
 
-実行日時: 2024-11-24 12:00:00
-変更内容: analyze_intent ノードの最適化
+Execution Date: 2024-11-24 12:00:00
+Changes: Optimization of analyze_intent node
 
-## 結果比較
+## Results Comparison
 
-| 指標 | ベースライン | Iteration 1 | 変化 | 変化率 | 目標 | 達成率 |
-|------|-------------|-------------|------|--------|------|--------|
+| Metric | Baseline | Iteration 1 | Change | % Change | Target | Achievement |
+|--------|----------|-------------|--------|----------|--------|-------------|
 | **Accuracy** | 75.0% | **86.0%** | **+11.0%** | +14.7% | 90.0% | 95.6% |
 | **Latency** | 2.5s | 2.4s | -0.1s | -4.0% | 2.0s | 80.0% |
 | **Cost/req** | $0.015 | $0.014 | -$0.001 | -6.7% | $0.010 | 71.4% |
 
-## 詳細分析
+## Detailed Analysis
 
-### Accuracy の改善
-- **向上**: +11.0% (75.0% → 86.0%)
-- **残りギャップ**: 4.0% (目標90.0%)
-- **改善できたケース**: インテント分類ミスが 12 → 3 ケースに減少
-- **まだ改善が必要**: コンテキスト理解不足のケース（5ケース）
+### Accuracy Improvement
+- **Improvement**: +11.0% (75.0% → 86.0%)
+- **Remaining gap**: 4.0% (target 90.0%)
+- **Improved cases**: Intent classification errors reduced from 12 → 3 cases
+- **Still needs improvement**: Context understanding deficiency cases (5 cases)
 
-### Latency の若干改善
-- **向上**: -0.1s (2.5s → 2.4s)
-- **主な要因**: analyze_intent の温度下降により出力が簡潔になった
-- **残りボトルネック**: generate_response (平均 1.8s)
+### Slight Latency Improvement
+- **Improvement**: -0.1s (2.5s → 2.4s)
+- **Main factor**: Lower temperature in analyze_intent made output more concise
+- **Remaining bottleneck**: generate_response (avg 1.8s)
 
-### Cost の若干削減
-- **削減**: -$0.001 (6.7%削減)
-- **要因**: analyze_intent の出力トークン削減
-- **主なコスト**: generate_response が依然として73%を占める
+### Slight Cost Reduction
+- **Reduction**: -$0.001 (6.7% reduction)
+- **Factor**: Reduced output tokens in analyze_intent
+- **Main cost**: generate_response still accounts for 73%
 
-## 次の Iteration の方針
+## Next Iteration Strategy
 
-### 優先度1: generate_response の最適化
-- **目標**: Latency を 1.8s → 1.4s、Cost を $0.011 → $0.007
-- **アプローチ**:
-  1. 簡潔性の指示追加
-  2. max_tokens を 500 に制限
-  3. temperature を 0.7 → 0.5 に調整
+### Priority 1: Optimize generate_response
+- **Goal**: Latency 1.8s → 1.4s, Cost $0.011 → $0.007
+- **Approach**:
+  1. Add conciseness instructions
+  2. Limit max_tokens to 500
+  3. Adjust temperature from 0.7 → 0.5
 
-### 優先度2: Accuracy の最後の4%向上
-- **目標**: 86.0% → 90.0%以上
-- **アプローチ**: コンテキスト理解を改善（retrieve_context ノード）
+### Priority 2: Final 4% accuracy improvement
+- **Goal**: 86.0% → 90.0% or higher
+- **Approach**: Improve context understanding (retrieve_context node)
 
-## 判定
-✅ 継続 → Iteration 2 に進む
+## Decision
+✅ Continue → Proceed to Iteration 2
 ```
 
-### Step 11: 継続判断
+### Step 11: Continue Decision
 
-**判断基準**:
+**Decision Criteria**:
 ```python
 def should_continue_iteration(results: Dict, goals: Dict) -> bool:
-    """Iteration を継続すべきか判断"""
+    """Determine if iteration should continue"""
     all_goals_met = True
 
     for metric, goal in goals.items():
@@ -209,18 +209,17 @@ def should_continue_iteration(results: Dict, goals: Dict) -> bool:
 
     return not all_goals_met
 
-# 例
+# Example
 goals = {"accuracy": 90.0, "latency": 2.0, "cost": 0.010}
 results = {"accuracy": 86.0, "latency": 2.4, "cost": 0.014}
 
 if should_continue_iteration(results, goals):
-    print("次の Iteration に進む")
+    print("Proceed to next iteration")
 else:
-    print("目標達成 - Phase 4 へ")
+    print("Goals achieved - Move to Phase 4")
 ```
 
-**Iteration の上限**:
-- **推奨**: 3-5 iterations
-- **理由**: それ以上は収益逓減の法則が働く可能性が高い
-- **例外**: Critical なアプリケーションでは 10+ iterations も可
-
+**Iteration Limit**:
+- **Recommended**: 3-5 iterations
+- **Reason**: Beyond this, law of diminishing returns likely applies
+- **Exception**: Critical applications may require 10+ iterations

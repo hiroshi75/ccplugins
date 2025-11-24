@@ -1,129 +1,127 @@
-# ファインチューニングワークフロー詳細
+# Fine-Tuning Workflow Details
 
-LangGraph アプリケーションのファインチューニングを実行する際の詳細なワークフローと実践的なガイドライン。
+Detailed workflow and practical guidelines for executing fine-tuning of LangGraph applications.
 
-**💡 Tip**: コピー&ペーストで使える具体的なコード例とテンプレートは [examples.md](examples.md) を参照してください。
+**💡 Tip**: For concrete code examples and templates you can copy and paste, refer to [examples.md](examples.md).
 
-## 📋 ワークフロー全体像
+## 📋 Workflow Overview
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│ Phase 1: 準備と分析                                           │
+│ Phase 1: Preparation and Analysis                           │
 ├─────────────────────────────────────────────────────────────┤
-│ 1. fine-tune.md 読み込み → 目標と評価基準の理解               │
-│ 2. Serena で最適化対象の特定 → LLM 呼び出しノードのリスト化   │
-│ 3. 最適化箇所リスト作成 → 改善可能性の評価                    │
+│ 1. Read fine-tune.md → Understand goals and criteria        │
+│ 2. Identify optimization targets with Serena → List LLM nodes│
+│ 3. Create optimization list → Assess improvement potential  │
 └─────────────────────────────────────────────────────────────┘
                             ↓
 ┌─────────────────────────────────────────────────────────────┐
-│ Phase 2: ベースライン評価                                     │
+│ Phase 2: Baseline Evaluation                                │
 ├─────────────────────────────────────────────────────────────┤
-│ 4. 評価環境準備 → テストケース、評価スクリプト                │
-│ 5. ベースライン測定 → 3-5回実行、統計情報収集                 │
-│ 6. 結果分析 → 問題点の特定、改善余地の評価                    │
+│ 4. Prepare evaluation environment → Test cases, scripts     │
+│ 5. Measure baseline → Run 3-5 times, collect statistics     │
+│ 6. Analyze results → Identify issues, assess improvement    │
 └─────────────────────────────────────────────────────────────┘
                             ↓
 ┌─────────────────────────────────────────────────────────────┐
-│ Phase 3: 反復的改善 (Iteration Loop)                         │
+│ Phase 3: Iterative Improvement (Iteration Loop)             │
 ├─────────────────────────────────────────────────────────────┤
-│ 7. 優先順位付け → 最も効果的な改善箇所の選択                  │
-│ 8. 改善実施 → プロンプト最適化、パラメータ調整                │
-│ 9. 改善後評価 → 同じ条件で再評価                             │
-│ 10. 結果比較 → 改善効果の測定、次のアクション決定             │
-│ 11. 継続判断 → 目標達成？ Yes → Phase 4 / No → 次の iteration │
+│ 7. Prioritize → Select most effective improvement area      │
+│ 8. Implement improvements → Optimize prompts, adjust params │
+│ 9. Post-improvement evaluation → Re-evaluate same conditions│
+│ 10. Compare results → Measure improvement, decide next step │
+│ 11. Continue decision → Goal met? Yes → Phase 4 / No → Next │
 └─────────────────────────────────────────────────────────────┘
                             ↓
 ┌─────────────────────────────────────────────────────────────┐
-│ Phase 4: 完了と文書化                                         │
+│ Phase 4: Completion and Documentation                       │
 ├─────────────────────────────────────────────────────────────┤
-│ 12. 最終評価レポート作成 → 改善内容と結果のサマリー           │
-│ 13. コードコミット → バージョン管理とドキュメント更新          │
+│ 12. Create final evaluation report → Summary of improvements│
+│ 13. Commit code → Version control and documentation update  │
 └─────────────────────────────────────────────────────────────┘
 ```
 
-## 📚 Phase 別詳細ガイド
+## 📚 Phase-by-Phase Detailed Guide
 
-### [Phase 1: 準備と分析](./workflow_phase1.md)
-最適化の方向性を明確にし、改善対象を特定：
-- **Step 1**: fine-tune.md の読み込みと理解
-- **Step 2**: Serena MCP での最適化対象特定
-- **Step 3**: 最適化箇所リストの作成
+### [Phase 1: Preparation and Analysis](./workflow_phase1.md)
+Clarify optimization direction and identify targets for improvement:
+- **Step 1**: Read and understand fine-tune.md
+- **Step 2**: Identify optimization targets with Serena MCP
+- **Step 3**: Create optimization target list
 
-**所要時間**: 30分-1時間
+**Time Required**: 30 minutes - 1 hour
 
-### [Phase 2: ベースライン評価](./workflow_phase2.md)
-現状のパフォーマンスを定量的に測定：
-- **Step 4**: 評価環境の準備
-- **Step 5**: ベースライン測定（3-5回実行）
-- **Step 6**: ベースライン結果の分析
+### [Phase 2: Baseline Evaluation](./workflow_phase2.md)
+Quantitatively measure current performance:
+- **Step 4**: Prepare evaluation environment
+- **Step 5**: Measure baseline (3-5 runs)
+- **Step 6**: Analyze baseline results
 
-**所要時間**: 1-2時間
+**Time Required**: 1-2 hours
 
-### [Phase 3: 反復的改善](./workflow_phase3.md)
-データ駆動で段階的にプロンプトを最適化：
-- **Step 7**: 優先順位付け
-- **Step 8**: 改善実施
-- **Step 9**: 改善後評価
-- **Step 10**: 結果比較
-- **Step 11**: 継続判断
+### [Phase 3: Iterative Improvement](./workflow_phase3.md)
+Data-driven, incremental prompt optimization:
+- **Step 7**: Prioritization
+- **Step 8**: Implement improvements
+- **Step 9**: Post-improvement evaluation
+- **Step 10**: Compare results
+- **Step 11**: Continue decision
 
-**所要時間**: 各 iteration 1-2時間 × iterations 数（通常 3-5回）
+**Time Required**: 1-2 hours per iteration × number of iterations (typically 3-5)
 
-### [Phase 4: 完了と文書化](./workflow_phase4.md)
-最終的な成果を記録し、コードをコミット：
-- **Step 12**: 最終評価レポート作成
-- **Step 13**: コードコミットとドキュメント更新
+### [Phase 4: Completion and Documentation](./workflow_phase4.md)
+Record final results and commit code:
+- **Step 12**: Create final evaluation report
+- **Step 13**: Commit code and update documentation
 
-**所要時間**: 30分-1時間
+**Time Required**: 30 minutes - 1 hour
 
-## 🎯 ワークフロー実行のポイント
+## 🎯 Workflow Execution Points
 
-### 初めてファインチューニングを実施する場合
+### For First-Time Fine-Tuning
 
-1. **Phase 1 から順番に**: 飛ばさずに全 Phase を実施
-2. **ドキュメント作成**: 各 Phase の結果を記録
-3. **小さく始める**: 最初は少数のテストケースで実験
+1. **Start from Phase 1 in order**: Execute all phases without skipping
+2. **Create documentation**: Record results from each phase
+3. **Start small**: Experiment with a small number of test cases initially
 
-### 継続的なファインチューニング
+### Continuous Fine-Tuning
 
-1. **Phase 2 から開始**: 新しいベースラインを測定
-2. **Phase 3 を繰り返す**: 継続的な改善サイクル
-3. **自動化を検討**: 評価パイプラインの構築
+1. **Start from Phase 2**: Measure new baseline
+2. **Repeat Phase 3**: Continuous improvement cycle
+3. **Consider automation**: Build evaluation pipeline
 
-## 📊 成功のための原則
+## 📊 Principles for Success
 
-1. **データ駆動**: すべての判断を測定結果に基づく
-2. **段階的改善**: 1度に1つの変更、測定、検証
-3. **文書化**: 各 Phase の結果と学びを記録
-4. **統計的検証**: 複数回実行して有意性を確認
+1. **Data-Driven**: Base all decisions on measurement results
+2. **Incremental Improvement**: One change at a time, measure, verify
+3. **Documentation**: Record results and learnings from each phase
+4. **Statistical Verification**: Run multiple times to confirm significance
 
-## 🔗 関連ドキュメント
+## 🔗 Related Documents
 
-- **[実践例集](./examples.md)** - 各 Phase のコード例とテンプレート
-- **[評価方法](./evaluation.md)** - 評価指標と統計分析の詳細
-- **[プロンプト最適化](./prompt_optimization.md)** - 最適化テクニックの詳細
-- **[SKILL.md](./SKILL.md)** - Fine-tune スキル全体の概要
+- **[Example Collection](./examples.md)** - Code examples and templates for each phase
+- **[Evaluation Methods](./evaluation.md)** - Details on evaluation metrics and statistical analysis
+- **[Prompt Optimization](./prompt_optimization.md)** - Detailed optimization techniques
+- **[SKILL.md](./SKILL.md)** - Overview of the Fine-tune skill
 
-## 💡 トラブルシューティング
+## 💡 Troubleshooting
 
-### Phase 1 で最適化対象が見つからない
-→ [workflow_phase1.md#step-2](./workflow_phase1.md#step-2-serena-mcp-での最適化対象特定) の検索パターンを確認
+### Cannot find optimization targets in Phase 1
+→ Check search patterns in [workflow_phase1.md#step-2](./workflow_phase1.md#step-2-identify-optimization-targets-with-serena-mcp)
 
-### Phase 2 で評価スクリプトが実行できない
-→ [workflow_phase2.md#step-4](./workflow_phase2.md#step-4-評価環境の準備) のチェックリストを確認
+### Evaluation script fails in Phase 2
+→ Check checklist in [workflow_phase2.md#step-4](./workflow_phase2.md#step-4-prepare-evaluation-environment)
 
-### Phase 3 で改善効果が出ない
-→ [workflow_phase3.md#step-7](./workflow_phase3.md#step-7-優先順位付け) の優先順位マトリックスを見直し
+### No improvement effect in Phase 3
+→ Review priority matrix in [workflow_phase3.md#step-7](./workflow_phase3.md#step-7-prioritization)
 
-### Phase 4 でレポート作成に時間がかかる
-→ [workflow_phase4.md#step-12](./workflow_phase4.md#step-12-最終評価レポート作成) のテンプレートを活用
+### Report creation takes too long in Phase 4
+→ Utilize templates in [workflow_phase4.md#step-12](./workflow_phase4.md#step-12-create-final-evaluation-report)
 
 ---
 
-このワークフローに従うことで：
-- ✅ 体系的なファインチューニングプロセスを実行
-- ✅ データ駆動の意思決定
-- ✅ 継続的な改善と検証
-- ✅ 完全な文書化とトレーサビリティ
-
-が実現できます。
+Following this workflow enables:
+- ✅ Systematic fine-tuning process execution
+- ✅ Data-driven decision making
+- ✅ Continuous improvement and verification
+- ✅ Complete documentation and traceability

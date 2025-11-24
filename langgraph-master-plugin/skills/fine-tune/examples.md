@@ -1,119 +1,119 @@
-# ファインチューニング実践例集
+# Fine-Tuning Practical Examples Collection
 
-LangGraph アプリケーションのファインチューニングで使用する具体的なコード例とマークダウンテンプレート集。
+A collection of specific code examples and markdown templates used for LangGraph application fine-tuning.
 
-## 📋 目次
+## 📋 Table of Contents
 
-このガイドは Phase 別に分割されています：
+This guide is divided by Phase:
 
-### [Phase 1: 準備と分析の例](./examples_phase1.md)
-最適化の準備段階で使用するテンプレートとコード例：
-- **Example 1.1**: fine-tune.md の構造例
-- **Example 1.2**: 最適化箇所リストの例
-- **Example 1.3**: Serena MCP でのコード検索例
+### [Phase 1: Preparation and Analysis Examples](./examples_phase1.md)
+Templates and code examples used in the optimization preparation phase:
+- **Example 1.1**: fine-tune.md structure example
+- **Example 1.2**: Optimization target list example
+- **Example 1.3**: Code search example with Serena MCP
 
-**所要時間**: 30分-1時間
+**Estimated Time**: 30 minutes - 1 hour
 
-### [Phase 2: ベースライン評価の例](./examples_phase2.md)
-現状のパフォーマンス測定で使用するスクリプトとレポート例：
-- **Example 2.1**: 評価スクリプト（evaluator.py）
-- **Example 2.2**: ベースライン測定スクリプト（baseline_evaluation.sh）
-- **Example 2.3**: ベースライン結果レポート
+### [Phase 2: Baseline Evaluation Examples](./examples_phase2.md)
+Scripts and report examples used for current performance measurement:
+- **Example 2.1**: Evaluation script (evaluator.py)
+- **Example 2.2**: Baseline measurement script (baseline_evaluation.sh)
+- **Example 2.3**: Baseline results report
 
-**所要時間**: 1-2時間
+**Estimated Time**: 1-2 hours
 
-### [Phase 3: 反復的改善の例](./examples_phase3.md)
-プロンプト最適化と結果比較の実例：
-- **Example 3.1**: 改善前後のプロンプト比較（Before/After）
-- **Example 3.2**: 優先順位付けマトリックス
-- **Example 3.3**: Iteration 結果レポート
+### [Phase 3: Iterative Improvement Examples](./examples_phase3.md)
+Practical examples of prompt optimization and result comparison:
+- **Example 3.1**: Before/After prompt comparison
+- **Example 3.2**: Prioritization matrix
+- **Example 3.3**: Iteration results report
 
-**所要時間**: 各 iteration 1-2時間 × iterations 数
+**Estimated Time**: 1-2 hours per iteration × number of iterations
 
-### [Phase 4: 完了と文書化の例](./examples_phase4.md)
-最終成果の記録とバージョン管理の例：
-- **Example 4.1**: 最終評価レポート（完全版）
-- **Example 4.2**: Git コミットメッセージ例
+### [Phase 4: Completion and Documentation Examples](./examples_phase4.md)
+Examples of recording final results and version control:
+- **Example 4.1**: Final evaluation report (complete version)
+- **Example 4.2**: Git commit message examples
 
-**所要時間**: 30分-1時間
+**Estimated Time**: 30 minutes - 1 hour
 
-## 🎯 使い方
+## 🎯 How to Use
 
-### 初めて実践する場合
+### For First-Time Implementation
 
-1. **[Phase 1 の例](./examples_phase1.md)から開始** - テンプレートをコピーして使用
-2. **[Phase 2 の評価スクリプト](./examples_phase2.md)をセットアップ** - 環境に合わせてカスタマイズ
-3. **[Phase 3 の比較例](./examples_phase3.md)を参考にイテレーション** - Before/After を記録
-4. **[Phase 4 のレポート](./examples_phase4.md)で文書化** - 最終成果をまとめる
+1. **Start with [Phase 1 examples](./examples_phase1.md)** - Copy and use templates
+2. **Set up [Phase 2 evaluation scripts](./examples_phase2.md)** - Customize for your environment
+3. **Iterate using [Phase 3 comparison examples](./examples_phase3.md)** - Record Before/After
+4. **Document with [Phase 4 report](./examples_phase4.md)** - Summarize final results
 
-### コピー&ペーストで使える
+### Copy & Paste Ready
 
-各例は完全なコードとテンプレートを含んでいます：
-- Python スクリプト → そのまま実行可能
-- Bash スクリプト → 環境変数を設定して実行
-- Markdown テンプレート → 内容を埋めて使用
-- JSON 構造 → テストケースやレポートの雛形
+Each example includes complete code and templates:
+- Python scripts → Ready to execute as-is
+- Bash scripts → Set environment variables and run
+- Markdown templates → Fill in content and use
+- JSON structures → Templates for test cases and reports
 
-## 📊 例の種類
+## 📊 Types of Examples
 
-### コードスクリプト
-- **評価スクリプト** (Phase 2): evaluator.py, aggregate_results.py
-- **測定スクリプト** (Phase 2): baseline_evaluation.sh
-- **分析スクリプト** (Phase 1): Serena MCP 検索例
+### Code Scripts
+- **Evaluation scripts** (Phase 2): evaluator.py, aggregate_results.py
+- **Measurement scripts** (Phase 2): baseline_evaluation.sh
+- **Analysis scripts** (Phase 1): Serena MCP search examples
 
-### Markdown テンプレート
-- **fine-tune.md** (Phase 1): 目標設定
-- **最適化箇所リスト** (Phase 1): 改善対象の整理
-- **ベースライン結果レポート** (Phase 2): 現状分析
-- **Iteration 結果レポート** (Phase 3): 改善効果測定
-- **最終評価レポート** (Phase 4): 総まとめ
+### Markdown Templates
+- **fine-tune.md** (Phase 1): Goal setting
+- **Optimization target list** (Phase 1): Organizing improvement targets
+- **Baseline results report** (Phase 2): Current state analysis
+- **Iteration results report** (Phase 3): Improvement effect measurement
+- **Final evaluation report** (Phase 4): Overall summary
 
-### 比較例
-- **Before/After プロンプト** (Phase 3): 改善の具体例
-- **優先順位マトリックス** (Phase 3): 意思決定の記録
+### Comparison Examples
+- **Before/After prompts** (Phase 3): Specific improvement examples
+- **Prioritization matrix** (Phase 3): Decision-making records
 
-## 🔍 例を探す
+## 🔍 Finding Examples
 
-### 目的別
+### By Purpose
 
-| 目的 | Phase | Example |
-|-----|------|---------|
-| 目標を設定したい | Phase 1 | [Example 1.1](./examples_phase1.md#example-11-fine-tunemd-の構造例) |
-| 最適化対象を見つけたい | Phase 1 | [Example 1.3](./examples_phase1.md#example-13-serena-mcp-でのコード検索例) |
-| 評価スクリプトを作りたい | Phase 2 | [Example 2.1](./examples_phase2.md#example-21-評価スクリプト) |
-| ベースラインを測定したい | Phase 2 | [Example 2.2](./examples_phase2.md#example-22-ベースライン測定スクリプト) |
-| プロンプトを改善したい | Phase 3 | [Example 3.1](./examples_phase3.md#example-31-改善前後のプロンプト比較) |
-| 優先順位を決めたい | Phase 3 | [Example 3.2](./examples_phase3.md#example-32-優先順位付けマトリックス) |
-| 最終レポートを書きたい | Phase 4 | [Example 4.1](./examples_phase4.md#example-41-最終評価レポート) |
-| Git コミットしたい | Phase 4 | [Example 4.2](./examples_phase4.md#example-42-git-コミットメッセージ例) |
+| Purpose | Phase | Example |
+|---------|-------|---------|
+| Set goals | Phase 1 | [Example 1.1](./examples_phase1.md#example-11-fine-tunemd-structure-example) |
+| Find optimization targets | Phase 1 | [Example 1.3](./examples_phase1.md#example-13-code-search-example-with-serena-mcp) |
+| Create evaluation scripts | Phase 2 | [Example 2.1](./examples_phase2.md#example-21-evaluation-script) |
+| Measure baseline | Phase 2 | [Example 2.2](./examples_phase2.md#example-22-baseline-measurement-script) |
+| Improve prompts | Phase 3 | [Example 3.1](./examples_phase3.md#example-31-beforeafter-prompt-comparison) |
+| Determine priorities | Phase 3 | [Example 3.2](./examples_phase3.md#example-32-prioritization-matrix) |
+| Write final report | Phase 4 | [Example 4.1](./examples_phase4.md#example-41-final-evaluation-report) |
+| Git commit | Phase 4 | [Example 4.2](./examples_phase4.md#example-42-git-commit-message-examples) |
 
-## 🔗 関連ドキュメント
+## 🔗 Related Documentation
 
-- **[ワークフロー](./workflow.md)** - 各 Phase の詳細な手順
-- **[評価方法](./evaluation.md)** - 評価指標と統計分析
-- **[プロンプト最適化](./prompt_optimization.md)** - 最適化テクニックの詳細
-- **[SKILL.md](./SKILL.md)** - Fine-tune スキル全体の概要
+- **[Workflow](./workflow.md)** - Detailed procedures for each Phase
+- **[Evaluation Methods](./evaluation.md)** - Evaluation metrics and statistical analysis
+- **[Prompt Optimization](./prompt_optimization.md)** - Detailed optimization techniques
+- **[SKILL.md](./SKILL.md)** - Overview of the Fine-tune skill
 
 ## 💡 Tips
 
-### カスタマイズポイント
+### Customization Points
 
-1. **テストケース数**: 例では 20 ケースだが、プロジェクトに応じて調整
-2. **実行回数**: ベースライン測定は 3-5 回が推奨だが、時間制約に応じて調整
-3. **目標値**: Accuracy, Latency, Cost の目標はプロジェクト要件に合わせて設定
-4. **モデル**: Claude 3.5 Sonnet 以外のモデルを使う場合は料金を調整
+1. **Number of test cases**: Examples use 20 cases, but adjust according to your project
+2. **Number of runs**: 3-5 runs recommended for baseline measurement, but adjust based on time constraints
+3. **Target values**: Set Accuracy, Latency, and Cost targets according to project requirements
+4. **Model**: Adjust pricing if using models other than Claude 3.5 Sonnet
 
-### よくある質問
+### Frequently Asked Questions
 
-**Q: 例のコードをそのまま使える？**
-A: はい、環境変数（API キーなど）を設定すれば実行可能です。
+**Q: Can I use the example code as-is?**
+A: Yes, it's executable once you set environment variables (API keys, etc.).
 
-**Q: テンプレートを編集していい？**
-A: はい、プロジェクトに合わせて自由にカスタマイズしてください。
+**Q: Can I edit the templates?**
+A: Yes, please customize freely according to your project.
 
-**Q: Phase を飛ばしてもいい？**
-A: 初回は全 Phase を実施することを推奨します。2回目以降は Phase 2 から開始可能です。
+**Q: Can I skip phases?**
+A: We recommend executing all phases on the first run. From the second run onward, you can start from Phase 2.
 
 ---
 
-**💡 Tip**: 各 Phase の詳細な手順は [ワークフロー](./workflow.md) を参照してください。
+**💡 Tip**: For detailed procedures of each Phase, refer to the [Workflow](./workflow.md).

@@ -1,65 +1,65 @@
-# プロンプト最適化ガイド
+# Prompt Optimization Guide
 
-LangGraph ノードのプロンプトを効果的に最適化するための包括的なガイド。
+A comprehensive guide for effectively optimizing prompts in LangGraph nodes.
 
-## 📚 目次
+## 📚 Table of Contents
 
-このガイドは以下のセクションに分割されています：
+This guide is divided into the following sections:
 
-### 1. [プロンプト最適化の原則](./prompt_principles.md)
-プロンプトを設計する際の基本原則を学びます。
+### 1. [Prompt Optimization Principles](./prompt_principles.md)
+Learn the fundamental principles for designing prompts.
 
-### 2. [プロンプト最適化テクニック](./prompt_techniques.md)
-実践的な最適化テクニック集（10のテクニック）を提供します。
+### 2. [Prompt Optimization Techniques](./prompt_techniques.md)
+Provides a collection of practical optimization techniques (10 techniques).
 
-### 3. [最適化の優先順位](./prompt_priorities.md)
-改善のインパクトが大きい順に最適化テクニックを適用する方法を説明します。
+### 3. [Optimization Priorities](./prompt_priorities.md)
+Explains how to apply optimization techniques in order of improvement impact.
 
-## 🎯 クイックスタート
+## 🎯 Quick Start
 
-### 初めて最適化する場合
+### First-Time Optimization
 
-1. **[原則を理解する](./prompt_principles.md)** - 明確性、構造化、具体性の基本を学ぶ
-2. **[高インパクトなテクニックから始める](./prompt_priorities.md)** - Few-Shot Examples、出力フォーマット構造化、パラメータ調整
-3. **[テクニックの詳細を確認する](./prompt_techniques.md)** - 各テクニックの実装方法と効果
+1. **[Understand the Principles](./prompt_principles.md)** - Learn the basics of clarity, structure, and specificity
+2. **[Start with High-Impact Techniques](./prompt_priorities.md)** - Few-Shot Examples, output format structuring, parameter tuning
+3. **[Review Technique Details](./prompt_techniques.md)** - Implementation methods and effects of each technique
 
-### 既存プロンプトの改善
+### Improving Existing Prompts
 
-1. **ベースラインを測定** - 現在のパフォーマンスを記録
-2. **[優先順位ガイド](./prompt_priorities.md)を参照** - 最もインパクトの大きい改善を選択
-3. **[テクニックを適用](./prompt_techniques.md)** - 1つずつ実装し、効果を測定
-4. **反復的に改善** - 測定、実装、検証のサイクルを繰り返す
+1. **Measure Baseline** - Record current performance
+2. **[Refer to Priority Guide](./prompt_priorities.md)** - Select the most impactful improvements
+3. **[Apply Techniques](./prompt_techniques.md)** - Implement one at a time and measure effects
+4. **Iterate** - Repeat the cycle of measure, implement, validate
 
-## 📖 関連ドキュメント
+## 📖 Related Documentation
 
-- **[プロンプト最適化の実例](./examples.md)** - Before/After の比較例とコードテンプレート
-- **[SKILL.md](./SKILL.md)** - Fine-tune スキル全体の概要と使い方
-- **[evaluation.md](./evaluation.md)** - 評価基準の設計と測定方法
+- **[Prompt Optimization Examples](./examples.md)** - Before/After comparison examples and code templates
+- **[SKILL.md](./SKILL.md)** - Overview and usage of the Fine-tune skill
+- **[evaluation.md](./evaluation.md)** - Evaluation criteria design and measurement methods
 
-## 💡 ベストプラクティス
+## 💡 Best Practices
 
-効果的なプロンプト最適化のために：
+For effective prompt optimization:
 
-1. ✅ **測定駆動**: すべての変更を定量的に評価
-2. ✅ **段階的改善**: 1度に1つの変更、測定、検証
-3. ✅ **コスト意識**: モデル選択、キャッシング、max_tokens で最適化
-4. ✅ **タスク適合**: タスクの複雑度に応じてテクニックを選択
-5. ✅ **反復的アプローチ**: 継続的な改善サイクルを維持
+1. ✅ **Measurement-Driven**: Evaluate all changes quantitatively
+2. ✅ **Incremental Improvement**: One change at a time, measure, validate
+3. ✅ **Cost-Conscious**: Optimize with model selection, caching, max_tokens
+4. ✅ **Task-Appropriate**: Select techniques based on task complexity
+5. ✅ **Iterative Approach**: Maintain continuous improvement cycles
 
-## 🔍 問題解決
+## 🔍 Troubleshooting
 
-### プロンプトの品質が低い
-→ [プロンプト最適化の原則](./prompt_principles.md) を確認
+### Low Prompt Quality
+→ Review [Prompt Optimization Principles](./prompt_principles.md)
 
-### 精度が不十分
-→ [Few-Shot Examples](./prompt_techniques.md#テクニック-1-few-shot-examples少数例学習) または [Chain-of-Thought](./prompt_techniques.md#テクニック-2-chain-of-thought思考の連鎖) を適用
+### Insufficient Accuracy
+→ Apply [Few-Shot Examples](./prompt_techniques.md#technique-1-few-shot-examples) or [Chain-of-Thought](./prompt_techniques.md#technique-2-chain-of-thought)
 
-### レイテンシが高い
-→ [Temperature/Max Tokens 調整](./prompt_techniques.md#テクニック-4-temperature-と-max-tokens-の調整) または [出力フォーマット構造化](./prompt_techniques.md#テクニック-3-出力フォーマットの構造化) を実装
+### High Latency
+→ Implement [Temperature/Max Tokens Adjustment](./prompt_techniques.md#technique-4-temperature-and-max-tokens-adjustment) or [Output Format Structuring](./prompt_techniques.md#technique-3-output-format-structuring)
 
-### コストが高い
-→ [モデル選択最適化](./prompt_techniques.md#テクニック-10-モデルの選択) または [プロンプトキャッシング](./prompt_techniques.md#テクニック-6-プロンプトキャッシングprompt-caching) を導入
+### High Cost
+→ Introduce [Model Selection Optimization](./prompt_techniques.md#technique-10-model-selection) or [Prompt Caching](./prompt_techniques.md#technique-6-prompt-caching)
 
 ---
 
-**💡 Tip**: 改善前後のプロンプト比較例とコードテンプレートは [examples.md](examples.md#phase-3-反復的改善の例) を参照してください。
+**💡 Tip**: For before/after prompt comparison examples and code templates, refer to [examples.md](examples.md#phase-3-iterative-improvement-examples).

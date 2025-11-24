@@ -1,17 +1,17 @@
-# プロンプト最適化の原則
+# Prompt Optimization Principles
 
-LangGraph ノードのプロンプトを設計する際の基本原則。
+Fundamental principles for designing prompts in LangGraph nodes.
 
-## 🎯 プロンプト最適化の原則
+## 🎯 Prompt Optimization Principles
 
-### 1. 明確性（Clarity）
+### 1. Clarity
 
-**悪い例**:
+**Bad Example**:
 ```python
 SystemMessage(content="Analyze the input.")
 ```
 
-**良い例**:
+**Good Example**:
 ```python
 SystemMessage(content="""You are an intent classifier for customer support.
 
@@ -24,20 +24,20 @@ Task: Classify user input into one of these categories:
 Output only the category name.""")
 ```
 
-**改善ポイント**:
-- ✅ 役割を明確に定義
-- ✅ タスクを具体的に説明
-- ✅ カテゴリを列挙
-- ✅ 出力形式を指定
+**Improvements**:
+- ✅ Clearly defined role
+- ✅ Specific task description
+- ✅ Enumerated categories
+- ✅ Specified output format
 
-### 2. 構造化（Structure）
+### 2. Structure
 
-**悪い例**:
+**Bad Example**:
 ```python
 prompt = f"Answer this: {question}"
 ```
 
-**良い例**:
+**Good Example**:
 ```python
 prompt = f"""Context:
 {context}
@@ -53,19 +53,19 @@ Instructions:
 Answer:"""
 ```
 
-**改善ポイント**:
-- ✅ セクション分け（Context, Question, Instructions, Answer）
-- ✅ 順序だった指示
-- ✅ 明確な区切り
+**Improvements**:
+- ✅ Sectioned (Context, Question, Instructions, Answer)
+- ✅ Sequential instructions
+- ✅ Clear separators
 
-### 3. 具体性（Specificity）
+### 3. Specificity
 
-**悪い例**:
+**Bad Example**:
 ```python
 "Be helpful and friendly."
 ```
 
-**良い例**:
+**Good Example**:
 ```python
 """Tone and Style:
 - Use a warm, professional tone
@@ -78,7 +78,7 @@ Example:
 """
 ```
 
-**改善ポイント**:
-- ✅ 具体的なガイドライン
-- ✅ 実例の提供
-- ✅ 測定可能な基準
+**Improvements**:
+- ✅ Specific guidelines
+- ✅ Concrete examples provided
+- ✅ Measurable criteria

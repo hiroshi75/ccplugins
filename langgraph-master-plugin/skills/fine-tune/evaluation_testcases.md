@@ -1,10 +1,10 @@
-# テストケースの設計
+# Test Case Design
 
-LangGraph アプリケーションの評価に使用するテストケースの構造、カバレッジ、設計原則。
+Structure, coverage, and design principles for test cases used in LangGraph application evaluation.
 
-## 🧪 テストケースの構造
+## 🧪 Test Case Structure
 
-### 代表的なテストケースの構造
+### Representative Test Case Structure
 
 ```json
 {
@@ -55,22 +55,22 @@ LangGraph アプリケーションの評価に使用するテストケースの�
 }
 ```
 
-## 📊 テストケースのカバレッジ
+## 📊 Test Case Coverage
 
-### カテゴリ別のバランス
+### Balance by Category
 
 ```python
 def analyze_test_coverage(test_cases: List[Dict]) -> Dict:
-    """テストケースのカバレッジを分析"""
+    """Analyze test case coverage"""
     categories = {}
     difficulties = {}
 
     for case in test_cases:
-        # カテゴリ
+        # Category
         cat = case.get("category", "unknown")
         categories[cat] = categories.get(cat, 0) + 1
 
-        # 難易度
+        # Difficulty
         diff = case.get("difficulty", "unknown")
         difficulties[diff] = difficulties.get(diff, 0) + 1
 
@@ -89,74 +89,74 @@ def analyze_test_coverage(test_cases: List[Dict]) -> Dict:
     }
 ```
 
-### 推奨バランス
+### Recommended Balance
 
 ```yaml
 category_balance:
-  description: "各カテゴリの推奨分布"
+  description: "Recommended distribution by category"
   recommendations:
-    - main_categories: "20-30% (均等分散)"
-    - edge_cases: "10-15% (十分な異常系カバレッジ)"
+    - main_categories: "20-30% (evenly distributed)"
+    - edge_cases: "10-15% (sufficient abnormal case coverage)"
 
 difficulty_balance:
-  description: "難易度別の推奨分布"
+  description: "Recommended distribution by difficulty"
   recommendations:
-    - easy: "40-50% (基本機能の確認)"
-    - medium: "30-40% (実用的なケース)"
-    - hard: "10-20% (エッジケースと複雑なシナリオ)"
+    - easy: "40-50% (basic functionality verification)"
+    - medium: "30-40% (practical cases)"
+    - hard: "10-20% (edge cases and complex scenarios)"
 ```
 
-## 🎯 テストケース設計原則
+## 🎯 Test Case Design Principles
 
-### 1. 代表性（Representativeness）
-- **実際のユースケースを反映**: 実際のユーザー入力パターンをカバー
-- **頻度による重み付け**: よくあるケースを多く含める
+### 1. Representativeness
+- **Reflect Real Use Cases**: Cover actual user input patterns
+- **Weight by Frequency**: Include more common cases
 
-### 2. 多様性（Diversity）
-- **カテゴリの網羅**: すべての主要カテゴリをカバー
-- **難易度のバリエーション**: Easy から Hard まで
-- **エッジケース**: 異常系、曖昧なケース、境界値
+### 2. Diversity
+- **Comprehensive Categories**: Cover all major categories
+- **Difficulty Variation**: From easy to hard
+- **Edge Cases**: Abnormal cases, ambiguous cases, boundary values
 
-### 3. 明確性（Clarity）
-- **期待値の明確化**: expected_answer を具体的に
-- **判定基準の明示**: 正解判定の基準を明確に
+### 3. Clarity
+- **Clear Expectations**: Be specific with expected_answer
+- **Explicit Criteria**: Clearly define correctness criteria
 
-### 4. 保守性（Maintainability）
-- **ID による追跡**: テストケースごとにユニークな ID
-- **メタデータの充実**: カテゴリ、難易度、その他の属性
+### 4. Maintainability
+- **ID-based Tracking**: Unique ID for each test case
+- **Rich Metadata**: Category, difficulty, and other attributes
 
-## 📝 テストケーステンプレート
+## 📝 Test Case Templates
 
-### 基本テンプレート
+### Basic Template
 
 ```json
 {
-  "id": "TC[番号]",
-  "category": "[カテゴリ名]",
+  "id": "TC[number]",
+  "category": "[category name]",
   "difficulty": "easy|medium|hard",
-  "input": "[ユーザー入力]",
-  "expected_intent": "[期待されるインテント]",
-  "expected_answer": "[期待される回答]",
-  "expected_answer_semantic": ["キーワード1", "キーワード2"],
+  "input": "[user input]",
+  "expected_intent": "[expected intent]",
+  "expected_answer": "[expected answer]",
+  "expected_answer_semantic": ["keyword1", "keyword2"],
   "metadata": {
     "user_type": "new|existing",
     "context_required": true|false,
-    "特定のフラグ": true|false
+    "specific_flag": true|false
   }
 }
 ```
 
-### カテゴリ別テンプレート
+### Templates by Category
 
-#### Product Inquiry（製品問い合わせ）
+#### Product Inquiry
 ```json
 {
   "id": "TC_PRODUCT_001",
   "category": "product_inquiry",
   "difficulty": "easy",
-  "input": "製品に関する質問",
+  "input": "Question about product",
   "expected_intent": "product_inquiry",
-  "expected_answer": "製品情報を含む回答",
+  "expected_answer": "Answer including product information",
   "metadata": {
     "product_type": "premium|basic|enterprise",
     "question_type": "pricing|features|comparison"
@@ -164,15 +164,15 @@ difficulty_balance:
 }
 ```
 
-#### Technical Support（技術サポート）
+#### Technical Support
 ```json
 {
   "id": "TC_TECH_001",
   "category": "technical_support",
   "difficulty": "medium",
-  "input": "技術的な問題の報告",
+  "input": "Technical problem report",
   "expected_intent": "technical_support",
-  "expected_answer": "トラブルシューティング手順",
+  "expected_answer": "Troubleshooting steps",
   "metadata": {
     "issue_type": "login|performance|bug",
     "requires_escalation": false,
@@ -181,15 +181,15 @@ difficulty_balance:
 }
 ```
 
-#### Billing（請求）
+#### Billing
 ```json
 {
   "id": "TC_BILLING_001",
   "category": "billing",
   "difficulty": "medium",
-  "input": "請求に関する質問",
+  "input": "Billing question",
   "expected_intent": "billing",
-  "expected_answer": "請求説明と次のステップ",
+  "expected_answer": "Billing explanation and next steps",
   "metadata": {
     "billing_type": "charge|refund|subscription",
     "requires_account_access": true
@@ -197,15 +197,15 @@ difficulty_balance:
 }
 ```
 
-#### Edge Cases（エッジケース）
+#### Edge Cases
 ```json
 {
   "id": "TC_EDGE_001",
   "category": "edge_case",
   "difficulty": "hard",
-  "input": "曖昧、非標準、または予期しない入力",
-  "expected_intent": "適切なフォールバック",
-  "expected_answer": "丁寧な clarification 要求",
+  "input": "Ambiguous, non-standard, or unexpected input",
+  "expected_intent": "appropriate fallback",
+  "expected_answer": "Polite clarification request",
   "metadata": {
     "edge_type": "ambiguous|off_topic|malformed",
     "requires_empathy": true
@@ -213,32 +213,32 @@ difficulty_balance:
 }
 ```
 
-## 🔍 テストケースの評価
+## 🔍 Test Case Evaluation
 
-### 品質チェックリスト
+### Quality Checklist
 
 ```python
 def validate_test_case(test_case: Dict) -> List[str]:
-    """テストケースの品質をチェック"""
+    """Check test case quality"""
     issues = []
 
-    # 必須フィールドの確認
+    # Check required fields
     required_fields = ["id", "category", "difficulty", "input", "expected_intent"]
     for field in required_fields:
         if field not in test_case:
             issues.append(f"Missing required field: {field}")
 
-    # ID のユニーク性（別途チェック必要）
-    # 入力の長さチェック
+    # ID uniqueness (requires separate check)
+    # Input length check
     if len(test_case.get("input", "")) < 5:
         issues.append("Input too short (minimum 5 characters)")
 
-    # カテゴリの妥当性
+    # Category validity
     valid_categories = ["product_inquiry", "technical_support", "billing", "general", "edge_case"]
     if test_case.get("category") not in valid_categories:
         issues.append(f"Invalid category: {test_case.get('category')}")
 
-    # 難易度の妥当性
+    # Difficulty validity
     valid_difficulties = ["easy", "medium", "hard"]
     if test_case.get("difficulty") not in valid_difficulties:
         issues.append(f"Invalid difficulty: {test_case.get('difficulty')}")
@@ -246,13 +246,13 @@ def validate_test_case(test_case: Dict) -> List[str]:
     return issues
 ```
 
-## 📈 カバレッジレポート
+## 📈 Coverage Report
 
-### カバレッジ分析スクリプト
+### Coverage Analysis Script
 
 ```python
 def generate_coverage_report(test_cases: List[Dict]) -> str:
-    """テストケースのカバレッジレポートを生成"""
+    """Generate test case coverage report"""
     coverage = analyze_test_coverage(test_cases)
 
     report = f"""# Test Case Coverage Report
@@ -272,8 +272,8 @@ def generate_coverage_report(test_cases: List[Dict]) -> str:
     return report
 ```
 
-## 📋 関連ドキュメント
+## 📋 Related Documentation
 
-- [評価指標](./evaluation_metrics.md) - 指標の定義と計算方法
-- [統計的有意性](./evaluation_statistics.md) - 複数回実行と統計分析
-- [ベストプラクティス](./evaluation_practices.md) - 評価の実践的なガイド
+- [Evaluation Metrics](./evaluation_metrics.md) - Metric definitions and calculation methods
+- [Statistical Significance](./evaluation_statistics.md) - Multiple runs and statistical analysis
+- [Best Practices](./evaluation_practices.md) - Practical evaluation guide

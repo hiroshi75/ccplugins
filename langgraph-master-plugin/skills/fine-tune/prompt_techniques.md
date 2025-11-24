@@ -1,23 +1,23 @@
-# プロンプト最適化テクニック
+# Prompt Optimization Techniques
 
-LangGraph ノードのプロンプトを効果的に最適化するための実践的なテクニック集。
+A collection of practical techniques for effectively optimizing prompts in LangGraph nodes.
 
-**💡 Tip**: 改善前後のプロンプト比較例とコードテンプレートは [examples.md](examples.md#phase-3-反復的改善の例) を参照してください。
+**💡 Tip**: For before/after prompt comparison examples and code templates, refer to [examples.md](examples.md#phase-3-iterative-improvement-examples).
 
-## 🔧 実践的な最適化テクニック
+## 🔧 Practical Optimization Techniques
 
-### テクニック 1: Few-Shot Examples（少数例学習）
+### Technique 1: Few-Shot Examples
 
-**効果**: Accuracy +10-20%
+**Effect**: Accuracy +10-20%
 
-**Before（Zero-shot）**:
+**Before (Zero-shot)**:
 ```python
 system_prompt = """Classify user input into: product_inquiry, technical_support, billing, or general."""
 
 # Accuracy: ~70%
 ```
 
-**After（Few-shot）**:
+**After (Few-shot)**:
 ```python
 system_prompt = """Classify user input into: product_inquiry, technical_support, billing, or general.
 
@@ -41,26 +41,26 @@ Output: product_inquiry"""
 # Accuracy: ~85-90%
 ```
 
-**ベストプラクティス**:
-- **Examples 数**: 3-7個（それ以上は収益逓減）
-- **多様性**: 各カテゴリから最低1個、edge cases を含む
-- **品質**: 明確で議論の余地のない例を選択
-- **フォーマット**: 一貫した Input/Output 形式
+**Best Practices**:
+- **Number of Examples**: 3-7 (diminishing returns beyond this)
+- **Diversity**: At least one from each category, including edge cases
+- **Quality**: Select clear and unambiguous examples
+- **Format**: Consistent Input/Output format
 
-### テクニック 2: Chain-of-Thought（思考の連鎖）
+### Technique 2: Chain-of-Thought
 
-**効果**: Complex reasoning tasks で Accuracy +15-30%
+**Effect**: Accuracy +15-30% for complex reasoning tasks
 
-**Before（Direct answer）**:
+**Before (Direct answer)**:
 ```python
 prompt = f"""Question: {question}
 
 Answer:"""
 
-# 複雑な質問で誤答が多い
+# Many incorrect answers for complex questions
 ```
 
-**After（Chain-of-Thought）**:
+**After (Chain-of-Thought)**:
 ```python
 prompt = f"""Question: {question}
 
@@ -72,28 +72,28 @@ Think through this step by step:
 
 Reasoning:"""
 
-# 複雑な質問でも論理的に回答
+# Logical answers even for complex questions
 ```
 
-**適用シナリオ**:
-- ✅ 複数ステップの推論が必要なタスク
-- ✅ 複雑な意思決定
-- ✅ 矛盾の解決
-- ❌ シンプルな分類タスク（オーバーヘッド）
+**Application Scenarios**:
+- ✅ Tasks requiring multi-step reasoning
+- ✅ Complex decision making
+- ✅ Resolving contradictions
+- ❌ Simple classification tasks (overhead)
 
-### テクニック 3: 出力フォーマットの構造化
+### Technique 3: Output Format Structuring
 
-**効果**: Latency -10-20%, Parsing errors -90%
+**Effect**: Latency -10-20%, Parsing errors -90%
 
-**Before（自由テキスト）**:
+**Before (Free text)**:
 ```python
 prompt = "Classify the intent and explain why."
 
 # Output: "This looks like a technical support question because the user is having trouble logging in..."
-# 問題: パースが難しい、冗長、一貫性がない
+# Problems: Hard to parse, verbose, inconsistent
 ```
 
-**After（JSON 構造化）**:
+**After (JSON structured)**:
 ```python
 prompt = """Classify the intent.
 
@@ -108,21 +108,21 @@ Example output:
 {"intent": "technical_support", "confidence": 0.95, "reasoning": "User reports authentication issue"}"""
 
 # Output: {"intent": "technical_support", "confidence": 0.95, "reasoning": "User reports authentication issue"}
-# 利点: 簡単にパース、簡潔、一貫性
+# Benefits: Easy to parse, concise, consistent
 ```
 
-**JSON パースのエラーハンドリング**:
+**JSON Parsing Error Handling**:
 ```python
 import json
 import re
 
 def parse_llm_json_output(output: str) -> dict:
-    """LLM の JSON 出力を堅牢にパース"""
+    """Robustly parse LLM JSON output"""
     try:
-        # そのまま JSON としてパース
+        # Parse as JSON directly
         return json.loads(output)
     except json.JSONDecodeError:
-        # JSON のみを抽出（マークダウンコードブロックなどから）
+        # Extract JSON only (from markdown code blocks, etc.)
         json_match = re.search(r'\{[^}]+\}', output)
         if json_match:
             try:
@@ -130,7 +130,7 @@ def parse_llm_json_output(output: str) -> dict:
             except json.JSONDecodeError:
                 pass
 
-        # フォールバック
+        # Fallback
         return {
             "intent": "general",
             "confidence": 0.5,
@@ -138,69 +138,69 @@ def parse_llm_json_output(output: str) -> dict:
         }
 ```
 
-### テクニック 4: Temperature と Max Tokens の調整
+### Technique 4: Temperature and Max Tokens Adjustment
 
-**Temperature の効果**:
+**Temperature Effects**:
 
-| タスクタイプ | 推奨 Temperature | 理由 |
-|------------|-----------------|------|
-| 分類・抽出 | 0.0 - 0.3 | 決定論的な出力が望ましい |
-| 要約・変換 | 0.3 - 0.5 | 一定の柔軟性が必要 |
-| 創作・生成 | 0.7 - 1.0 | 多様性と創造性が重要 |
+| Task Type | Recommended Temperature | Reason |
+|-----------|------------------------|--------|
+| Classification/Extraction | 0.0 - 0.3 | Deterministic output desired |
+| Summarization/Transformation | 0.3 - 0.5 | Some flexibility needed |
+| Creative/Generation | 0.7 - 1.0 | Diversity and creativity important |
 
-**Before（デフォルト設定）**:
+**Before (Default settings)**:
 ```python
 llm = ChatAnthropic(
     model="claude-3-5-sonnet-20241022",
-    temperature=1.0  # デフォルト、全タスクで使用
+    temperature=1.0  # Default, used for all tasks
 )
-# 分類タスクで不安定な結果
+# Unstable results for classification tasks
 ```
 
-**After（タスクごとに最適化）**:
+**After (Optimized per task)**:
 ```python
-# Intent classification: 低い temperature
+# Intent classification: Low temperature
 intent_llm = ChatAnthropic(
     model="claude-3-5-sonnet-20241022",
-    temperature=0.3  # 一貫性を重視
+    temperature=0.3  # Emphasize consistency
 )
 
-# Response generation: 中程度の temperature
+# Response generation: Medium temperature
 response_llm = ChatAnthropic(
     model="claude-3-5-sonnet-20241022",
-    temperature=0.5,  # 柔軟性とバランス
-    max_tokens=500    # 簡潔さを強制
+    temperature=0.5,  # Balance flexibility
+    max_tokens=500    # Enforce conciseness
 )
 ```
 
-**Max Tokens の効果**:
+**Max Tokens Effects**:
 
 ```python
-# Before: 制限なし
+# Before: No limit
 llm = ChatAnthropic(model="claude-3-5-sonnet-20241022")
 # Average output: 800 tokens, Cost: $0.012/req, Latency: 3.2s
 
-# After: 適切な制限
+# After: Appropriate limit
 llm = ChatAnthropic(
     model="claude-3-5-sonnet-20241022",
-    max_tokens=500  # 必要十分な長さ
+    max_tokens=500  # Necessary and sufficient length
 )
 # Average output: 450 tokens, Cost: $0.007/req (-42%), Latency: 1.8s (-44%)
 ```
 
-### テクニック 5: System Message vs Human Message の使い分け
+### Technique 5: System Message vs Human Message Usage
 
-**System Message（システムメッセージ）**:
-- **用途**: 役割、ガイドライン、制約
-- **特徴**: タスク全体に適用される文脈
-- **キャッシュ**: 効果的（頻繁に変わらない）
+**System Message**:
+- **Use**: Role, guidelines, constraints
+- **Characteristics**: Context applied to entire task
+- **Caching**: Effective (doesn't change frequently)
 
-**Human Message（ユーザーメッセージ）**:
-- **用途**: 具体的な入力、質問
-- **特徴**: リクエストごとに変わる
-- **キャッシュ**: 効果が低い
+**Human Message**:
+- **Use**: Specific input, questions
+- **Characteristics**: Changes per request
+- **Caching**: Less effective
 
-**良い構造**:
+**Good Structure**:
 ```python
 messages = [
     SystemMessage(content="""You are a customer support assistant.
@@ -223,18 +223,18 @@ Generate a helpful response:""")
 ]
 ```
 
-### テクニック 6: プロンプトキャッシング（Prompt Caching）
+### Technique 6: Prompt Caching
 
-**効果**: Cost -50-90%（キャッシュヒット時）
+**Effect**: Cost -50-90% (on cache hit)
 
-Anthropic Claude のプロンプトキャッシングを活用：
+Leverage Anthropic Claude's prompt caching:
 
 ```python
 from anthropic import Anthropic
 
 client = Anthropic()
 
-# キャッシュ可能な大きな system prompt
+# Large cacheable system prompt
 CACHED_SYSTEM_PROMPT = """You are an expert customer support agent...
 
 [Long guidelines, examples, and context - 1000+ tokens]
@@ -243,7 +243,7 @@ Examples:
 [50 few-shot examples]
 """
 
-# キャッシュを使用
+# Use cache
 message = client.messages.create(
     model="claude-3-5-sonnet-20241022",
     max_tokens=500,
@@ -251,7 +251,7 @@ message = client.messages.create(
         {
             "type": "text",
             "text": CACHED_SYSTEM_PROMPT,
-            "cache_control": {"type": "ephemeral"}  # キャッシュを有効化
+            "cache_control": {"type": "ephemeral"}  # Enable caching
         }
     ],
     messages=[
@@ -259,48 +259,48 @@ message = client.messages.create(
     ]
 )
 
-# 初回: フルコスト
-# 2回目以降（5分以内）: Input tokens が -90% 割引
+# First time: Full cost
+# 2nd+ time (within 5 minutes): Input tokens -90% discount
 ```
 
-**キャッシング戦略**:
-- ✅ 大きな system prompts（>1024 tokens）
-- ✅ Few-shot examples の集合
-- ✅ 長いコンテキスト（RAG のドキュメント）
-- ❌ 頻繁に変わる内容
-- ❌ 小さなプロンプト（<1024 tokens）
+**Caching Strategy**:
+- ✅ Large system prompts (>1024 tokens)
+- ✅ Sets of few-shot examples
+- ✅ Long context (RAG documents)
+- ❌ Frequently changing content
+- ❌ Small prompts (<1024 tokens)
 
-### テクニック 7: 段階的な詳細化（Progressive Refinement）
+### Technique 7: Progressive Refinement
 
-複雑なタスクを複数のステップに分解：
+Break complex tasks into multiple steps:
 
-**Before（1ステップ）**:
+**Before (1 step)**:
 ```python
-# 1つのノードで全てを実行
+# Execute everything in one node
 prompt = f"""Analyze user input, retrieve relevant info, and generate response.
 
 Input: {user_input}"""
 
-# 問題: 複雑すぎて品質が低い、デバッグが困難
+# Problems: Too complex, low quality, hard to debug
 ```
 
-**After（複数ステップ）**:
+**After (Multiple steps)**:
 ```python
 # Step 1: Intent classification
 intent = classify_intent(user_input)
 
-# Step 2: Information retrieval (intent に基づく)
+# Step 2: Information retrieval (based on intent)
 context = retrieve_context(intent, user_input)
 
-# Step 3: Response generation (intent と context を使用)
+# Step 3: Response generation (using intent and context)
 response = generate_response(intent, context, user_input)
 
-# 利点: 各ステップが最適化可能、デバッグが容易、品質が向上
+# Benefits: Each step optimizable, easy to debug, improved quality
 ```
 
-### テクニック 8: Negative Instructions（禁止事項の明示）
+### Technique 8: Negative Instructions
 
-**効果**: エッジケースのエラー -30-50%
+**Effect**: Edge case errors -30-50%
 
 ```python
 prompt = """Generate a customer support response.
@@ -323,19 +323,19 @@ Context: {context}
 Response:"""
 ```
 
-### テクニック 9: Self-Consistency（自己一貫性）
+### Technique 9: Self-Consistency
 
-**効果**: Complex reasoning で Accuracy +10-20%、Cost +200-300%
+**Effect**: Accuracy +10-20% for complex reasoning, Cost +200-300%
 
-複数の推論パスを生成して多数決：
+Generate multiple reasoning paths and use majority voting:
 
 ```python
 def self_consistency_reasoning(question: str, num_samples: int = 5) -> str:
-    """複数の推論を生成して最も一貫した答えを選択"""
+    """Generate multiple reasoning paths and select the most consistent answer"""
 
     llm = ChatAnthropic(
         model="claude-3-5-sonnet-20241022",
-        temperature=0.7  # 多様性のために高めの temperature
+        temperature=0.7  # Higher temperature for diversity
     )
 
     prompt = f"""Question: {question}
@@ -344,39 +344,39 @@ Think through this step by step and provide your reasoning:
 
 Reasoning:"""
 
-    # 複数の推論パスを生成
+    # Generate multiple reasoning paths
     responses = []
     for _ in range(num_samples):
         response = llm.invoke([HumanMessage(content=prompt)])
         responses.append(response.content)
 
-    # 最も一貫した答えを抽出（簡略化）
-    # 実際には、各レスポンスから最終的な答えを抽出して多数決
+    # Extract the most consistent answer (simplified)
+    # In practice, extract final answer from each response and use majority voting
     from collections import Counter
     final_answers = [extract_final_answer(r) for r in responses]
     most_common = Counter(final_answers).most_common(1)[0][0]
 
     return most_common
 
-# トレードオフ:
+# Trade-offs:
 # - Accuracy: +10-20%
 # - Cost: +200-300% (5x API calls)
-# - Latency: +200-300% (並列化しない場合)
-# 使用: Critical decisions のみ
+# - Latency: +200-300% (if not parallelized)
+# Use: Critical decisions only
 ```
 
-### テクニック 10: モデルの選択
+### Technique 10: Model Selection
 
-**タスクの複雑度に応じたモデル選択**:
+**Model Selection Based on Task Complexity**:
 
-| タスクタイプ | 推奨モデル | 理由 |
-|------------|-----------|------|
-| Simple classification | Claude 3.5 Haiku | 高速、低コスト、十分な精度 |
-| Complex reasoning | Claude 3.5 Sonnet | バランスの取れた性能 |
-| Highly complex tasks | Claude Opus | 最高の性能（コスト高） |
+| Task Type | Recommended Model | Reason |
+|-----------|------------------|--------|
+| Simple classification | Claude 3.5 Haiku | Fast, low cost, sufficient accuracy |
+| Complex reasoning | Claude 3.5 Sonnet | Balanced performance |
+| Highly complex tasks | Claude Opus | Best performance (high cost) |
 
 ```python
-# タスクごとに最適なモデルを選択
+# Select optimal model per task
 class LLMSelector:
     def __init__(self):
         self.haiku = ChatAnthropic(model="claude-3-5-haiku-20241022")
@@ -385,13 +385,13 @@ class LLMSelector:
 
     def get_llm(self, task_complexity: str):
         if task_complexity == "simple":
-            return self.haiku  # $0.001/req 相当
+            return self.haiku  # ~$0.001/req
         elif task_complexity == "complex":
-            return self.sonnet  # $0.005/req 相当
+            return self.sonnet  # ~$0.005/req
         else:  # very_complex
-            return self.opus  # $0.015/req 相当
+            return self.opus  # ~$0.015/req
 
-# 使用例
+# Usage example
 selector = LLMSelector()
 
 # Simple intent classification → Haiku
@@ -401,25 +401,25 @@ intent_llm = selector.get_llm("simple")
 response_llm = selector.get_llm("complex")
 ```
 
-**ハイブリッドアプローチ**:
+**Hybrid Approach**:
 ```python
 def hybrid_classification(user_input: str) -> dict:
-    """まず Haiku で試し、confidence が低ければ Sonnet を使用"""
+    """Try Haiku first, use Sonnet if confidence is low"""
 
-    # Step 1: Haiku で分類
+    # Step 1: Classify with Haiku
     haiku_result = classify_with_haiku(user_input)
 
     if haiku_result["confidence"] >= 0.8:
-        # 高い confidence → Haiku の結果を使用
+        # High confidence → Use Haiku result
         return haiku_result
     else:
-        # 低い confidence → Sonnet で再分類
+        # Low confidence → Re-classify with Sonnet
         sonnet_result = classify_with_sonnet(user_input)
         return sonnet_result
 
-# 効果:
-# - 80%のケースで Haiku を使用（低コスト）
-# - 20%のケースで Sonnet を使用（高精度）
-# - 平均コスト: -60%
-# - 平均精度: -2%（許容範囲）
+# Effects:
+# - 80% of cases use Haiku (low cost)
+# - 20% of cases use Sonnet (high accuracy)
+# - Average cost: -60%
+# - Average accuracy: -2% (acceptable range)
 ```

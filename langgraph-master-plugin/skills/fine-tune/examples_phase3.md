@@ -1,18 +1,18 @@
-# Phase 3: 反復的改善の例
+# Phase 3: Iterative Improvement Examples
 
-改善前後のプロンプト比較と結果レポートの例。
+Examples of before/after prompt comparisons and result reports.
 
-**📋 関連ドキュメント**: [実践例トップ](./examples.md) | [ワークフロー Phase 3](./workflow_phase3.md) | [プロンプト最適化](./prompt_optimization.md)
+**📋 Related Documentation**: [Examples Home](./examples.md) | [Workflow Phase 3](./workflow_phase3.md) | [Prompt Optimization](./prompt_optimization.md)
 
 ---
 
-## Phase 3: 反復的改善の例
+## Phase 3: Iterative Improvement Examples
 
-### Example 3.1: 改善前後のプロンプト比較
+### Example 3.1: Before/After Prompt Comparison
 
-**ノード**: analyze_intent
+**Node**: analyze_intent
 
-#### Before（ベースライン）
+#### Before (Baseline)
 
 ```python
 def analyze_intent(state: GraphState) -> GraphState:
@@ -31,24 +31,24 @@ def analyze_intent(state: GraphState) -> GraphState:
     return state
 ```
 
-**問題点**:
-- 曖昧な指示
-- Few-shot なし
-- 自由テキスト出力
-- 高い temperature
+**Issues**:
+- Ambiguous instructions
+- No few-shot examples
+- Free text output
+- High temperature
 
-**結果**: Accuracy 75%
+**Result**: Accuracy 75%
 
-#### After（Iteration 1）
+#### After (Iteration 1)
 
 ```python
 def analyze_intent(state: GraphState) -> GraphState:
     llm = ChatAnthropic(
         model="claude-3-5-sonnet-20241022",
-        temperature=0.3  # 分類タスクには低めの temperature
+        temperature=0.3  # Lower temperature for classification tasks
     )
 
-    # 明確な分類カテゴリと few-shot examples
+    # Clear classification categories and few-shot examples
     system_prompt = """You are an intent classifier for a customer support chatbot.
 
 Classify user input into one of these categories:
@@ -89,143 +89,142 @@ Output: {"intent": "product_inquiry", "confidence": 0.9, "reasoning": "Question 
 
     response = llm.invoke(messages)
 
-    # JSON パース（エラーハンドリング付き）
+    # JSON parsing (with error handling)
     try:
         intent_data = json.loads(response.content)
         state["intent"] = intent_data["intent"]
         state["confidence"] = intent_data["confidence"]
     except json.JSONDecodeError:
-        # フォールバック
+        # Fallback
         state["intent"] = "general"
         state["confidence"] = 0.5
 
     return state
 ```
 
-**改善点**:
+**Improvements**:
 - ✅ temperature: 1.0 → 0.3
-- ✅ 明確な分類カテゴリ（4 つのインテント）
-- ✅ Few-shot examples（5 個追加）
-- ✅ JSON 出力形式（構造化された出力）
-- ✅ エラーハンドリング（JSON パース失敗時のフォールバック）
+- ✅ Clear classification categories (4 intents)
+- ✅ Few-shot examples (5 added)
+- ✅ JSON output format (structured output)
+- ✅ Error handling (fallback for JSON parsing failures)
 
-**結果**: Accuracy 86% (+11%)
+**Result**: Accuracy 86% (+11%)
 
-### Example 3.2: 優先順位付けマトリックス
+### Example 3.2: Prioritization Matrix
 
 ```markdown
-## 改善優先順位マトリックス
+## Improvement Prioritization Matrix
 
-| ノード             | 影響度       | 実現可能性   | 実装コスト   | 総合スコア | 優先度 |
-| ------------------ | ------------ | ------------ | ------------ | ---------- | ------ |
-| analyze_intent     | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐   | 14/15      | 1 位   |
-| generate_response  | ⭐⭐⭐⭐   | ⭐⭐⭐⭐   | ⭐⭐⭐⭐   | 12/15      | 2 位   |
-| retrieve_context   | ⭐⭐       | ⭐⭐⭐     | ⭐⭐⭐     | 8/15       | 3 位   |
+| Node              | Impact       | Feasibility  | Implementation Cost | Total Score | Priority |
+| ----------------- | ------------ | ------------ | ------------------- | ----------- | -------- |
+| analyze_intent    | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐          | 14/15       | 1st      |
+| generate_response | ⭐⭐⭐⭐   | ⭐⭐⭐⭐   | ⭐⭐⭐⭐          | 12/15       | 2nd      |
+| retrieve_context  | ⭐⭐       | ⭐⭐⭐     | ⭐⭐⭐           | 8/15        | 3rd      |
 
-### 詳細分析
+### Detailed Analysis
 
-#### 1 位: analyze_intent ノード
+#### 1st: analyze_intent Node
 
-- **影響度**: ⭐⭐⭐⭐⭐
-  - Accuracy に直接影響（-15%ギャップの 60%を占める）
-  - 下流のノードにも影響（誤分類による連鎖エラー）
+- **Impact**: ⭐⭐⭐⭐⭐
+  - Direct impact on Accuracy (accounts for 60% of -15% gap)
+  - Also affects downstream nodes (chain errors from misclassification)
 
-- **実現可能性**: ⭐⭐⭐⭐⭐
-  - Few-shot examples による改善が期待できる
-  - 類似事例で +10-15%の改善実績あり
+- **Feasibility**: ⭐⭐⭐⭐⭐
+  - Improvement expected from few-shot examples
+  - Similar cases show +10-15% improvement
 
-- **実装コスト**: ⭐⭐⭐⭐
-  - 実装時間: 30-60 分
-  - テスト時間: 30 分
-  - リスク: 低
+- **Implementation Cost**: ⭐⭐⭐⭐
+  - Implementation time: 30-60 minutes
+  - Testing time: 30 minutes
+  - Risk: Low
 
-**Iteration 1 の対象**: analyze_intent ノード
+**Iteration 1 target**: analyze_intent node
 
-#### 2 位: generate_response ノード
+#### 2nd: generate_response Node
 
-- **影響度**: ⭐⭐⭐⭐
-  - Latency と Cost の主要因（全体の 70%以上）
-  - Accuracy への直接影響は小さい
+- **Impact**: ⭐⭐⭐⭐
+  - Main contributor to Latency and Cost (over 70% of total)
+  - Small direct impact on Accuracy
 
-- **実現可能性**: ⭐⭐⭐⭐
-  - max_tokens 制限で確実に改善
-  - 簡潔性の指示で品質維持可能
+- **Feasibility**: ⭐⭐⭐⭐
+  - max_tokens limit ensures improvement
+  - Quality can be maintained with conciseness instructions
 
-- **実装コスト**: ⭐⭐⭐⭐
-  - 実装時間: 20-30 分
-  - テスト時間: 30 分
-  - リスク: 低
+- **Implementation Cost**: ⭐⭐⭐⭐
+  - Implementation time: 20-30 minutes
+  - Testing time: 30 minutes
+  - Risk: Low
 
-**Iteration 2 の対象**: generate_response ノード
+**Iteration 2 target**: generate_response node
 ```
 
-### Example 3.3: Iteration 結果レポート
+### Example 3.3: Iteration Results Report
 
 ```markdown
-# Iteration 1 評価結果
+# Iteration 1 Evaluation Results
 
-実行日時: 2024-11-24 12:00:00
-変更内容: analyze_intent ノードの最適化
+Execution Date/Time: 2024-11-24 12:00:00
+Changes: analyze_intent node optimization
 
-## 結果比較
+## Result Comparison
 
-| 指標     | ベースライン | Iteration 1 | 変化    | 変化率  | 目標   | 達成率  |
-| -------- | ------------ | ----------- | ------- | ------- | ------ | ------- |
-| **Accuracy** | 75.0%        | **86.0%**   | **+11.0%** | +14.7%  | 90.0%  | 95.6%   |
-| **Latency**  | 2.5s         | 2.4s        | -0.1s   | -4.0%   | 2.0s   | 80.0%   |
-| **Cost/req** | $0.015       | $0.014      | -$0.001 | -6.7%   | $0.010 | 71.4%   |
+| Metric       | Baseline | Iteration 1 | Change     | Change Rate | Target | Achievement |
+| ------------ | -------- | ----------- | ---------- | ----------- | ------ | ----------- |
+| **Accuracy** | 75.0%    | **86.0%**   | **+11.0%** | +14.7%      | 90.0%  | 95.6%       |
+| **Latency**  | 2.5s     | 2.4s        | -0.1s      | -4.0%       | 2.0s   | 80.0%       |
+| **Cost/req** | $0.015   | $0.014      | -$0.001    | -6.7%       | $0.010 | 71.4%       |
 
-## 詳細分析
+## Detailed Analysis
 
-### Accuracy の改善
+### Accuracy Improvement
 
-- **向上**: +11.0% (75.0% → 86.0%)
-- **残りギャップ**: 4.0% (目標 90.0%)
-- **改善できたケース**: インテント分類ミスが 12 → 3 ケースに減少
-- **まだ改善が必要**: コンテキスト理解不足のケース（5 ケース）
+- **Improvement**: +11.0% (75.0% → 86.0%)
+- **Remaining gap**: 4.0% (Target 90.0%)
+- **Improved cases**: Intent classification errors reduced from 12 → 3 cases
+- **Still needs improvement**: Context understanding cases (5 cases)
 
-### Latency の若干改善
+### Slight Latency Improvement
 
-- **向上**: -0.1s (2.5s → 2.4s)
-- **主な要因**: analyze_intent の温度下降により出力が簡潔になった
-- **残りボトルネック**: generate_response (平均 1.8s)
+- **Improvement**: -0.1s (2.5s → 2.4s)
+- **Main factor**: analyze_intent output became more concise due to lower temperature
+- **Remaining bottleneck**: generate_response (average 1.8s)
 
-### Cost の若干削減
+### Slight Cost Reduction
 
-- **削減**: -$0.001 (6.7%削減)
-- **要因**: analyze_intent の出力トークン削減
-- **主なコスト**: generate_response が依然として 73%を占める
+- **Reduction**: -$0.001 (6.7% reduction)
+- **Factor**: analyze_intent output token reduction
+- **Main cost**: generate_response still accounts for 73%
 
-## 統計的有意性
+## Statistical Significance
 
-- **t 検定**: p < 0.01 ✅（統計的に有意）
-- **効果量**: Cohen's d = 2.3 (large effect)
-- **信頼区間**: [83.9%, 88.1%] (95% CI)
+- **t-test**: p < 0.01 ✅ (statistically significant)
+- **Effect size**: Cohen's d = 2.3 (large effect)
+- **Confidence interval**: [83.9%, 88.1%] (95% CI)
 
-## 次の Iteration の方針
+## Next Iteration Strategy
 
-### 優先度 1: generate_response の最適化
+### Priority 1: Optimize generate_response
 
-- **目標**: Latency を 1.8s → 1.4s、Cost を $0.011 → $0.007
-- **アプローチ**:
-  1. 簡潔性の指示追加
-  2. max_tokens を 500 に制限
-  3. temperature を 0.7 → 0.5 に調整
+- **Goal**: Latency from 1.8s → 1.4s, Cost from $0.011 → $0.007
+- **Approach**:
+  1. Add conciseness instructions
+  2. Limit max_tokens to 500
+  3. Adjust temperature from 0.7 → 0.5
 
-### 優先度 2: Accuracy の最後の 4%向上
+### Priority 2: Final 4% Accuracy improvement
 
-- **目標**: 86.0% → 90.0%以上
-- **アプローチ**: コンテキスト理解を改善（retrieve_context ノード）
+- **Goal**: 86.0% → 90.0% or higher
+- **Approach**: Improve context understanding (retrieve_context node)
 
-## 判定
+## Decision
 
-✅ **継続** → Iteration 2 に進む
+✅ **Continue** → Proceed to Iteration 2
 
-理由:
-- Accuracy が大幅に向上したが、まだ目標未達
-- Latency と Cost も改善の余地あり
-- 明確な改善方針が立っている
+Reasons:
+- Accuracy improved significantly but still hasn't reached target
+- Latency and Cost still have room for improvement
+- Clear improvement strategy is in place
 ```
 
 ---
-

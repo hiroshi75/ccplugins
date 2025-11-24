@@ -1,40 +1,40 @@
-# Phase 2: ベースライン評価
+# Phase 2: Baseline Evaluation
 
-現状のパフォーマンスを定量的に測定するフェーズ。
+Phase to quantitatively measure current performance.
 
-**所要時間**: 1-2時間
+**Time Required**: 1-2 hours
 
-**📋 関連ドキュメント**: [ワークフロー全体](./workflow.md) | [評価方法](./evaluation.md)
+**📋 Related Documents**: [Overall Workflow](./workflow.md) | [Evaluation Methods](./evaluation.md)
 
 ---
 
-## Phase 2: ベースライン評価
+## Phase 2: Baseline Evaluation
 
-### Step 4: 評価環境の準備
+### Step 4: Prepare Evaluation Environment
 
-**チェックリスト**:
-- [ ] テストケースファイルが存在する
-- [ ] 評価スクリプトが実行可能
-- [ ] 環境変数（API キーなど）が設定されている
-- [ ] 依存パッケージがインストールされている
+**Checklist**:
+- [ ] Test case files exist
+- [ ] Evaluation script is executable
+- [ ] Environment variables (API keys, etc.) are set
+- [ ] Dependency packages are installed
 
-**実行例**:
+**Execution Example**:
 ```bash
-# テストケースの確認
+# Check test cases
 cat tests/evaluation/test_cases.json
 
-# 評価スクリプトの動作確認
+# Verify evaluation script works
 uv run python -m src.evaluate --dry-run
 
-# 環境変数の確認
+# Verify environment variables
 echo $ANTHROPIC_API_KEY
 ```
 
-### Step 5: ベースライン測定
+### Step 5: Measure Baseline
 
-**推奨実行回数**: 3-5 回（統計的な信頼性のため）
+**Recommended Run Count**: 3-5 times (for statistical reliability)
 
-**実行スクリプト例**:
+**Execution Script Example**:
 ```bash
 #!/bin/bash
 # baseline_evaluation.sh
@@ -49,17 +49,17 @@ for i in $(seq 1 $ITERATIONS); do
         --output "$RESULTS_DIR/run_$i.json" \
         --verbose
 
-    # API レート制限対策
+    # API rate limit countermeasure
     sleep 5
 done
 
-# 結果の集計
+# Aggregate results
 uv run python -m src.aggregate_results \
     --input-dir "$RESULTS_DIR" \
     --output "$RESULTS_DIR/summary.json"
 ```
 
-**評価スクリプト例** (`src/evaluate.py`):
+**Evaluation Script Example** (`src/evaluate.py`):
 ```python
 import json
 import time
@@ -67,7 +67,7 @@ from pathlib import Path
 from typing import Dict, List
 
 def evaluate_test_cases(test_cases: List[Dict]) -> Dict:
-    """テストケースを評価"""
+    """Evaluate test cases"""
     results = {
         "total_cases": len(test_cases),
         "correct": 0,
@@ -79,17 +79,17 @@ def evaluate_test_cases(test_cases: List[Dict]) -> Dict:
     for case in test_cases:
         start_time = time.time()
 
-        # LangGraph アプリケーションを実行
+        # Execute LangGraph application
         output = run_langgraph_app(case["input"])
 
         latency = time.time() - start_time
 
-        # 正解判定
+        # Correct answer judgment
         is_correct = output["answer"] == case["expected_answer"]
         if is_correct:
             results["correct"] += 1
 
-        # コスト計算（トークン使用量から）
+        # Cost calculation (from token usage)
         cost = calculate_cost(output["token_usage"])
 
         results["total_latency"] += latency
@@ -102,7 +102,7 @@ def evaluate_test_cases(test_cases: List[Dict]) -> Dict:
             "cost": cost
         })
 
-    # 指標の計算
+    # Calculate metrics
     results["accuracy"] = (results["correct"] / results["total_cases"]) * 100
     results["avg_latency"] = results["total_latency"] / results["total_cases"]
     results["avg_cost"] = results["total_cost"] / results["total_cases"]
@@ -110,8 +110,8 @@ def evaluate_test_cases(test_cases: List[Dict]) -> Dict:
     return results
 
 def calculate_cost(token_usage: Dict) -> float:
-    """トークン使用量からコストを計算"""
-    # Claude 3.5 Sonnet の料金
+    """Calculate cost from token usage"""
+    # Claude 3.5 Sonnet pricing
     INPUT_COST_PER_1M = 3.0  # $3.00 per 1M input tokens
     OUTPUT_COST_PER_1M = 15.0  # $15.00 per 1M output tokens
 
@@ -121,9 +121,9 @@ def calculate_cost(token_usage: Dict) -> float:
     return input_cost + output_cost
 ```
 
-### Step 6: ベースライン結果の分析
+### Step 6: Analyze Baseline Results
 
-**集計スクリプト例** (`src/aggregate_results.py`):
+**Aggregation Script Example** (`src/aggregate_results.py`):
 ```python
 import json
 import numpy as np
@@ -131,14 +131,14 @@ from pathlib import Path
 from typing import List, Dict
 
 def aggregate_results(results_dir: Path) -> Dict:
-    """複数回の実行結果を集計"""
+    """Aggregate multiple execution results"""
     all_results = []
 
     for result_file in sorted(results_dir.glob("run_*.json")):
         with open(result_file) as f:
             all_results.append(json.load(f))
 
-    # 各指標の統計計算
+    # Calculate statistics for each metric
     accuracies = [r["accuracy"] for r in all_results]
     latencies = [r["avg_latency"] for r in all_results]
     costs = [r["avg_cost"] for r in all_results]
@@ -168,56 +168,55 @@ def aggregate_results(results_dir: Path) -> Dict:
     return summary
 ```
 
-**結果レポート例**:
+**Results Report Example**:
 ```markdown
-# ベースライン評価結果
+# Baseline Evaluation Results
 
-実行日時: 2024-11-24 10:00:00
-実行回数: 5
-テストケース数: 20
+Execution Date: 2024-11-24 10:00:00
+Run Count: 5
+Test Case Count: 20
 
-## 評価指標サマリー
+## Evaluation Metrics Summary
 
-| 指標 | 平均 | 標準偏差 | 最小値 | 最大値 | 目標 | ギャップ |
-|------|------|----------|--------|--------|------|----------|
+| Metric | Mean | Std Dev | Min | Max | Target | Gap |
+|--------|------|---------|-----|-----|--------|-----|
 | Accuracy | 75.0% | 3.2% | 70.0% | 80.0% | 90.0% | **-15.0%** |
 | Latency | 2.5s | 0.4s | 2.1s | 3.2s | 2.0s | **+0.5s** |
 | Cost/req | $0.015 | $0.002 | $0.013 | $0.018 | $0.010 | **+$0.005** |
 
-## 詳細分析
+## Detailed Analysis
 
-### Accuracy の問題
-- **現状**: 75.0% (目標: 90.0%)
-- **主な誤答パターン**:
-  1. インテント分類ミス: 12ケース (60%の誤答)
-  2. コンテキスト理解不足: 5ケース (25%の誤答)
-  3. 曖昧な質問への対応: 3ケース (15%の誤答)
+### Accuracy Issues
+- **Current**: 75.0% (Target: 90.0%)
+- **Main error patterns**:
+  1. Intent classification errors: 12 cases (60% of errors)
+  2. Context understanding deficiency: 5 cases (25% of errors)
+  3. Handling ambiguous questions: 3 cases (15% of errors)
 
-### Latency の問題
-- **現状**: 2.5s (目標: 2.0s)
-- **ボトルネック**:
-  1. generate_response ノード: 平均 1.8s (全体の72%)
-  2. analyze_intent ノード: 平均 0.5s (全体の20%)
-  3. その他: 平均 0.2s (全体の8%)
+### Latency Issues
+- **Current**: 2.5s (Target: 2.0s)
+- **Bottlenecks**:
+  1. generate_response node: avg 1.8s (72% of total)
+  2. analyze_intent node: avg 0.5s (20% of total)
+  3. Other: avg 0.2s (8% of total)
 
-### Cost の問題
-- **現状**: $0.015/req (目標: $0.010/req)
-- **コスト内訳**:
+### Cost Issues
+- **Current**: $0.015/req (Target: $0.010/req)
+- **Cost breakdown**:
   1. generate_response: $0.011 (73%)
   2. analyze_intent: $0.003 (20%)
-  3. その他: $0.001 (7%)
-- **主な要因**: 出力トークン数が多い（平均 800 tokens）
+  3. Other: $0.001 (7%)
+- **Main factor**: High output token count (avg 800 tokens)
 
-## 改善の方向性
+## Improvement Directions
 
-### 優先度1: analyze_intent の精度向上
-- **影響**: Accuracy に直接影響（-15%のギャップの60%を占める）
-- **改善策**: Few-shot examples、明確な分類基準、JSON 出力形式
-- **推定効果**: +10-12% accuracy
+### Priority 1: Improve analyze_intent accuracy
+- **Impact**: Direct impact on accuracy (accounts for 60% of -15% gap)
+- **Improvements**: Few-shot examples, clear classification criteria, JSON output format
+- **Estimated effect**: +10-12% accuracy
 
-### 優先度2: generate_response の効率化
-- **影響**: Latency と Cost の両方に影響
-- **改善策**: 簡潔性の指示、max_tokens 制限、temperature 調整
-- **推定効果**: -0.4s latency, -$0.004 cost
+### Priority 2: Optimize generate_response efficiency
+- **Impact**: Affects both latency and cost
+- **Improvements**: Conciseness instructions, max_tokens limit, temperature adjustment
+- **Estimated effect**: -0.4s latency, -$0.004 cost
 ```
-

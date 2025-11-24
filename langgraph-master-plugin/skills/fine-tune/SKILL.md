@@ -3,154 +3,154 @@ name: fine-tune
 description: Use when you need to fine-tune and optimize LangGraph applications based on evaluation criteria. This skill performs iterative prompt optimization for LangGraph nodes without changing the graph structure.
 ---
 
-# LangGraph アプリケーションファインチューニングスキル
+# LangGraph Application Fine-Tuning Skill
 
-LangGraph アプリケーションの各ノードのプロンプトと処理ロジックを、評価基準に基づいて反復的に最適化するスキル。
+A skill for iteratively optimizing prompts and processing logic in each node of a LangGraph application based on evaluation criteria.
 
-## 📋 概要
+## 📋 Overview
 
-このスキルは、既存の LangGraph アプリケーションのパフォーマンスを向上させるため、以下のプロセスを実行します：
+This skill executes the following process to improve the performance of existing LangGraph applications:
 
-1. **目標設定の読み込み**: `.langgraph-master/fine-tune.md` から最適化の目標と評価基準を取得（このファイルがない場合、ユーザーの要求に沿って作ってあげてください。）
-2. **最適化箇所の特定**: Serena MCP を活用して LLM プロンプトを含むノードを抽出（Serena MCP が無い場合、ls, read などでコードベースを調べてください。）
-3. **ベースライン評価**: 現状のパフォーマンスを複数回実行して測定
-4. **改善の実施**: 最も効果的な改善箇所を特定し、プロンプトや処理ロジックを最適化
-5. **再評価**: 改善後のパフォーマンスを測定
-6. **反復**: 目標達成まで 4-5 を繰り返す
+1. **Load Objectives**: Retrieve optimization goals and evaluation criteria from `.langgraph-master/fine-tune.md` (if this file doesn't exist, help the user create it based on their requirements)
+2. **Identify Optimization Targets**: Extract nodes containing LLM prompts using Serena MCP (if Serena MCP is unavailable, investigate the codebase using ls, read, etc.)
+3. **Baseline Evaluation**: Measure current performance through multiple runs
+4. **Implement Improvements**: Identify the most effective improvement areas and optimize prompts and processing logic
+5. **Re-evaluation**: Measure performance after improvements
+6. **Iteration**: Repeat steps 4-5 until goals are achieved
 
-**重要な制約**: グラフ構造（ノード、エッジの構成）は変更せず、各ノード内のプロンプトと処理ロジックのみを最適化します。
+**Important Constraint**: Only optimize prompts and processing logic within each node without modifying the graph structure (nodes, edges configuration).
 
-## 🎯 使用タイミング
+## 🎯 When to Use This Skill
 
-以下の場合にこのスキルを使用します：
+Use this skill in the following situations:
 
-1. **既存アプリケーションの性能改善が必要な場合**
-   - LLM の出力品質を向上させたい
-   - 応答速度を改善したい
-   - エラー率を低減したい
+1. **When performance improvement of existing applications is needed**
+   - Want to improve LLM output quality
+   - Want to improve response speed
+   - Want to reduce error rate
 
-2. **評価基準が明確な場合**
-   - `.langgraph-master/fine-tune.md` に最適化目標が定義されている
-   - 定量的な評価方法が確立されている
+2. **When evaluation criteria are clear**
+   - Optimization goals are defined in `.langgraph-master/fine-tune.md`
+   - Quantitative evaluation methods are established
 
-3. **プロンプトエンジニアリングによる改善が期待できる場合**
-   - LLM の指示を明確にすれば改善が見込める
-   - Few-shot examples の追加が有効
-   - 出力フォーマットの調整が必要
+3. **When improvements through prompt engineering are expected**
+   - Improvements are likely with clearer LLM instructions
+   - Adding few-shot examples would be effective
+   - Output format adjustment is needed
 
-## 📖 ファインチューニングワークフロー概要
+## 📖 Fine-Tuning Workflow Overview
 
-### Phase 1: 準備と分析
+### Phase 1: Preparation and Analysis
 
-**目的**: 最適化の対象と現状を把握
+**Purpose**: Understand optimization targets and current state
 
-**主要ステップ**:
-1. 目標設定ファイル（`.langgraph-master/fine-tune.md`）の読み込み
-2. 最適化対象の特定（Serena MCP または手動でコード調査）
-3. 最適化箇所リストの作成（各ノードの改善可能性を評価）
+**Main Steps**:
+1. Load objective setting file (`.langgraph-master/fine-tune.md`)
+2. Identify optimization targets (Serena MCP or manual code investigation)
+3. Create optimization target list (evaluate improvement potential for each node)
 
-→ 詳細は [workflow.md](workflow.md#phase-1-準備と分析) を参照
+→ See [workflow.md](workflow.md#phase-1-preparation-and-analysis) for details
 
-### Phase 2: ベースライン評価
+### Phase 2: Baseline Evaluation
 
-**目的**: 現状のパフォーマンスを定量的に測定
+**Purpose**: Quantitatively measure current performance
 
-**主要ステップ**:
-4. 評価環境の準備（テストケース、評価スクリプト）
-5. ベースライン測定（推奨: 3-5 回実行）
-6. ベースライン結果の分析（問題点の特定）
+**Main Steps**:
+4. Prepare evaluation environment (test cases, evaluation scripts)
+5. Baseline measurement (recommended: 3-5 runs)
+6. Analyze baseline results (identify problems)
 
-**重要**: 評価プログラムが必要な際は、特定のサブディレクトリに評価用コードを作成してください（ユーザーからディレクトリを指定される場合もあります）。
+**Important**: When evaluation programs are needed, create evaluation code in a specific subdirectory (users may specify the directory).
 
-→ 詳細は [workflow.md](workflow.md#phase-2-ベースライン評価) と [evaluation.md](evaluation.md) を参照
+→ See [workflow.md](workflow.md#phase-2-baseline-evaluation) and [evaluation.md](evaluation.md) for details
 
-### Phase 3: 反復的改善
+### Phase 3: Iterative Improvement
 
-**目的**: データ駆動で段階的に改善
+**Purpose**: Data-driven incremental improvement
 
-**主要ステップ**:
-7. 優先順位付け（最もインパクトのある改善箇所を選択）
-8. 改善実施（プロンプト最適化、パラメータ調整）
-9. 改善後の評価（同じ条件で再評価）
-10. 結果の比較と分析（改善効果の測定）
-11. 反復継続の判断（目標達成まで繰り返し）
+**Main Steps**:
+7. Prioritization (select the most impactful improvement area)
+8. Implement improvements (prompt optimization, parameter tuning)
+9. Post-improvement evaluation (re-evaluate under the same conditions)
+10. Compare and analyze results (measure improvement effects)
+11. Decide whether to continue iteration (repeat until goals are achieved)
 
-→ 詳細は [workflow.md](workflow.md#phase-3-反復的改善) と [prompt_optimization.md](prompt_optimization.md) を参照
+→ See [workflow.md](workflow.md#phase-3-iterative-improvement) and [prompt_optimization.md](prompt_optimization.md) for details
 
-### Phase 4: 完了と文書化
+### Phase 4: Completion and Documentation
 
-**目的**: 成果の記録と今後の推奨事項の提供
+**Purpose**: Record achievements and provide future recommendations
 
-**主要ステップ**:
-12. 最終評価レポート作成（改善内容、結果、推奨事項）
-13. コードコミットとドキュメント更新
+**Main Steps**:
+12. Create final evaluation report (improvement content, results, recommendations)
+13. Code commit and documentation update
 
-→ 詳細は [workflow.md](workflow.md#phase-4-完了と文書化) を参照
+→ See [workflow.md](workflow.md#phase-4-completion-and-documentation) for details
 
-## 🔧 使用ツールと技術
+## 🔧 Tools and Technologies Used
 
-### MCP サーバー活用
+### MCP Server Utilization
 
-- **Serena MCP**: コードベース分析と最適化箇所の特定
-  - `find_symbol`: LLM クライアントの検索
-  - `find_referencing_symbols`: プロンプト構築箇所の特定
-  - `get_symbols_overview`: ノード構造の理解
+- **Serena MCP**: Codebase analysis and optimization target identification
+  - `find_symbol`: Search for LLM clients
+  - `find_referencing_symbols`: Identify prompt construction locations
+  - `get_symbols_overview`: Understand node structure
 
-- **Sequential MCP**: 複雑な分析と意思決定
-  - 改善優先順位の決定
-  - 評価結果の分析
-  - 次のアクションの計画
+- **Sequential MCP**: Complex analysis and decision making
+  - Determine improvement priorities
+  - Analyze evaluation results
+  - Plan next actions
 
-### 主要な最適化テクニック
+### Key Optimization Techniques
 
 1. **Few-Shot Examples**: Accuracy +10-20%
-2. **出力フォーマット構造化**: Parsing errors -90%
-3. **Temperature/Max Tokens 調整**: Cost -20-40%
-4. **モデル選択の最適化**: Cost -40-60%
-5. **プロンプトキャッシング**: Cost -50-90%（キャッシュヒット時）
+2. **Structured Output Format**: Parsing errors -90%
+3. **Temperature/Max Tokens Adjustment**: Cost -20-40%
+4. **Model Selection Optimization**: Cost -40-60%
+5. **Prompt Caching**: Cost -50-90% (on cache hit)
 
-→ 詳細は [prompt_optimization.md](prompt_optimization.md) を参照
+→ See [prompt_optimization.md](prompt_optimization.md) for details
 
-## 📚 関連ドキュメント
+## 📚 Related Documentation
 
-詳細なガイドラインとベストプラクティス：
+Detailed guidelines and best practices:
 
-- **[workflow.md](workflow.md)** - ファインチューニングワークフロー詳細（各 Phase の実行手順とコード例）
-- **[evaluation.md](evaluation.md)** - 評価方法とベストプラクティス（指標の計算、統計分析、テストケース設計）
-- **[prompt_optimization.md](prompt_optimization.md)** - プロンプト最適化テクニック（10 の実践的手法と優先順位）
-- **[examples.md](examples.md)** - 実践例集（コピー&ペーストで使えるコード例とテンプレート集）
+- **[workflow.md](workflow.md)** - Fine-tuning workflow details (execution procedures and code examples for each phase)
+- **[evaluation.md](evaluation.md)** - Evaluation methods and best practices (metric calculation, statistical analysis, test case design)
+- **[prompt_optimization.md](prompt_optimization.md)** - Prompt optimization techniques (10 practical methods and priorities)
+- **[examples.md](examples.md)** - Practical examples collection (copy-and-paste ready code examples and template collection)
 
-## ⚠️ 注意事項
+## ⚠️ Important Notes
 
-1. **グラフ構造の保持**
-   - ノード、エッジの追加・削除は行わない
-   - ノード間のデータフローは変更しない
-   - 状態スキーマは維持する
+1. **Preserve Graph Structure**
+   - Do not add or remove nodes or edges
+   - Do not change data flow between nodes
+   - Maintain state schema
 
-2. **評価の一貫性**
-   - 同じテストケースを使用
-   - 同じ評価指標で測定
-   - 複数回実行して統計的に有意な改善を確認
+2. **Evaluation Consistency**
+   - Use the same test cases
+   - Measure with the same evaluation metrics
+   - Run multiple times to confirm statistically significant improvements
 
-3. **コスト管理**
-   - 評価実行のコストを考慮
-   - 必要に応じてサンプルサイズを調整
-   - API レート制限に注意
+3. **Cost Management**
+   - Consider evaluation execution costs
+   - Adjust sample size as needed
+   - Be mindful of API rate limits
 
-4. **バージョン管理**
-   - 各 iteration の変更を git commit
-   - ロールバック可能な状態を維持
-   - 評価結果を記録
+4. **Version Control**
+   - Git commit each iteration's changes
+   - Maintain rollback-capable state
+   - Record evaluation results
 
-## 🎓 ファインチューニングのベストプラクティス
+## 🎓 Fine-Tuning Best Practices
 
-1. **小さく始める**: 最もインパクトのあるノードから最適化
-2. **測定駆動**: 改善前後で必ず定量評価を実施
-3. **段階的改善**: 一度に複数の変更をせず、1 つずつ検証
-4. **文書化**: 各変更の理由と結果を記録
-5. **反復**: 目標達成まで継続的に改善
+1. **Start Small**: Optimize from the most impactful node
+2. **Measurement-Driven**: Always perform quantitative evaluation before and after improvements
+3. **Incremental Improvement**: Validate one change at a time, not multiple simultaneously
+4. **Documentation**: Record reasons and results for each change
+5. **Iteration**: Continuously improve until goals are achieved
 
-## 🔗 参考リンク
+## 🔗 Reference Links
 
-- [LangGraph 公式ドキュメント](https://docs.langchain.com/oss/python/langgraph/overview)
+- [LangGraph Official Documentation](https://docs.langchain.com/oss/python/langgraph/overview)
 - [Prompt Engineering Guide](https://www.promptingguide.ai/)

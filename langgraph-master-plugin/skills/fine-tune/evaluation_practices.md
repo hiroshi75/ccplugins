@@ -1,39 +1,39 @@
-# 評価のベストプラクティス
+# Evaluation Best Practices
 
-LangGraph アプリケーションの評価を効果的に実施するための実践的なガイドライン。
+Practical guidelines for effective evaluation of LangGraph applications.
 
-## 🎯 評価のベストプラクティス
+## 🎯 Evaluation Best Practices
 
-### 1. 一貫性の確保
+### 1. Ensuring Consistency
 
-#### 同じ条件での評価
+#### Evaluation Under Same Conditions
 
 ```python
 class EvaluationConfig:
-    """評価設定を固定して一貫性を確保"""
+    """Fix evaluation settings to ensure consistency"""
 
     def __init__(self):
         self.test_cases_path = "tests/evaluation/test_cases.json"
-        self.seed = 42  # 再現性のため
+        self.seed = 42  # For reproducibility
         self.iterations = 5
         self.timeout = 30  # seconds
         self.model = "claude-3-5-sonnet-20241022"
 
     def load_test_cases(self) -> List[Dict]:
-        """同じテストケースを読み込む"""
+        """Load the same test cases"""
         with open(self.test_cases_path) as f:
             data = json.load(f)
         return data["test_cases"]
 
-# 使用
+# Usage
 config = EvaluationConfig()
 test_cases = config.load_test_cases()
-# すべての評価で同じテストケースを使用
+# Use the same test cases for all evaluations
 ```
 
-### 2. 段階的な評価
+### 2. Staged Evaluation
 
-#### 小さく始めて徐々に拡大
+#### Start Small and Gradually Expand
 
 ```python
 # Phase 1: Quick check (3 cases, 1 iteration)
@@ -48,9 +48,9 @@ if quick_results["accuracy"] > baseline["accuracy"]:
         full_results = evaluate(test_cases, iterations=5)
 ```
 
-### 3. 評価結果の記録
+### 3. Recording Evaluation Results
 
-#### 構造化されたログ
+#### Structured Logging
 
 ```python
 import json
@@ -62,7 +62,7 @@ def save_evaluation_result(
     version: str,
     output_dir: Path = Path("evaluation_results")
 ):
-    """評価結果を保存"""
+    """Save evaluation results"""
     output_dir.mkdir(exist_ok=True)
 
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -84,14 +84,14 @@ def save_evaluation_result(
 
     print(f"Results saved to: {output_dir / filename}")
 
-# 使用
+# Usage
 save_evaluation_result(results, version="baseline")
 save_evaluation_result(results, version="iteration_1")
 ```
 
-### 4. 可視化
+### 4. Visualization
 
-#### 結果の可視化
+#### Visualizing Results
 
 ```python
 import matplotlib.pyplot as plt
@@ -101,23 +101,23 @@ def visualize_improvement(
     iterations: List[Dict],
     metrics: List[str] = ["accuracy", "latency", "cost"]
 ):
-    """改善の推移を可視化"""
+    """Visualize improvement progress"""
     fig, axes = plt.subplots(1, len(metrics), figsize=(15, 5))
 
     for idx, metric in enumerate(metrics):
         ax = axes[idx]
 
-        # データ準備
+        # Prepare data
         x = ["Baseline"] + [f"Iter {i+1}" for i in range(len(iterations))]
         y = [baseline[metric]] + [it[metric] for it in iterations]
 
-        # プロット
+        # Plot
         ax.plot(x, y, marker='o', linewidth=2)
         ax.set_title(f"{metric.capitalize()} Progress")
         ax.set_ylabel(metric.capitalize())
         ax.grid(True, alpha=0.3)
 
-        # 目標線
+        # Goal line
         if metric in baseline.get("goals", {}):
             goal = baseline["goals"][metric]
             ax.axhline(y=goal, color='r', linestyle='--', label='Goal')
@@ -128,161 +128,161 @@ def visualize_improvement(
     print("Visualization saved to: evaluation_results/improvement_progress.png")
 ```
 
-## 📋 評価レポートのテンプレート
+## 📋 Evaluation Report Template
 
-### 標準レポート形式
+### Standard Report Format
 
 ```markdown
-# 評価レポート - [Version/Iteration]
+# Evaluation Report - [Version/Iteration]
 
-実行日時: 2024-11-24 12:00:00
-実行者: Claude Code (fine-tune skill)
+Execution Date: 2024-11-24 12:00:00
+Executed by: Claude Code (fine-tune skill)
 
-## 設定
+## Configuration
 
-- **モデル**: claude-3-5-sonnet-20241022
-- **テストケース数**: 20
-- **実行回数**: 5
-- **評価期間**: 10分
+- **Model**: claude-3-5-sonnet-20241022
+- **Number of Test Cases**: 20
+- **Number of Runs**: 5
+- **Evaluation Duration**: 10 minutes
 
-## 結果サマリー
+## Results Summary
 
-| 指標 | 平均 | 標準偏差 | 95% CI | 目標 | 達成率 |
-|------|------|----------|--------|------|--------|
+| Metric | Mean | Std Dev | 95% CI | Goal | Achievement |
+|--------|------|---------|--------|------|-------------|
 | Accuracy | 86.0% | 2.1% | [83.9%, 88.1%] | 90.0% | 95.6% |
 | Latency | 2.4s | 0.3s | [2.1s, 2.7s] | 2.0s | 83.3% |
 | Cost | $0.014 | $0.001 | [$0.013, $0.015] | $0.010 | 71.4% |
 
-## 詳細分析
+## Detailed Analysis
 
 ### Accuracy
-- **改善**: +11.0% (75.0% → 86.0%)
-- **統計的有意性**: p < 0.01 ✅
-- **効果量**: Cohen's d = 2.3 (large)
+- **Improvement**: +11.0% (75.0% → 86.0%)
+- **Statistical Significance**: p < 0.01 ✅
+- **Effect Size**: Cohen's d = 2.3 (large)
 
 ### Latency
-- **改善**: -0.1s (2.5s → 2.4s)
-- **統計的有意性**: p = 0.12 ❌（有意でない）
-- **効果量**: Cohen's d = 0.3 (small)
+- **Improvement**: -0.1s (2.5s → 2.4s)
+- **Statistical Significance**: p = 0.12 ❌ (not significant)
+- **Effect Size**: Cohen's d = 0.3 (small)
 
-## エラー分析
+## Error Analysis
 
-- **総エラー数**: 0
-- **エラー率**: 0.0%
-- **リトライ率**: 0.0%
+- **Total Errors**: 0
+- **Error Rate**: 0.0%
+- **Retry Rate**: 0.0%
 
-## 次のアクション
+## Next Actions
 
-1. ✅ Accuracy が大幅に向上 → 継続
-2. ⚠️ Latency は改善が小さい → 次の iteration で focus
-3. ⚠️ Cost はまだ目標未達 → max_tokens 制限を検討
+1. ✅ Accuracy significantly improved → Continue
+2. ⚠️ Latency improvement is small → Focus in next iteration
+3. ⚠️ Cost still below goal → Consider max_tokens limit
 ```
 
-## 🔍 トラブルシューティング
+## 🔍 Troubleshooting
 
-### よくある問題と解決策
+### Common Problems and Solutions
 
-#### 1. 評価結果のばらつきが大きい
+#### 1. Large Variance in Evaluation Results
 
-**症状**: 標準偏差が平均の 20% 以上
+**Symptom**: Standard deviation > 20% of mean
 
-**原因**:
-- LLM の temperature が高すぎる
-- テストケースが不均一
-- ネットワーク遅延の影響
+**Causes**:
+- LLM temperature is too high
+- Test cases are uneven
+- Network latency effects
 
-**解決策**:
+**Solutions**:
 ```python
-# temperature を下げる
+# Lower temperature
 llm = ChatAnthropic(
     model="claude-3-5-sonnet-20241022",
-    temperature=0.3  # 低めに設定
+    temperature=0.3  # Set lower
 )
 
-# 実行回数を増やす
+# Increase number of runs
 iterations = 10  # 5 → 10
 
-# 外れ値を除外
+# Remove outliers
 results_clean = remove_outliers(results)
 ```
 
-#### 2. 評価時間が長すぎる
+#### 2. Evaluation Takes Too Long
 
-**症状**: 評価に 1時間以上かかる
+**Symptom**: Evaluation takes over 1 hour
 
-**原因**:
-- テストケース数が多すぎる
-- 並列実行していない
-- タイムアウト設定が長すぎる
+**Causes**:
+- Too many test cases
+- Not running in parallel
+- Timeout setting too long
 
-**解決策**:
+**Solutions**:
 ```python
-# サブセット評価
-quick_test_cases = test_cases[:10]  # 最初の10ケースのみ
+# Subset evaluation
+quick_test_cases = test_cases[:10]  # First 10 cases only
 
-# 並列実行
+# Parallel execution
 import concurrent.futures
 with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
     futures = [executor.submit(evaluate_case, case) for case in test_cases]
     results = [f.result() for f in futures]
 
-# タイムアウト設定
+# Timeout setting
 timeout = 10  # 30s → 10s
 ```
 
-#### 3. 統計的有意性が出ない
+#### 3. No Statistical Significance
 
-**症状**: p値が 0.05 以上
+**Symptom**: p-value ≥ 0.05
 
-**原因**:
-- 改善効果が小さい
-- サンプルサイズが不足
-- データのばらつきが大きい
+**Causes**:
+- Improvement effect is small
+- Insufficient sample size
+- High data variance
 
-**解決策**:
+**Solutions**:
 ```python
-# より大きな改善を目指す
-# - 複数の最適化を同時に適用
-# - より効果的なテクニックを選択
+# Aim for larger improvements
+# - Apply multiple optimizations simultaneously
+# - Choose more effective techniques
 
-# サンプルサイズを増やす
+# Increase sample size
 iterations = 20  # 5 → 20
 
-# ばらつきを減らす
-# - temperature を下げる
-# - 評価環境を安定化
+# Reduce variance
+# - Lower temperature
+# - Stabilize evaluation environment
 ```
 
-## 📊 継続的評価
+## 📊 Continuous Evaluation
 
-### 定期評価スケジュール
+### Scheduled Evaluation
 
 ```yaml
 evaluation_schedule:
   daily:
     - quick_check: 3 test cases, 1 iteration
-    - purpose: 大きな regression の検出
+    - purpose: Detect major regressions
 
   weekly:
     - medium_check: 10 test cases, 3 iterations
-    - purpose: 継続的な品質モニタリング
+    - purpose: Continuous quality monitoring
 
   before_release:
     - full_evaluation: all test cases, 5-10 iterations
-    - purpose: リリース品質の保証
+    - purpose: Release quality assurance
 
   after_major_changes:
     - comprehensive_evaluation: all test cases, 10+ iterations
-    - purpose: 大規模変更の影響評価
+    - purpose: Impact assessment of major changes
 ```
 
-### 自動評価パイプライン
+### Automated Evaluation Pipeline
 
 ```bash
 #!/bin/bash
 # continuous_evaluation.sh
 
-# 毎日実行される評価スクリプト
+# Daily evaluation script
 
 DATE=$(date +%Y%m%d)
 RESULTS_DIR="evaluation_results/continuous/$DATE"
@@ -295,30 +295,30 @@ uv run python -m tests.evaluation.evaluator \
     --iterations 1 \
     --output "$RESULTS_DIR/quick.json"
 
-# 前回の結果と比較
+# Compare with previous results
 uv run python -m tests.evaluation.compare \
     --baseline "evaluation_results/baseline/summary.json" \
     --current "$RESULTS_DIR/quick.json" \
     --threshold 0.05
 
-# regression が検出されたら通知
+# Notify if regression detected
 if [ $? -ne 0 ]; then
     echo "⚠️ Regression detected! Sending notification..."
-    # 通知処理（Slack, Email など）
+    # Notification process (Slack, Email, etc.)
 fi
 ```
 
-## まとめ
+## Summary
 
-効果的な評価のために：
-- ✅ **複数の指標**: 品質、パフォーマンス、コスト、信頼性
-- ✅ **統計的検証**: 複数回実行と有意性検定
-- ✅ **一貫性**: 同じテストケース、同じ条件
-- ✅ **可視化**: グラフと表で改善を追跡
-- ✅ **文書化**: 評価結果と分析を記録
+For effective evaluation:
+- ✅ **Multiple Metrics**: Quality, performance, cost, reliability
+- ✅ **Statistical Validation**: Multiple runs and significance testing
+- ✅ **Consistency**: Same test cases, same conditions
+- ✅ **Visualization**: Track improvements with graphs and tables
+- ✅ **Documentation**: Record evaluation results and analysis
 
-## 📋 関連ドキュメント
+## 📋 Related Documentation
 
-- [評価指標](./evaluation_metrics.md) - 指標の定義と計算方法
-- [テストケース設計](./evaluation_testcases.md) - テストケース構造
-- [統計的有意性](./evaluation_statistics.md) - 統計分析の方法
+- [Evaluation Metrics](./evaluation_metrics.md) - Metric definitions and calculation methods
+- [Test Case Design](./evaluation_testcases.md) - Test case structure
+- [Statistical Significance](./evaluation_statistics.md) - Statistical analysis methods

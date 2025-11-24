@@ -1,87 +1,87 @@
-# プロンプト最適化の優先順位
+# Prompt Optimization Priorities
 
-改善のインパクトが大きい順に最適化テクニックを適用するための優先順位ガイド。
+A priority guide for applying optimization techniques in order of improvement impact.
 
-## 📊 最適化の優先順位
+## 📊 Optimization Priorities
 
-改善のインパクトが大きい順：
+In order of improvement impact:
 
-### 1. Few-Shot Examples 追加（高インパクト、低コスト）
-- **改善**: Accuracy +10-20%
-- **コスト**: +5-10% (input tokens 増加)
-- **実装時間**: 30分-1時間
-- **推奨**: ⭐⭐⭐⭐⭐
+### 1. Adding Few-Shot Examples (High Impact, Low Cost)
+- **Improvement**: Accuracy +10-20%
+- **Cost**: +5-10% (increased input tokens)
+- **Implementation Time**: 30 minutes - 1 hour
+- **Recommended**: ⭐⭐⭐⭐⭐
 
-### 2. 出力フォーマット構造化（高インパクト、低コスト）
-- **改善**: Latency -10-20%, Parsing errors -90%
-- **コスト**: ±0%
-- **実装時間**: 15-30分
-- **推奨**: ⭐⭐⭐⭐⭐
+### 2. Output Format Structuring (High Impact, Low Cost)
+- **Improvement**: Latency -10-20%, Parsing errors -90%
+- **Cost**: ±0%
+- **Implementation Time**: 15-30 minutes
+- **Recommended**: ⭐⭐⭐⭐⭐
 
-### 3. Temperature/Max Tokens 調整（中インパクト、ゼロコスト）
-- **改善**: Latency -10-30%, Cost -20-40%
-- **コスト**: 削減
-- **実装時間**: 10-15分
-- **推奨**: ⭐⭐⭐⭐⭐
+### 3. Temperature/Max Tokens Adjustment (Medium Impact, Zero Cost)
+- **Improvement**: Latency -10-30%, Cost -20-40%
+- **Cost**: Reduction
+- **Implementation Time**: 10-15 minutes
+- **Recommended**: ⭐⭐⭐⭐⭐
 
-### 4. 明確な指示とガイドライン（中インパクト、低コスト）
-- **改善**: Accuracy +5-10%, Quality +15-25%
-- **コスト**: +2-5%
-- **実装時間**: 30分-1時間
-- **推奨**: ⭐⭐⭐⭐
+### 4. Clear Instructions and Guidelines (Medium Impact, Low Cost)
+- **Improvement**: Accuracy +5-10%, Quality +15-25%
+- **Cost**: +2-5%
+- **Implementation Time**: 30 minutes - 1 hour
+- **Recommended**: ⭐⭐⭐⭐
 
-### 5. モデル選択の最適化（高インパクト、要検証）
-- **改善**: Cost -40-60%
-- **リスク**: Accuracy -2-5%
-- **実装時間**: 2-4時間（検証含む）
-- **推奨**: ⭐⭐⭐⭐
+### 5. Model Selection Optimization (High Impact, Requires Validation)
+- **Improvement**: Cost -40-60%
+- **Risk**: Accuracy -2-5%
+- **Implementation Time**: 2-4 hours (including validation)
+- **Recommended**: ⭐⭐⭐⭐
 
-### 6. プロンプトキャッシング（高インパクト、中コスト）
-- **改善**: Cost -50-90% (キャッシュヒット時)
-- **複雑性**: 中（実装とモニタリング）
-- **実装時間**: 1-2時間
-- **推奨**: ⭐⭐⭐⭐
+### 6. Prompt Caching (High Impact, Medium Cost)
+- **Improvement**: Cost -50-90% (on cache hit)
+- **Complexity**: Medium (implementation and monitoring)
+- **Implementation Time**: 1-2 hours
+- **Recommended**: ⭐⭐⭐⭐
 
-### 7. Chain-of-Thought（特定タスクで高インパクト）
-- **改善**: Complex tasks で Accuracy +15-30%
-- **コスト**: +20-40%
-- **実装時間**: 1-2時間
-- **推奨**: ⭐⭐⭐ (complex tasks のみ)
+### 7. Chain-of-Thought (High Impact for Specific Tasks)
+- **Improvement**: Accuracy +15-30% for complex tasks
+- **Cost**: +20-40%
+- **Implementation Time**: 1-2 hours
+- **Recommended**: ⭐⭐⭐ (complex tasks only)
 
-### 8. Self-Consistency（限定的な使用）
-- **改善**: Accuracy +10-20%
-- **コスト**: +200-300%
-- **実装時間**: 2-3時間
-- **推奨**: ⭐⭐ (critical decisions のみ)
+### 8. Self-Consistency (Limited Use)
+- **Improvement**: Accuracy +10-20%
+- **Cost**: +200-300%
+- **Implementation Time**: 2-3 hours
+- **Recommended**: ⭐⭐ (critical decisions only)
 
-## 🔄 反復的な最適化プロセス
+## 🔄 Iterative Optimization Process
 
 ```
-1. ベースライン測定
+1. Measure baseline
    ↓
-2. 最もインパクトの大きい改善を選択
+2. Select the most impactful improvement
    ↓
-3. 実装（1つの変更のみ）
+3. Implement (one change only)
    ↓
-4. 評価（同じテストケースで）
+4. Evaluate (with same test cases)
    ↓
-5. 改善が確認されたか？
-   ├─ Yes → 変更を保持、ステップ2へ
-   └─ No → 変更をロールバック、別の改善を試す
+5. Is improvement confirmed?
+   ├─ Yes → Keep change, go to step 2
+   └─ No → Rollback change, try different improvement
    ↓
-6. 目標達成？
-   ├─ Yes → 完了
-   └─ No → ステップ2へ
+6. Goal achieved?
+   ├─ Yes → Complete
+   └─ No → Go to step 2
 ```
 
-## まとめ
+## Summary
 
-効果的なプロンプト最適化のために：
+For effective prompt optimization:
 
-1. ✅ **明確性**: 役割、タスク、出力形式を明確に
-2. ✅ **Few-Shot Examples**: 3-7個の良質な例
-3. ✅ **構造化**: JSON などの構造化された出力
-4. ✅ **パラメータ調整**: タスクに応じた temperature/max_tokens
-5. ✅ **段階的改善**: 1度に1つの変更、測定、検証
-6. ✅ **コスト意識**: モデル選択、キャッシング、max_tokens
-7. ✅ **測定駆動**: すべての変更を定量的に評価
+1. ✅ **Clarity**: Clear role, task, and output format
+2. ✅ **Few-Shot Examples**: 3-7 high-quality examples
+3. ✅ **Structuring**: Structured output like JSON
+4. ✅ **Parameter Tuning**: Task-appropriate temperature/max_tokens
+5. ✅ **Incremental Improvement**: One change at a time, measure, validate
+6. ✅ **Cost-Conscious**: Model selection, caching, max_tokens
+7. ✅ **Measurement-Driven**: Evaluate all changes quantitatively

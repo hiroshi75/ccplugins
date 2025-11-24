@@ -1,80 +1,80 @@
-# 評価方法とベストプラクティス
+# Evaluation Methods and Best Practices
 
-LangGraph アプリケーションのファインチューニングにおける評価戦略、メトリクス、ベストプラクティス。
+Evaluation strategies, metrics, and best practices for fine-tuning LangGraph applications.
 
-**💡 Tip**: 実践的な評価スクリプトとレポートテンプレートは [examples.md](examples.md#phase-2-ベースライン評価の例) を参照してください。
+**💡 Tip**: For practical evaluation scripts and report templates, see [examples.md](examples.md#phase-2-baseline-evaluation-examples).
 
-## 📚 目次
+## 📚 Table of Contents
 
-このガイドは以下のセクションに分割されています：
+This guide is divided into the following sections:
 
-### 1. [評価指標の設計](./evaluation_metrics.md)
-評価に使用する指標の定義と計算方法を学びます。
+### 1. [Evaluation Metrics Design](./evaluation_metrics.md)
+Learn how to define and calculate metrics used for evaluation.
 
-### 2. [テストケースの設計](./evaluation_testcases.md)
-テストケースの構造、カバレッジ、設計原則を理解します。
+### 2. [Test Case Design](./evaluation_testcases.md)
+Understand test case structure, coverage, and design principles.
 
-### 3. [統計的有意性の検証](./evaluation_statistics.md)
-複数回実行と統計分析の方法を習得します。
+### 3. [Statistical Significance Testing](./evaluation_statistics.md)
+Master methods for multiple runs and statistical analysis.
 
-### 4. [評価のベストプラクティス](./evaluation_practices.md)
-実践的な評価ガイドラインを提供します。
+### 4. [Evaluation Best Practices](./evaluation_practices.md)
+Provides practical evaluation guidelines.
 
-## 🎯 クイックスタート
+## 🎯 Quick Start
 
-### 初めて評価を実施する場合
+### For First-Time Evaluation
 
-1. **[評価指標を理解する](./evaluation_metrics.md)** - どの指標を測定すべきか
-2. **[テストケースを設計する](./evaluation_testcases.md)** - 代表的なケースを作成
-3. **[統計的手法を学ぶ](./evaluation_statistics.md)** - 複数回実行の重要性
-4. **[ベストプラクティスに従う](./evaluation_practices.md)** - 効果的な評価の実施
+1. **[Understand Evaluation Metrics](./evaluation_metrics.md)** - Which metrics to measure
+2. **[Design Test Cases](./evaluation_testcases.md)** - Create representative cases
+3. **[Learn Statistical Methods](./evaluation_statistics.md)** - Importance of multiple runs
+4. **[Follow Best Practices](./evaluation_practices.md)** - Effective evaluation implementation
 
-### 既存評価の改善
+### Improving Existing Evaluations
 
-1. **[指標の追加](./evaluation_metrics.md)** - より多面的な評価
-2. **[カバレッジの改善](./evaluation_testcases.md)** - テストケースの充実
-3. **[統計的検証の強化](./evaluation_statistics.md)** - 信頼性の向上
-4. **[自動化の導入](./evaluation_practices.md)** - 継続的評価パイプライン
+1. **[Add Metrics](./evaluation_metrics.md)** - More comprehensive evaluation
+2. **[Improve Coverage](./evaluation_testcases.md)** - Enhance test cases
+3. **[Strengthen Statistical Validation](./evaluation_statistics.md)** - Improve reliability
+4. **[Introduce Automation](./evaluation_practices.md)** - Continuous evaluation pipeline
 
-## 📖 評価の重要性
+## 📖 Importance of Evaluation
 
-ファインチューニングにおいて評価は：
-- **改善の定量化**: 客観的な進捗測定
-- **意思決定の根拠**: データに基づく優先順位付け
-- **品質保証**: リグレッションの防止
-- **ROI の証明**: ビジネス価値の可視化
+In fine-tuning, evaluation provides:
+- **Quantifying Improvements**: Objective progress measurement
+- **Basis for Decision-Making**: Data-driven prioritization
+- **Quality Assurance**: Prevention of regressions
+- **ROI Demonstration**: Visualization of business value
 
-## 💡 評価の基本原則
+## 💡 Basic Principles of Evaluation
 
-効果的な評価のために：
+For effective evaluation:
 
-1. ✅ **複数の指標**: 品質、パフォーマンス、コスト、信頼性を総合的に評価
-2. ✅ **統計的検証**: 複数回実行して有意性を確認
-3. ✅ **一貫性**: 同じテストケース、同じ条件で評価
-4. ✅ **可視化**: グラフと表で改善を追跡
-5. ✅ **文書化**: 評価結果と分析を記録
+1. ✅ **Multiple Metrics**: Comprehensive assessment of quality, performance, cost, and reliability
+2. ✅ **Statistical Validation**: Confirm significance through multiple runs
+3. ✅ **Consistency**: Evaluate with the same test cases under the same conditions
+4. ✅ **Visualization**: Track improvements with graphs and tables
+5. ✅ **Documentation**: Record evaluation results and analysis
 
-## 🔍 問題解決
+## 🔍 Troubleshooting
 
-### 評価結果にばらつきが大きい
-→ [統計的有意性の検証](./evaluation_statistics.md#外れ値の検出と処理) を確認
+### Large Variance in Evaluation Results
+→ Check [Statistical Significance Testing](./evaluation_statistics.md#outlier-detection-and-handling)
 
-### 評価時間が長すぎる
-→ [ベストプラクティス](./evaluation_practices.md#トラブルシューティング) の段階的評価を実施
+### Evaluation Takes Too Long
+→ Implement staged evaluation in [Best Practices](./evaluation_practices.md#troubleshooting)
 
-### どの指標を測定すべきか不明
-→ [評価指標の設計](./evaluation_metrics.md) で各指標の目的と使い分けを確認
+### Unclear Which Metrics to Measure
+→ Check [Evaluation Metrics Design](./evaluation_metrics.md) for purpose and use cases of each metric
 
-### テストケースが不十分
-→ [テストケースの設計](./evaluation_testcases.md#テストケース設計原則) でカバレッジ分析を参照
+### Insufficient Test Cases
+→ Refer to coverage analysis in [Test Case Design](./evaluation_testcases.md#test-case-design-principles)
 
-## 📋 関連ドキュメント
+## 📋 Related Documentation
 
-- **[プロンプト最適化](./prompt_optimization.md)** - プロンプト改善のテクニック
-- **[実践例集](./examples.md)** - 評価スクリプトとレポートのサンプル
-- **[ワークフロー](./workflow.md)** - 評価を含むファインチューニング全体の流れ
-- **[SKILL.md](./SKILL.md)** - Fine-tune スキル全体の概要
+- **[Prompt Optimization](./prompt_optimization.md)** - Techniques for prompt improvement
+- **[Examples Collection](./examples.md)** - Samples of evaluation scripts and reports
+- **[Workflow](./workflow.md)** - Overall fine-tuning flow including evaluation
+- **[SKILL.md](./SKILL.md)** - Overview of the fine-tune skill
 
 ---
 
-**💡 Tip**: 評価の実践的なスクリプトとテンプレートは [examples.md](examples.md#phase-2-ベースライン評価の例) を参照してください。
+**💡 Tip**: For practical evaluation scripts and templates, see [examples.md](examples.md#phase-2-baseline-evaluation-examples).

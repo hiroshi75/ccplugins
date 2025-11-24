@@ -1,228 +1,228 @@
-# Phase 4: 完了と文書化の例
+# Phase 4: Completion and Documentation Examples
 
-最終レポートと Git コミットの例。
+Examples of final reports and Git commits.
 
-**📋 関連ドキュメント**: [実践例トップ](./examples.md) | [ワークフロー Phase 4](./workflow_phase4.md)
+**📋 Related Documentation**: [Examples Home](./examples.md) | [Workflow Phase 4](./workflow_phase4.md)
 
 ---
 
-## Phase 4: 完了と文書化の例
+## Phase 4: Completion and Documentation Examples
 
-### Example 4.1: 最終評価レポート
+### Example 4.1: Final Evaluation Report
 
 ```markdown
-# LangGraph アプリケーション ファインチューニング完了レポート
+# LangGraph Application Fine-Tuning Completion Report
 
-プロジェクト: カスタマーサポートチャットボット
-実施期間: 2024-11-24 10:00 - 2024-11-24 15:00 (5 時間)
-実施者: Claude Code (fine-tune skill)
+Project: Customer Support Chatbot
+Implementation Period: 2024-11-24 10:00 - 2024-11-24 15:00 (5 hours)
+Implementer: Claude Code (fine-tune skill)
 
-## 🎯 エグゼクティブサマリー
+## 🎯 Executive Summary
 
-本ファインチューニングプロジェクトでは、LangGraph チャットボットアプリケーションのプロンプト最適化を実施し、以下の成果を達成しました：
+This fine-tuning project optimized the prompts for the LangGraph chatbot application and achieved the following results:
 
-- ✅ **Accuracy**: 75.0% → 92.0% (+17.0%, 目標 90%達成)
-- ✅ **Latency**: 2.5s → 1.9s (-24.0%, 目標 2.0s 達成)
-- ⚠️ **Cost**: $0.015 → $0.011 (-26.7%, 目標 $0.010 未達)
+- ✅ **Accuracy**: 75.0% → 92.0% (+17.0%, target 90% achieved)
+- ✅ **Latency**: 2.5s → 1.9s (-24.0%, target 2.0s achieved)
+- ⚠️ **Cost**: $0.015 → $0.011 (-26.7%, target $0.010 not achieved)
 
-全 3 iterations を実施し、3 つの指標のうち 2 つで目標を達成しました。
+A total of 3 iterations were conducted, achieving targets for 2 out of 3 metrics.
 
-## 📊 実施内容サマリー
+## 📊 Implementation Summary
 
-### Iteration 数と実行時間
+### Number of Iterations and Execution Time
 
 - **Total Iterations**: 3
-- **最適化したノード数**: 2 (analyze_intent, generate_response)
-- **評価実行回数**: 20 回 (ベースライン 5 回 + 各 iteration 後 5 回×3)
-- **総実行時間**: 約 5 時間
+- **Number of Nodes Optimized**: 2 (analyze_intent, generate_response)
+- **Number of Evaluation Runs**: 20 times (Baseline 5 times + 5 times after each iteration × 3)
+- **Total Execution Time**: Approximately 5 hours
 
-### 最終結果
+### Final Results
 
-| 指標     | 初期値 | 最終値 | 改善   | 改善率  | 目標   | 達成状況  |
-| -------- | ------ | ------ | ------ | ------- | ------ | --------- |
-| Accuracy | 75.0%  | 92.0%  | +17.0% | +22.7%  | 90.0%  | ✅ 102.2% |
-| Latency  | 2.5s   | 1.9s   | -0.6s  | -24.0%  | 2.0s   | ✅ 95.0%  |
-| Cost/req | $0.015 | $0.011 | -$0.004| -26.7%  | $0.010 | ⚠️ 90.9%  |
+| Metric   | Initial | Final  | Improvement | Improvement Rate | Target | Achievement Status |
+| -------- | ------- | ------ | ----------- | ---------------- | ------ | ------------------ |
+| Accuracy | 75.0%   | 92.0%  | +17.0%      | +22.7%           | 90.0%  | ✅ 102.2%          |
+| Latency  | 2.5s    | 1.9s   | -0.6s       | -24.0%           | 2.0s   | ✅ 95.0%           |
+| Cost/req | $0.015  | $0.011 | -$0.004     | -26.7%           | $0.010 | ⚠️ 90.9%           |
 
-## 📝 Iteration 別の詳細
+## 📝 Details by Iteration
 
-### Iteration 1: analyze_intent ノードの最適化
+### Iteration 1: Optimize analyze_intent Node
 
-**実施日時**: 2024-11-24 11:00
-**対象ノード**: src/nodes/analyzer.py:25-45
+**Implementation Date/Time**: 2024-11-24 11:00
+**Target Node**: src/nodes/analyzer.py:25-45
 
-**変更内容**:
+**Changes**:
 1. temperature: 1.0 → 0.3
-2. Few-shot examples を 5 個追加
-3. JSON 出力形式に構造化
-4. 明確な分類カテゴリ（4 つ）を定義
+2. Added 5 few-shot examples
+3. Structured into JSON output format
+4. Defined clear classification categories (4 categories)
 
-**結果**:
+**Results**:
 - Accuracy: 75.0% → 86.0% (+11.0%)
 - Latency: 2.5s → 2.4s (-0.1s)
 - Cost: $0.015 → $0.014 (-$0.001)
 
-**学び**: Few-shot examples と明確な出力形式が accuracy 向上に最も効果的
+**Learnings**: Few-shot examples and clear output format are most effective for accuracy improvement
 
 ---
 
-### Iteration 2: generate_response ノードの最適化
+### Iteration 2: Optimize generate_response Node
 
-**実施日時**: 2024-11-24 13:00
-**対象ノード**: src/nodes/generator.py:45-68
+**Implementation Date/Time**: 2024-11-24 13:00
+**Target Node**: src/nodes/generator.py:45-68
 
-**変更内容**:
-1. 簡潔性の指示を追加（"2-3 文で回答"）
+**Changes**:
+1. Added conciseness instructions ("respond in 2-3 sentences")
 2. max_tokens: unlimited → 500
 3. temperature: 0.7 → 0.5
-4. 応答スタイルを明確化
+4. Clarified response style
 
-**結果**:
+**Results**:
 - Accuracy: 86.0% → 88.0% (+2.0%)
 - Latency: 2.4s → 2.0s (-0.4s)
 - Cost: $0.014 → $0.011 (-$0.003)
 
-**学び**: max_tokens 制限が latency と cost 削減に大きく貢献
+**Learnings**: max_tokens limit significantly contributes to latency and cost reduction
 
 ---
 
-### Iteration 3: analyze_intent の追加改善
+### Iteration 3: Additional Improvements to analyze_intent
 
-**実施日時**: 2024-11-24 14:30
-**対象ノード**: src/nodes/analyzer.py:25-45
+**Implementation Date/Time**: 2024-11-24 14:30
+**Target Node**: src/nodes/analyzer.py:25-45
 
-**変更内容**:
-1. Few-shot examples を 5 個 → 10 個に増加
-2. エッジケースのハンドリング追加
-3. confidence threshold による再分類ロジック
+**Changes**:
+1. Increased few-shot examples from 5 → 10
+2. Added edge case handling
+3. Reclassification logic based on confidence threshold
 
-**結果**:
+**Results**:
 - Accuracy: 88.0% → 92.0% (+4.0%)
 - Latency: 2.0s → 1.9s (-0.1s)
 - Cost: $0.011 → $0.011 (±0)
 
-**学び**: 追加の few-shot examples が accuracy の最後の壁を突破
+**Learnings**: Additional few-shot examples broke through the final accuracy barrier
 
-## 🔧 最終的な変更内容
+## 🔧 Final Changes Summary
 
 ### src/nodes/analyzer.py
 
-**変更行**: 25-45
+**Changed Lines**: 25-45
 
-**主な変更点**:
+**Main Changes**:
 - temperature: 1.0 → 0.3
 - Few-shot examples: 0 → 10
-- 出力: 自由テキスト → JSON
-- Confidence threshold によるフォールバック追加
+- Output: Free text → JSON
+- Added fallback based on confidence threshold
 
 ---
 
 ### src/nodes/generator.py
 
-**変更行**: 45-68
+**Changed Lines**: 45-68
 
-**主な変更点**:
+**Main Changes**:
 - temperature: 0.7 → 0.5
 - max_tokens: unlimited → 500
-- 簡潔性の明確な指示（"2-3 sentences"）
-- 応答スタイルのガイドライン追加
+- Clear conciseness instructions ("2-3 sentences")
+- Added response style guidelines
 
-## 📈 評価結果の詳細
+## 📈 Detailed Evaluation Results
 
-### Test Case 別の改善状況
+### Improvement Status by Test Case
 
-| Case ID | Category  | Before      | After       | 改善 |
-| ------- | --------- | ----------- | ----------- | ---- |
-| TC001   | Product   | ❌ Wrong    | ✅ Correct  | ✅   |
-| TC002   | Technical | ❌ Wrong    | ✅ Correct  | ✅   |
-| TC003   | Billing   | ✅ Correct  | ✅ Correct  | -    |
-| ...     | ...       | ...         | ...         | ...  |
-| TC020   | Technical | ✅ Correct  | ✅ Correct  | -    |
+| Case ID | Category  | Before      | After       | Improvement |
+| ------- | --------- | ----------- | ----------- | ----------- |
+| TC001   | Product   | ❌ Wrong    | ✅ Correct  | ✅          |
+| TC002   | Technical | ❌ Wrong    | ✅ Correct  | ✅          |
+| TC003   | Billing   | ✅ Correct  | ✅ Correct  | -           |
+| ...     | ...       | ...         | ...         | ...         |
+| TC020   | Technical | ✅ Correct  | ✅ Correct  | -           |
 
-**改善されたケース**: 15/20 (75%)
-**維持されたケース**: 5/20 (25%)
-**劣化したケース**: 0/20 (0%)
+**Improved Cases**: 15/20 (75%)
+**Maintained Cases**: 5/20 (25%)
+**Degraded Cases**: 0/20 (0%)
 
-### Latency の内訳
+### Latency Breakdown
 
-| ノード             | Before | After | 変化   | 変化率 |
-| ------------------ | ------ | ----- | ------ | ------ |
-| analyze_intent     | 0.5s   | 0.4s  | -0.1s  | -20%   |
-| retrieve_context   | 0.2s   | 0.2s  | ±0s    | 0%     |
-| generate_response  | 1.8s   | 1.3s  | -0.5s  | -28%   |
-| **Total**          | **2.5s** | **1.9s** | **-0.6s** | **-24%** |
+| Node              | Before | After | Change | Change Rate |
+| ----------------- | ------ | ----- | ------ | ----------- |
+| analyze_intent    | 0.5s   | 0.4s  | -0.1s  | -20%        |
+| retrieve_context  | 0.2s   | 0.2s  | ±0s    | 0%          |
+| generate_response | 1.8s   | 1.3s  | -0.5s  | -28%        |
+| **Total**         | **2.5s** | **1.9s** | **-0.6s** | **-24%** |
 
-### Cost の内訳
+### Cost Breakdown
 
-| ノード             | Before  | After   | 変化     | 変化率 |
-| ------------------ | ------- | ------- | -------- | ------ |
-| analyze_intent     | $0.003  | $0.003  | ±$0      | 0%     |
-| retrieve_context   | $0.001  | $0.001  | ±$0      | 0%     |
-| generate_response  | $0.011  | $0.007  | -$0.004  | -36%   |
-| **Total**          | **$0.015** | **$0.011** | **-$0.004** | **-27%** |
+| Node              | Before  | After   | Change   | Change Rate |
+| ----------------- | ------- | ------- | -------- | ----------- |
+| analyze_intent    | $0.003  | $0.003  | ±$0      | 0%          |
+| retrieve_context  | $0.001  | $0.001  | ±$0      | 0%          |
+| generate_response | $0.011  | $0.007  | -$0.004  | -36%        |
+| **Total**         | **$0.015** | **$0.011** | **-$0.004** | **-27%** |
 
-## 💡 今後の推奨事項
+## 💡 Future Recommendations
 
-### 短期（1-2 週間）
+### Short-term (1-2 weeks)
 
-1. **Cost 目標の達成**: $0.011 → $0.010
-   - アプローチ: Claude 3.5 Haiku への部分移行を検討
-   - 推定効果: -$0.002-0.003/req
+1. **Achieve Cost Target**: $0.011 → $0.010
+   - Approach: Consider partial migration to Claude 3.5 Haiku
+   - Estimated effect: -$0.002-0.003/req
 
-2. **Accuracy の更なる向上**: 92.0% → 95.0%
-   - アプローチ: エラーケースの分析と few-shot examples の追加
-   - 推定効果: +3.0%
+2. **Further Accuracy Improvement**: 92.0% → 95.0%
+   - Approach: Analyze error cases and add few-shot examples
+   - Estimated effect: +3.0%
 
-### 中期（1-2 ヶ月）
+### Mid-term (1-2 months)
 
-1. **モデルの最適化**
-   - simple な intent classification には Haiku を使用
-   - complex な response generation のみ Sonnet を使用
-   - 推定効果: -30-40% cost, latency への影響は最小
+1. **Model Optimization**
+   - Use Haiku for simple intent classification
+   - Use Sonnet only for complex response generation
+   - Estimated effect: -30-40% cost, minimal impact on latency
 
-2. **プロンプトキャッシング活用**
-   - System prompts と few-shot examples をキャッシュ
-   - 推定効果: -50% cost（キャッシュヒット時）
+2. **Utilize Prompt Caching**
+   - Cache system prompts and few-shot examples
+   - Estimated effect: -50% cost (when cache hits)
 
-### 長期（3-6 ヶ月）
+### Long-term (3-6 months)
 
-1. **ファインチューニングモデルの検討**
-   - 独自データでの model fine-tuning
-   - Few-shot examples 不要で簡潔なプロンプト
-   - 推定効果: -60% cost, +5% accuracy
+1. **Consider Fine-tuned Models**
+   - Model fine-tuning with proprietary data
+   - Concise prompts without few-shot examples
+   - Estimated effect: -60% cost, +5% accuracy
 
-## 🎓 結論
+## 🎓 Conclusion
 
-本プロジェクトでは、LangGraph アプリケーションのファインチューニングにより、以下を達成しました：
+This project achieved the following through fine-tuning the LangGraph application:
 
-✅ **成功した点**:
-1. Accuracy の大幅向上（+22.7%）- 目標を 2.2%超過達成
-2. Latency の顕著な改善（-24.0%）- 目標を 5%超過達成
-3. Cost の削減（-26.7%）- 目標にあと 9.1%
+✅ **Successes**:
+1. Significant accuracy improvement (+22.7%) - Exceeded target by 2.2%
+2. Notable latency improvement (-24.0%) - Exceeded target by 5%
+3. Cost reduction (-26.7%) - 9.1% away from target
 
-⚠️ **課題**:
-1. Cost 目標未達（$0.011 vs $0.010 目標）- 軽量モデルへの移行で対応可能
+⚠️ **Challenges**:
+1. Cost target not achieved ($0.011 vs $0.010 target) - Can be addressed by migrating to lighter models
 
-📈 **ビジネスインパクト**:
-- ユーザー満足度の向上（accuracy 向上により）
-- 運用コストの削減（latency, cost 削減により）
-- スケーラビリティの改善（効率的なリソース使用）
+📈 **Business Impact**:
+- Improved user satisfaction (due to accuracy improvement)
+- Reduced operational costs (due to latency and cost reduction)
+- Improved scalability (efficient resource usage)
 
-🎯 **次のステップ**:
-1. Cost 削減のための軽量モデル移行の検証
-2. 継続的なモニタリングと評価
-3. 新しいユースケースへの展開
+🎯 **Next Steps**:
+1. Verify migration to lighter models for cost reduction
+2. Continuous monitoring and evaluation
+3. Expand to new use cases
 
 ---
 
-作成日時: 2024-11-24 15:00:00
-作成者: Claude Code (fine-tune skill)
+Created Date/Time: 2024-11-24 15:00:00
+Creator: Claude Code (fine-tune skill)
 ```
 
-### Example 4.2: Git コミットメッセージ例
+### Example 4.2: Git Commit Message Examples
 
 ```bash
-# Iteration 1 のコミット
+# Iteration 1 commit
 git commit -m "feat(nodes): optimize analyze_intent prompt for accuracy
 
 - Add temperature control (1.0 -> 0.3) for deterministic classification
@@ -238,7 +238,7 @@ Results:
 Related: fine-tune iteration 1
 See: evaluation_results/iteration_1/"
 
-# Iteration 2 のコミット
+# Iteration 2 commit
 git commit -m "feat(nodes): optimize generate_response for latency and cost
 
 - Add conciseness guidelines (2-3 sentences)
@@ -254,7 +254,7 @@ Results:
 Related: fine-tune iteration 2
 See: evaluation_results/iteration_2/"
 
-# 最終コミット
+# Final commit
 git commit -m "feat(nodes): finalize fine-tuning with additional improvements
 
 Complete fine-tuning process with 3 iterations:
@@ -269,7 +269,7 @@ Final Results:
 Related: fine-tune completion
 See: evaluation_results/final_report.md"
 
-# 評価結果のコミット
+# Evaluation results commit
 git commit -m "docs: add fine-tuning evaluation results and final report
 
 - Baseline evaluation (5 iterations)
@@ -280,9 +280,9 @@ git commit -m "docs: add fine-tuning evaluation results and final report
 
 ---
 
-## 📚 関連ドキュメント
+## 📚 Related Documentation
 
-- [SKILL.md](SKILL.md) - スキルの概要
-- [workflow.md](workflow.md) - ワークフローの詳細
-- [evaluation.md](evaluation.md) - 評価方法
-- [prompt_optimization.md](prompt_optimization.md) - 最適化テクニック
+- [SKILL.md](SKILL.md) - Skill overview
+- [workflow.md](workflow.md) - Workflow details
+- [evaluation.md](evaluation.md) - Evaluation methods
+- [prompt_optimization.md](prompt_optimization.md) - Optimization techniques

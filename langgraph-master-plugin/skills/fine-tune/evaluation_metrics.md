@@ -1,44 +1,44 @@
-# 評価指標の設計
+# Evaluation Metrics Design
 
-LangGraph アプリケーションのファインチューニングにおける評価指標の定義と計算方法。
+Definitions and calculation methods for evaluation metrics in LangGraph application fine-tuning.
 
-**💡 Tip**: 実践的な評価スクリプトとレポートテンプレートは [examples.md](examples.md#phase-2-ベースライン評価の例) を参照してください。
+**💡 Tip**: For practical evaluation scripts and report templates, see [examples.md](examples.md#phase-2-baseline-evaluation-examples).
 
-## 📊 評価の重要性
+## 📊 Importance of Evaluation
 
-ファインチューニングにおいて評価は：
-- **改善の定量化**: 客観的な進捗測定
-- **意思決定の根拠**: データに基づく優先順位付け
-- **品質保証**: リグレッションの防止
-- **ROI の証明**: ビジネス価値の可視化
+In fine-tuning, evaluation provides:
+- **Quantifying Improvements**: Objective progress measurement
+- **Basis for Decision-Making**: Data-driven prioritization
+- **Quality Assurance**: Prevention of regressions
+- **ROI Demonstration**: Visualization of business value
 
-## 🎯 評価指標カテゴリ
+## 🎯 Evaluation Metric Categories
 
-### 1. 品質指標（Quality Metrics）
+### 1. Quality Metrics
 
-#### Accuracy（正解率）
+#### Accuracy
 ```python
 def calculate_accuracy(predictions: List, ground_truth: List) -> float:
-    """正解率を計算"""
+    """Calculate accuracy"""
     correct = sum(p == g for p, g in zip(predictions, ground_truth))
     return (correct / len(predictions)) * 100
 
-# 例
+# Example
 predictions = ["product", "technical", "billing", "general"]
 ground_truth = ["product", "billing", "billing", "general"]
 accuracy = calculate_accuracy(predictions, ground_truth)
-# => 50.0% (2/4が正解)
+# => 50.0% (2/4 correct)
 ```
 
-#### F1 Score（マルチクラス分類）
+#### F1 Score (Multi-class Classification)
 ```python
 from sklearn.metrics import f1_score, classification_report
 
 def calculate_f1(predictions: List, ground_truth: List, average='weighted') -> float:
-    """F1スコアを計算（マルチクラス対応）"""
+    """Calculate F1 score (multi-class support)"""
     return f1_score(ground_truth, predictions, average=average)
 
-# 詳細レポート
+# Detailed report
 report = classification_report(ground_truth, predictions)
 print(report)
 """
@@ -55,7 +55,7 @@ weighted avg       0.62      0.75      0.67         4
 """
 ```
 
-#### Semantic Similarity（意味的類似度）
+#### Semantic Similarity
 ```python
 from sentence_transformers import SentenceTransformer, util
 
@@ -64,7 +64,7 @@ def calculate_semantic_similarity(
     reference: str,
     model_name: str = "all-MiniLM-L6-v2"
 ) -> float:
-    """生成されたテキストと参照テキストの意味的類似度を計算"""
+    """Calculate semantic similarity between generated and reference text"""
     model = SentenceTransformer(model_name)
 
     embeddings = model.encode([generated, reference], convert_to_tensor=True)
@@ -72,40 +72,40 @@ def calculate_semantic_similarity(
 
     return similarity.item()
 
-# 例
+# Example
 generated = "Our premium plan costs $49 per month."
 reference = "The premium subscription is $49/month."
 similarity = calculate_semantic_similarity(generated, reference)
-# => 0.87 (高い類似度)
+# => 0.87 (high similarity)
 ```
 
-#### BLEU Score（テキスト生成品質）
+#### BLEU Score (Text Generation Quality)
 ```python
 from nltk.translate.bleu_score import sentence_bleu
 
 def calculate_bleu(generated: str, reference: str) -> float:
-    """BLEU スコアを計算"""
+    """Calculate BLEU score"""
     reference_tokens = [reference.split()]
     generated_tokens = generated.split()
 
     return sentence_bleu(reference_tokens, generated_tokens)
 
-# 例
+# Example
 generated = "The product costs forty nine dollars"
 reference = "The product costs $49"
 bleu = calculate_bleu(generated, reference)
 # => 0.45
 ```
 
-### 2. パフォーマンス指標（Performance Metrics）
+### 2. Performance Metrics
 
-#### Latency（応答時間）
+#### Latency (Response Time)
 ```python
 import time
 from typing import Dict, List
 
 def measure_latency(test_cases: List[Dict]) -> Dict:
-    """各ノードとトータルのレイテンシーを測定"""
+    """Measure latency for each node and total"""
     results = {
         "total": [],
         "by_node": {}
@@ -114,7 +114,7 @@ def measure_latency(test_cases: List[Dict]) -> Dict:
     for case in test_cases:
         start_time = time.time()
 
-        # ノードごとの計測
+        # Measurement by node
         node_times = {}
 
         # Node 1: analyze_intent
@@ -140,7 +140,7 @@ def measure_latency(test_cases: List[Dict]) -> Dict:
                 results["by_node"][node] = []
             results["by_node"][node].append(duration)
 
-    # 統計計算
+    # Statistical calculation
     import numpy as np
     summary = {
         "total": {
@@ -160,13 +160,13 @@ def measure_latency(test_cases: List[Dict]) -> Dict:
 
     return summary
 
-# 使用例
+# Usage example
 latency_results = measure_latency(test_cases)
 print(f"Mean latency: {latency_results['total']['mean']:.2f}s")
 print(f"P95 latency: {latency_results['total']['p95']:.2f}s")
 ```
 
-#### Throughput（スループット）
+#### Throughput
 ```python
 import concurrent.futures
 from typing import List, Dict
@@ -176,7 +176,7 @@ def measure_throughput(
     max_workers: int = 10,
     duration_seconds: int = 60
 ) -> Dict:
-    """一定時間内の処理数を測定"""
+    """Measure number of requests processed within a given time"""
     start_time = time.time()
     completed = 0
     errors = 0
@@ -190,7 +190,7 @@ def measure_throughput(
 
     with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
         while time.time() - start_time < duration_seconds:
-            # テストケースをループ
+            # Loop through test cases
             for case in test_cases:
                 if time.time() - start_time >= duration_seconds:
                     break
@@ -211,19 +211,19 @@ def measure_throughput(
         "error_rate": errors / (completed + errors) if (completed + errors) > 0 else 0
     }
 
-# 使用例
+# Usage example
 throughput = measure_throughput(test_cases, max_workers=5, duration_seconds=30)
 print(f"Throughput: {throughput['throughput']:.2f} req/s")
 print(f"Error rate: {throughput['error_rate']*100:.2f}%")
 ```
 
-### 3. コスト指標（Cost Metrics）
+### 3. Cost Metrics
 
-#### Token Usage とコスト
+#### Token Usage and Cost
 ```python
 from typing import Dict
 
-# モデルごとの料金表（2024年11月時点）
+# Pricing table by model (as of November 2024)
 PRICING = {
     "claude-3-5-sonnet-20241022": {
         "input": 3.0 / 1_000_000,   # $3.00 per 1M input tokens
@@ -236,7 +236,7 @@ PRICING = {
 }
 
 def calculate_cost(token_usage: Dict, model: str) -> Dict:
-    """トークン使用量からコストを計算"""
+    """Calculate cost from token usage"""
     pricing = PRICING.get(model, PRICING["claude-3-5-sonnet-20241022"])
 
     input_cost = token_usage["input_tokens"] * pricing["input"]
@@ -256,7 +256,7 @@ def calculate_cost(token_usage: Dict, model: str) -> Dict:
         }
     }
 
-# 使用例
+# Usage example
 token_usage = {"input_tokens": 1500, "output_tokens": 800}
 cost = calculate_cost(token_usage, "claude-3-5-sonnet-20241022")
 print(f"Total cost: ${cost['total_cost']:.4f}")
@@ -270,7 +270,7 @@ def calculate_cost_per_request(
     test_results: List[Dict],
     model: str
 ) -> Dict:
-    """リクエストあたりのコストを計算"""
+    """Calculate cost per request"""
     total_cost = 0
     total_input_tokens = 0
     total_output_tokens = 0
@@ -293,12 +293,12 @@ def calculate_cost_per_request(
     }
 ```
 
-### 4. 信頼性指標（Reliability Metrics）
+### 4. Reliability Metrics
 
-#### Error Rate（エラー率）
+#### Error Rate
 ```python
 def calculate_error_rate(results: List[Dict]) -> Dict:
-    """エラー率とエラータイプを分析"""
+    """Analyze error rate and error types"""
     total = len(results)
     errors = [r for r in results if r.get("error")]
 
@@ -318,10 +318,10 @@ def calculate_error_rate(results: List[Dict]) -> Dict:
     }
 ```
 
-#### Retry Rate（リトライ率）
+#### Retry Rate
 ```python
 def calculate_retry_rate(results: List[Dict]) -> Dict:
-    """リトライが必要だったケースの割合"""
+    """Proportion of cases that required retries"""
     total = len(results)
     retried = [r for r in results if r.get("retry_count", 0) > 0]
 
@@ -333,8 +333,8 @@ def calculate_retry_rate(results: List[Dict]) -> Dict:
     }
 ```
 
-## 📋 関連ドキュメント
+## 📋 Related Documentation
 
-- [テストケースの設計](./evaluation_testcases.md) - テストケース構造とカバレッジ
-- [統計的有意性の検証](./evaluation_statistics.md) - 複数回実行と統計分析
-- [評価のベストプラクティス](./evaluation_practices.md) - 一貫性、可視化、レポート
+- [Test Case Design](./evaluation_testcases.md) - Test case structure and coverage
+- [Statistical Significance Testing](./evaluation_statistics.md) - Multiple runs and statistical analysis
+- [Evaluation Best Practices](./evaluation_practices.md) - Consistency, visualization, reporting
