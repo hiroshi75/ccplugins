@@ -1,590 +1,65 @@
-# プロンプト最適化テクニック
+# プロンプト最適化ガイド
 
-LangGraph ノードのプロンプトを効果的に最適化するための実践的なテクニックとパターン集。
+LangGraph ノードのプロンプトを効果的に最適化するための包括的なガイド。
 
-**💡 Tip**: 改善前後のプロンプト比較例とコードテンプレートは [examples.md](examples.md#phase-3-反復的改善の例) を参照してください。
+## 📚 目次
 
-## 🎯 プロンプト最適化の原則
+このガイドは以下のセクションに分割されています：
 
-### 1. 明確性（Clarity）
+### 1. [プロンプト最適化の原則](./prompt_principles.md)
+プロンプトを設計する際の基本原則を学びます。
 
-**悪い例**:
-```python
-SystemMessage(content="Analyze the input.")
-```
+### 2. [プロンプト最適化テクニック](./prompt_techniques.md)
+実践的な最適化テクニック集（10のテクニック）を提供します。
 
-**良い例**:
-```python
-SystemMessage(content="""You are an intent classifier for customer support.
+### 3. [最適化の優先順位](./prompt_priorities.md)
+改善のインパクトが大きい順に最適化テクニックを適用する方法を説明します。
 
-Task: Classify user input into one of these categories:
-- product_inquiry: Questions about products or services
-- technical_support: Technical issues or troubleshooting
-- billing: Payment or billing questions
-- general: General questions or greetings
+## 🎯 クイックスタート
 
-Output only the category name.""")
-```
+### 初めて最適化する場合
 
-**改善ポイント**:
-- ✅ 役割を明確に定義
-- ✅ タスクを具体的に説明
-- ✅ カテゴリを列挙
-- ✅ 出力形式を指定
+1. **[原則を理解する](./prompt_principles.md)** - 明確性、構造化、具体性の基本を学ぶ
+2. **[高インパクトなテクニックから始める](./prompt_priorities.md)** - Few-Shot Examples、出力フォーマット構造化、パラメータ調整
+3. **[テクニックの詳細を確認する](./prompt_techniques.md)** - 各テクニックの実装方法と効果
 
-### 2. 構造化（Structure）
+### 既存プロンプトの改善
 
-**悪い例**:
-```python
-prompt = f"Answer this: {question}"
-```
+1. **ベースラインを測定** - 現在のパフォーマンスを記録
+2. **[優先順位ガイド](./prompt_priorities.md)を参照** - 最もインパクトの大きい改善を選択
+3. **[テクニックを適用](./prompt_techniques.md)** - 1つずつ実装し、効果を測定
+4. **反復的に改善** - 測定、実装、検証のサイクルを繰り返す
 
-**良い例**:
-```python
-prompt = f"""Context:
-{context}
+## 📖 関連ドキュメント
 
-Question:
-{question}
+- **[プロンプト最適化の実例](./examples.md)** - Before/After の比較例とコードテンプレート
+- **[SKILL.md](./SKILL.md)** - Fine-tune スキル全体の概要と使い方
+- **[evaluation.md](./evaluation.md)** - 評価基準の設計と測定方法
 
-Instructions:
-1. Base your answer on the provided context
-2. Be concise (2-3 sentences maximum)
-3. If the answer is not in the context, say "I don't have enough information"
-
-Answer:"""
-```
-
-**改善ポイント**:
-- ✅ セクション分け（Context, Question, Instructions, Answer）
-- ✅ 順序だった指示
-- ✅ 明確な区切り
-
-### 3. 具体性（Specificity）
-
-**悪い例**:
-```python
-"Be helpful and friendly."
-```
-
-**良い例**:
-```python
-"""Tone and Style:
-- Use a warm, professional tone
-- Address the customer by name if available
-- Acknowledge their concern explicitly
-- Provide actionable next steps
-
-Example:
-"Hi Sarah, I understand your concern about the billing charge. Let me review your account and get back to you within 24 hours with a detailed explanation."
-"""
-```
-
-**改善ポイント**:
-- ✅ 具体的なガイドライン
-- ✅ 実例の提供
-- ✅ 測定可能な基準
-
-## 🔧 実践的な最適化テクニック
-
-### テクニック 1: Few-Shot Examples（少数例学習）
-
-**効果**: Accuracy +10-20%
-
-**Before（Zero-shot）**:
-```python
-system_prompt = """Classify user input into: product_inquiry, technical_support, billing, or general."""
-
-# Accuracy: ~70%
-```
-
-**After（Few-shot）**:
-```python
-system_prompt = """Classify user input into: product_inquiry, technical_support, billing, or general.
-
-Examples:
-
-Input: "How much does the premium plan cost?"
-Output: product_inquiry
-
-Input: "I can't log into my account"
-Output: technical_support
-
-Input: "Why was I charged twice this month?"
-Output: billing
-
-Input: "Hello, how are you today?"
-Output: general
-
-Input: "What features are included in the basic plan?"
-Output: product_inquiry"""
-
-# Accuracy: ~85-90%
-```
-
-**ベストプラクティス**:
-- **Examples 数**: 3-7個（それ以上は収益逓減）
-- **多様性**: 各カテゴリから最低1個、edge cases を含む
-- **品質**: 明確で議論の余地のない例を選択
-- **フォーマット**: 一貫した Input/Output 形式
-
-### テクニック 2: Chain-of-Thought（思考の連鎖）
-
-**効果**: Complex reasoning tasks で Accuracy +15-30%
-
-**Before（Direct answer）**:
-```python
-prompt = f"""Question: {question}
-
-Answer:"""
-
-# 複雑な質問で誤答が多い
-```
-
-**After（Chain-of-Thought）**:
-```python
-prompt = f"""Question: {question}
-
-Think through this step by step:
-
-1. First, identify the key information needed
-2. Then, analyze the context for relevant details
-3. Finally, formulate a clear answer
-
-Reasoning:"""
-
-# 複雑な質問でも論理的に回答
-```
-
-**適用シナリオ**:
-- ✅ 複数ステップの推論が必要なタスク
-- ✅ 複雑な意思決定
-- ✅ 矛盾の解決
-- ❌ シンプルな分類タスク（オーバーヘッド）
-
-### テクニック 3: 出力フォーマットの構造化
-
-**効果**: Latency -10-20%, Parsing errors -90%
-
-**Before（自由テキスト）**:
-```python
-prompt = "Classify the intent and explain why."
-
-# Output: "This looks like a technical support question because the user is having trouble logging in..."
-# 問題: パースが難しい、冗長、一貫性がない
-```
-
-**After（JSON 構造化）**:
-```python
-prompt = """Classify the intent.
-
-Output ONLY a valid JSON object:
-{
-  "intent": "<category>",
-  "confidence": <0.0-1.0>,
-  "reasoning": "<brief explanation in one sentence>"
-}
-
-Example output:
-{"intent": "technical_support", "confidence": 0.95, "reasoning": "User reports authentication issue"}"""
-
-# Output: {"intent": "technical_support", "confidence": 0.95, "reasoning": "User reports authentication issue"}
-# 利点: 簡単にパース、簡潔、一貫性
-```
-
-**JSON パースのエラーハンドリング**:
-```python
-import json
-import re
-
-def parse_llm_json_output(output: str) -> dict:
-    """LLM の JSON 出力を堅牢にパース"""
-    try:
-        # そのまま JSON としてパース
-        return json.loads(output)
-    except json.JSONDecodeError:
-        # JSON のみを抽出（マークダウンコードブロックなどから）
-        json_match = re.search(r'\{[^}]+\}', output)
-        if json_match:
-            try:
-                return json.loads(json_match.group())
-            except json.JSONDecodeError:
-                pass
-
-        # フォールバック
-        return {
-            "intent": "general",
-            "confidence": 0.5,
-            "reasoning": "Failed to parse LLM output"
-        }
-```
-
-### テクニック 4: Temperature と Max Tokens の調整
-
-**Temperature の効果**:
-
-| タスクタイプ | 推奨 Temperature | 理由 |
-|------------|-----------------|------|
-| 分類・抽出 | 0.0 - 0.3 | 決定論的な出力が望ましい |
-| 要約・変換 | 0.3 - 0.5 | 一定の柔軟性が必要 |
-| 創作・生成 | 0.7 - 1.0 | 多様性と創造性が重要 |
-
-**Before（デフォルト設定）**:
-```python
-llm = ChatAnthropic(
-    model="claude-3-5-sonnet-20241022",
-    temperature=1.0  # デフォルト、全タスクで使用
-)
-# 分類タスクで不安定な結果
-```
-
-**After（タスクごとに最適化）**:
-```python
-# Intent classification: 低い temperature
-intent_llm = ChatAnthropic(
-    model="claude-3-5-sonnet-20241022",
-    temperature=0.3  # 一貫性を重視
-)
-
-# Response generation: 中程度の temperature
-response_llm = ChatAnthropic(
-    model="claude-3-5-sonnet-20241022",
-    temperature=0.5,  # 柔軟性とバランス
-    max_tokens=500    # 簡潔さを強制
-)
-```
-
-**Max Tokens の効果**:
-
-```python
-# Before: 制限なし
-llm = ChatAnthropic(model="claude-3-5-sonnet-20241022")
-# Average output: 800 tokens, Cost: $0.012/req, Latency: 3.2s
-
-# After: 適切な制限
-llm = ChatAnthropic(
-    model="claude-3-5-sonnet-20241022",
-    max_tokens=500  # 必要十分な長さ
-)
-# Average output: 450 tokens, Cost: $0.007/req (-42%), Latency: 1.8s (-44%)
-```
-
-### テクニック 5: System Message vs Human Message の使い分け
-
-**System Message（システムメッセージ）**:
-- **用途**: 役割、ガイドライン、制約
-- **特徴**: タスク全体に適用される文脈
-- **キャッシュ**: 効果的（頻繁に変わらない）
-
-**Human Message（ユーザーメッセージ）**:
-- **用途**: 具体的な入力、質問
-- **特徴**: リクエストごとに変わる
-- **キャッシュ**: 効果が低い
-
-**良い構造**:
-```python
-messages = [
-    SystemMessage(content="""You are a customer support assistant.
-
-Guidelines:
-- Be concise: 2-3 sentences maximum
-- Be empathetic: Acknowledge customer concerns
-- Be actionable: Provide clear next steps
-
-Response format:
-1. Acknowledgment
-2. Answer or solution
-3. Next steps (if applicable)"""),
-
-    HumanMessage(content=f"""Customer question: {user_input}
-
-Context: {context}
-
-Generate a helpful response:""")
-]
-```
-
-### テクニック 6: プロンプトキャッシング（Prompt Caching）
-
-**効果**: Cost -50-90%（キャッシュヒット時）
-
-Anthropic Claude のプロンプトキャッシングを活用：
-
-```python
-from anthropic import Anthropic
-
-client = Anthropic()
-
-# キャッシュ可能な大きな system prompt
-CACHED_SYSTEM_PROMPT = """You are an expert customer support agent...
-
-[Long guidelines, examples, and context - 1000+ tokens]
-
-Examples:
-[50 few-shot examples]
-"""
-
-# キャッシュを使用
-message = client.messages.create(
-    model="claude-3-5-sonnet-20241022",
-    max_tokens=500,
-    system=[
-        {
-            "type": "text",
-            "text": CACHED_SYSTEM_PROMPT,
-            "cache_control": {"type": "ephemeral"}  # キャッシュを有効化
-        }
-    ],
-    messages=[
-        {"role": "user", "content": user_input}
-    ]
-)
-
-# 初回: フルコスト
-# 2回目以降（5分以内）: Input tokens が -90% 割引
-```
-
-**キャッシング戦略**:
-- ✅ 大きな system prompts（>1024 tokens）
-- ✅ Few-shot examples の集合
-- ✅ 長いコンテキスト（RAG のドキュメント）
-- ❌ 頻繁に変わる内容
-- ❌ 小さなプロンプト（<1024 tokens）
-
-### テクニック 7: 段階的な詳細化（Progressive Refinement）
-
-複雑なタスクを複数のステップに分解：
-
-**Before（1ステップ）**:
-```python
-# 1つのノードで全てを実行
-prompt = f"""Analyze user input, retrieve relevant info, and generate response.
-
-Input: {user_input}"""
-
-# 問題: 複雑すぎて品質が低い、デバッグが困難
-```
-
-**After（複数ステップ）**:
-```python
-# Step 1: Intent classification
-intent = classify_intent(user_input)
-
-# Step 2: Information retrieval (intent に基づく)
-context = retrieve_context(intent, user_input)
-
-# Step 3: Response generation (intent と context を使用)
-response = generate_response(intent, context, user_input)
-
-# 利点: 各ステップが最適化可能、デバッグが容易、品質が向上
-```
-
-### テクニック 8: Negative Instructions（禁止事項の明示）
-
-**効果**: エッジケースのエラー -30-50%
-
-```python
-prompt = """Generate a customer support response.
-
-DO:
-- Be concise (2-3 sentences)
-- Acknowledge the customer's concern
-- Provide actionable next steps
-
-DO NOT:
-- Apologize excessively (one apology maximum)
-- Make promises you can't keep (e.g., "immediate resolution")
-- Use technical jargon without explanation
-- Provide information not in the context
-- Generate placeholder text like "XXX" or "[insert here]"
-
-Customer question: {question}
-Context: {context}
-
-Response:"""
-```
-
-### テクニック 9: Self-Consistency（自己一貫性）
-
-**効果**: Complex reasoning で Accuracy +10-20%、Cost +200-300%
-
-複数の推論パスを生成して多数決：
-
-```python
-def self_consistency_reasoning(question: str, num_samples: int = 5) -> str:
-    """複数の推論を生成して最も一貫した答えを選択"""
-
-    llm = ChatAnthropic(
-        model="claude-3-5-sonnet-20241022",
-        temperature=0.7  # 多様性のために高めの temperature
-    )
-
-    prompt = f"""Question: {question}
-
-Think through this step by step and provide your reasoning:
-
-Reasoning:"""
-
-    # 複数の推論パスを生成
-    responses = []
-    for _ in range(num_samples):
-        response = llm.invoke([HumanMessage(content=prompt)])
-        responses.append(response.content)
-
-    # 最も一貫した答えを抽出（簡略化）
-    # 実際には、各レスポンスから最終的な答えを抽出して多数決
-    from collections import Counter
-    final_answers = [extract_final_answer(r) for r in responses]
-    most_common = Counter(final_answers).most_common(1)[0][0]
-
-    return most_common
-
-# トレードオフ:
-# - Accuracy: +10-20%
-# - Cost: +200-300% (5x API calls)
-# - Latency: +200-300% (並列化しない場合)
-# 使用: Critical decisions のみ
-```
-
-### テクニック 10: モデルの選択
-
-**タスクの複雑度に応じたモデル選択**:
-
-| タスクタイプ | 推奨モデル | 理由 |
-|------------|-----------|------|
-| Simple classification | Claude 3.5 Haiku | 高速、低コスト、十分な精度 |
-| Complex reasoning | Claude 3.5 Sonnet | バランスの取れた性能 |
-| Highly complex tasks | Claude Opus | 最高の性能（コスト高） |
-
-```python
-# タスクごとに最適なモデルを選択
-class LLMSelector:
-    def __init__(self):
-        self.haiku = ChatAnthropic(model="claude-3-5-haiku-20241022")
-        self.sonnet = ChatAnthropic(model="claude-3-5-sonnet-20241022")
-        self.opus = ChatAnthropic(model="claude-opus-20240229")
-
-    def get_llm(self, task_complexity: str):
-        if task_complexity == "simple":
-            return self.haiku  # $0.001/req 相当
-        elif task_complexity == "complex":
-            return self.sonnet  # $0.005/req 相当
-        else:  # very_complex
-            return self.opus  # $0.015/req 相当
-
-# 使用例
-selector = LLMSelector()
-
-# Simple intent classification → Haiku
-intent_llm = selector.get_llm("simple")
-
-# Complex response generation → Sonnet
-response_llm = selector.get_llm("complex")
-```
-
-**ハイブリッドアプローチ**:
-```python
-def hybrid_classification(user_input: str) -> dict:
-    """まず Haiku で試し、confidence が低ければ Sonnet を使用"""
-
-    # Step 1: Haiku で分類
-    haiku_result = classify_with_haiku(user_input)
-
-    if haiku_result["confidence"] >= 0.8:
-        # 高い confidence → Haiku の結果を使用
-        return haiku_result
-    else:
-        # 低い confidence → Sonnet で再分類
-        sonnet_result = classify_with_sonnet(user_input)
-        return sonnet_result
-
-# 効果:
-# - 80%のケースで Haiku を使用（低コスト）
-# - 20%のケースで Sonnet を使用（高精度）
-# - 平均コスト: -60%
-# - 平均精度: -2%（許容範囲）
-```
-
-## 📊 最適化の優先順位
-
-改善のインパクトが大きい順：
-
-### 1. Few-Shot Examples 追加（高インパクト、低コスト）
-- **改善**: Accuracy +10-20%
-- **コスト**: +5-10% (input tokens 増加)
-- **実装時間**: 30分-1時間
-- **推奨**: ⭐⭐⭐⭐⭐
-
-### 2. 出力フォーマット構造化（高インパクト、低コスト）
-- **改善**: Latency -10-20%, Parsing errors -90%
-- **コスト**: ±0%
-- **実装時間**: 15-30分
-- **推奨**: ⭐⭐⭐⭐⭐
-
-### 3. Temperature/Max Tokens 調整（中インパクト、ゼロコスト）
-- **改善**: Latency -10-30%, Cost -20-40%
-- **コスト**: 削減
-- **実装時間**: 10-15分
-- **推奨**: ⭐⭐⭐⭐⭐
-
-### 4. 明確な指示とガイドライン（中インパクト、低コスト）
-- **改善**: Accuracy +5-10%, Quality +15-25%
-- **コスト**: +2-5%
-- **実装時間**: 30分-1時間
-- **推奨**: ⭐⭐⭐⭐
-
-### 5. モデル選択の最適化（高インパクト、要検証）
-- **改善**: Cost -40-60%
-- **リスク**: Accuracy -2-5%
-- **実装時間**: 2-4時間（検証含む）
-- **推奨**: ⭐⭐⭐⭐
-
-### 6. プロンプトキャッシング（高インパクト、中コスト）
-- **改善**: Cost -50-90% (キャッシュヒット時)
-- **複雑性**: 中（実装とモニタリング）
-- **実装時間**: 1-2時間
-- **推奨**: ⭐⭐⭐⭐
-
-### 7. Chain-of-Thought（特定タスクで高インパクト）
-- **改善**: Complex tasks で Accuracy +15-30%
-- **コスト**: +20-40%
-- **実装時間**: 1-2時間
-- **推奨**: ⭐⭐⭐ (complex tasks のみ)
-
-### 8. Self-Consistency（限定的な使用）
-- **改善**: Accuracy +10-20%
-- **コスト**: +200-300%
-- **実装時間**: 2-3時間
-- **推奨**: ⭐⭐ (critical decisions のみ)
-
-## 🔄 反復的な最適化プロセス
-
-```
-1. ベースライン測定
-   ↓
-2. 最もインパクトの大きい改善を選択
-   ↓
-3. 実装（1つの変更のみ）
-   ↓
-4. 評価（同じテストケースで）
-   ↓
-5. 改善が確認されたか？
-   ├─ Yes → 変更を保持、ステップ2へ
-   └─ No → 変更をロールバック、別の改善を試す
-   ↓
-6. 目標達成？
-   ├─ Yes → 完了
-   └─ No → ステップ2へ
-```
-
-## まとめ
+## 💡 ベストプラクティス
 
 効果的なプロンプト最適化のために：
 
-1. ✅ **明確性**: 役割、タスク、出力形式を明確に
-2. ✅ **Few-Shot Examples**: 3-7個の良質な例
-3. ✅ **構造化**: JSON などの構造化された出力
-4. ✅ **パラメータ調整**: タスクに応じた temperature/max_tokens
-5. ✅ **段階的改善**: 1度に1つの変更、測定、検証
-6. ✅ **コスト意識**: モデル選択、キャッシング、max_tokens
-7. ✅ **測定駆動**: すべての変更を定量的に評価
+1. ✅ **測定駆動**: すべての変更を定量的に評価
+2. ✅ **段階的改善**: 1度に1つの変更、測定、検証
+3. ✅ **コスト意識**: モデル選択、キャッシング、max_tokens で最適化
+4. ✅ **タスク適合**: タスクの複雑度に応じてテクニックを選択
+5. ✅ **反復的アプローチ**: 継続的な改善サイクルを維持
+
+## 🔍 問題解決
+
+### プロンプトの品質が低い
+→ [プロンプト最適化の原則](./prompt_principles.md) を確認
+
+### 精度が不十分
+→ [Few-Shot Examples](./prompt_techniques.md#テクニック-1-few-shot-examples少数例学習) または [Chain-of-Thought](./prompt_techniques.md#テクニック-2-chain-of-thought思考の連鎖) を適用
+
+### レイテンシが高い
+→ [Temperature/Max Tokens 調整](./prompt_techniques.md#テクニック-4-temperature-と-max-tokens-の調整) または [出力フォーマット構造化](./prompt_techniques.md#テクニック-3-出力フォーマットの構造化) を実装
+
+### コストが高い
+→ [モデル選択最適化](./prompt_techniques.md#テクニック-10-モデルの選択) または [プロンプトキャッシング](./prompt_techniques.md#テクニック-6-プロンプトキャッシングprompt-caching) を導入
+
+---
+
+**💡 Tip**: 改善前後のプロンプト比較例とコードテンプレートは [examples.md](examples.md#phase-3-反復的改善の例) を参照してください。
