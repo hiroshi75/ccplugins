@@ -1,6 +1,6 @@
 ---
 name: fine-tune
-description: Use when you need to fine-tune and optimize LangGraph applications based on evaluation criteria. This skill performs iterative prompt optimization for LangGraph nodes without changing the graph structure.
+description: Use when you need to fine-tune(ファインチューニング) and optimize LangGraph applications based on evaluation criteria. This skill performs iterative prompt optimization for LangGraph nodes without changing the graph structure.
 ---
 
 # LangGraph Application Fine-Tuning Skill
@@ -25,11 +25,13 @@ This skill executes the following process to improve the performance of existing
 Use this skill in the following situations:
 
 1. **When performance improvement of existing applications is needed**
+
    - Want to improve LLM output quality
    - Want to improve response speed
    - Want to reduce error rate
 
 2. **When evaluation criteria are clear**
+
    - Optimization goals are defined in `.langgraph-master/fine-tune.md`
    - Quantitative evaluation methods are established
 
@@ -45,6 +47,7 @@ Use this skill in the following situations:
 **Purpose**: Understand optimization targets and current state
 
 **Main Steps**:
+
 1. Load objective setting file (`.langgraph-master/fine-tune.md`)
 2. Identify optimization targets (Serena MCP or manual code investigation)
 3. Create optimization target list (evaluate improvement potential for each node)
@@ -55,10 +58,7 @@ Use this skill in the following situations:
 
 **Purpose**: Quantitatively measure current performance
 
-**Main Steps**:
-4. Prepare evaluation environment (test cases, evaluation scripts)
-5. Baseline measurement (recommended: 3-5 runs)
-6. Analyze baseline results (identify problems)
+**Main Steps**: 4. Prepare evaluation environment (test cases, evaluation scripts) 5. Baseline measurement (recommended: 3-5 runs) 6. Analyze baseline results (identify problems)
 
 **Important**: When evaluation programs are needed, create evaluation code in a specific subdirectory (users may specify the directory).
 
@@ -68,12 +68,7 @@ Use this skill in the following situations:
 
 **Purpose**: Data-driven incremental improvement
 
-**Main Steps**:
-7. Prioritization (select the most impactful improvement area)
-8. Implement improvements (prompt optimization, parameter tuning)
-9. Post-improvement evaluation (re-evaluate under the same conditions)
-10. Compare and analyze results (measure improvement effects)
-11. Decide whether to continue iteration (repeat until goals are achieved)
+**Main Steps**: 7. Prioritization (select the most impactful improvement area) 8. Implement improvements (prompt optimization, parameter tuning) 9. Post-improvement evaluation (re-evaluate under the same conditions) 10. Compare and analyze results (measure improvement effects) 11. Decide whether to continue iteration (repeat until goals are achieved)
 
 → See [workflow.md](workflow.md#phase-3-iterative-improvement) and [prompt_optimization.md](prompt_optimization.md) for details
 
@@ -81,9 +76,7 @@ Use this skill in the following situations:
 
 **Purpose**: Record achievements and provide future recommendations
 
-**Main Steps**:
-12. Create final evaluation report (improvement content, results, recommendations)
-13. Code commit and documentation update
+**Main Steps**: 12. Create final evaluation report (improvement content, results, recommendations) 13. Code commit and documentation update
 
 → See [workflow.md](workflow.md#phase-4-completion-and-documentation) for details
 
@@ -92,6 +85,7 @@ Use this skill in the following situations:
 ### MCP Server Utilization
 
 - **Serena MCP**: Codebase analysis and optimization target identification
+
   - `find_symbol`: Search for LLM clients
   - `find_referencing_symbols`: Identify prompt construction locations
   - `get_symbols_overview`: Understand node structure
@@ -123,16 +117,19 @@ Detailed guidelines and best practices:
 ## ⚠️ Important Notes
 
 1. **Preserve Graph Structure**
+
    - Do not add or remove nodes or edges
    - Do not change data flow between nodes
    - Maintain state schema
 
 2. **Evaluation Consistency**
+
    - Use the same test cases
    - Measure with the same evaluation metrics
    - Run multiple times to confirm statistically significant improvements
 
 3. **Cost Management**
+
    - Consider evaluation execution costs
    - Adjust sample size as needed
    - Be mindful of API rate limits
