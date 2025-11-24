@@ -12,9 +12,10 @@ LangGraph でよく使用される主要な LLM プロバイダーのモデル I
 Google の最新 LLM モデル。大規模コンテキスト（最大 1M トークン）が特徴。
 
 **主要モデル**:
+
 - `google/gemini-3-pro-preview` - 最新の高性能モデル
 - `gemini-2.5-flash` - 高速応答版（1M トークン）
-- `gemini-2.5-flash-lite-preview` - 軽量高速版
+- `gemini-2.5-flash-lite` - 軽量高速版
 
 **詳細**: [Gemini モデル ID 完全ガイド](06_llm_model_ids_gemini.md)
 
@@ -25,6 +26,7 @@ Google の最新 LLM モデル。大規模コンテキスト（最大 1M トー�
 Anthropic の Claude 4.x シリーズ。バランスの取れた性能とコストが特徴。
 
 **主要モデル**:
+
 - `claude-opus-4-1-20250805` - 最強モデル
 - `claude-sonnet-4-5` - バランス型（推奨）
 - `claude-haiku-4-5-20251001` - 高速・低コスト
@@ -38,8 +40,9 @@ Anthropic の Claude 4.x シリーズ。バランスの取れた性能とコス�
 OpenAI の GPT-5 シリーズ。幅広いタスクに対応し、400K コンテキストと高度な推論能力が特徴。
 
 **主要モデル**:
+
 - `gpt-5` - GPT-5 標準版
-- `gpt-5-mini` - 小型版（コスト効率◎）
+- `gpt-5-mini` - 小型版（コスト効率 ◎）
 - `gpt-5.1-thinking` - 適応的推論モデル
 
 **詳細**: [OpenAI モデル ID 完全ガイド](06_llm_model_ids_openai.md)
@@ -98,13 +101,13 @@ app = graph.compile()
 
 ### 用途別おすすめモデル
 
-| 用途 | 推奨モデル | 理由 |
-|------|-----------|------|
-| **コスト重視** | `claude-haiku-4-5`<br>`gpt-5-mini`<br>`gemini-2.5-flash-lite` | 低コストで高速 |
-| **バランス重視** | `claude-sonnet-4-5`<br>`gpt-5`<br>`gemini-2.5-flash` | 性能とコストのバランス |
-| **性能重視** | `claude-opus-4-1`<br>`gpt-5-pro`<br>`gemini-3-pro` | 最高性能 |
-| **推論特化** | `gpt-5.1-thinking`<br>`gpt-5.1-instant` | 適応的推論・数学・科学 |
-| **大規模コンテキスト** | `gemini-2.5-pro` | 1M トークンのコンテキスト |
+| 用途                   | 推奨モデル                                                    | 理由                      |
+| ---------------------- | ------------------------------------------------------------- | ------------------------- |
+| **コスト重視**         | `claude-haiku-4-5`<br>`gpt-5-mini`<br>`gemini-2.5-flash-lite` | 低コストで高速            |
+| **バランス重視**       | `claude-sonnet-4-5`<br>`gpt-5`<br>`gemini-2.5-flash`          | 性能とコストのバランス    |
+| **性能重視**           | `claude-opus-4-1`<br>`gpt-5-pro`<br>`gemini-3-pro`            | 最高性能                  |
+| **推論特化**           | `gpt-5.1-thinking`<br>`gpt-5.1-instant`                       | 適応的推論・数学・科学    |
+| **大規模コンテキスト** | `gemini-2.5-pro`                                              | 1M トークンのコンテキスト |
 
 ### タスク複雑さによる選択
 
@@ -273,7 +276,7 @@ with get_openai_callback() as cb:
 各プロバイダーの詳細な情報については、以下のページを参照してください：
 
 - **[Gemini モデル ID](06_llm_model_ids_gemini.md)**: モデル一覧、使用方法、高度な設定、マルチモーダル機能
-- **[Claude モデル ID](06_llm_model_ids_claude.md)**: モデル一覧、プラットフォーム別ID、ツール使用、廃止モデル情報
+- **[Claude モデル ID](06_llm_model_ids_claude.md)**: モデル一覧、プラットフォーム別 ID、ツール使用、廃止モデル情報
 - **[OpenAI モデル ID](06_llm_model_ids_openai.md)**: モデル一覧、推論モデル、ビジョン機能、Azure OpenAI
 
 ## 🔗 参考リンク
