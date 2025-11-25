@@ -71,9 +71,11 @@ Proactive specification management plugin that automatically manages and updates
 
 These plugins are designed for use with Claude Code. To use them:
 
-1. Clone this repository
-2. Reference the plugins in your Claude Code configuration
-3. The plugins will be available through the marketplace configuration
+```
+/plugin marketplace add hiroshi75/ccplugins
+/plugin install langgraph-master-plugin@hiroshi75
+/plugin install spec-manager-plugin@hiroshi75
+```
 
 ## Repository Structure
 
