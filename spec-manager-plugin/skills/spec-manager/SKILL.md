@@ -4,10 +4,10 @@ description: |
   MANDATORY specification writing skill. ONLY way to create/update specs.
 
   Auto-invoke when:
-  - Creating specs: New projects, features ("XXを作りたい")
+  - Creating specs: New projects, features ("I want to create XX")
   - Updating specs: Feature additions, requirement changes, architecture updates
   - Syncing specs: Major code changes (3+ files), refactoring, session end
-  - Keywords: 仕様/spec/設計/design/architecture/要件/requirements/PRD
+  - Keywords: specifications/spec/design/architecture/requirements/PRD
 
   Outputs to .spec-manager/. Critical rules and workflow details in skill body.
 ---
@@ -29,11 +29,11 @@ This skill writes and displays the application's specification documents. It is 
 
 - Writing spec/design/architecture/requirements documents (any directory, any filename)
 - Creating PRD, tech spec, design doc, architecture doc (any location)
-- User creation requests ("XX を作りたい" with/without URL)
+- User creation requests ("I want to create XX" with/without URL)
 - Starting implementation of new features
 - Completing significant changes (3+ files modified)
 - Major refactoring or architectural changes
-- Keywords: 仕様/spec/specification/設計/design/architecture/要件/requirements/PRD/ドキュメント/document
+- Keywords: specifications/spec/specification/design/architecture/requirements/PRD/document
 - Session end with specification changes
 
 ## Standard Workflow
@@ -99,7 +99,7 @@ This skill serves two primary functions:
 6. After gathering sufficient information, synthesize and confirm with user
 7. Write the specification documents to `.spec-manager/` directory
 
-**Example**: User says "Web アプリを作りたい" without details → This skill automatically starts asking:
+**Example**: User says "I want to create a web app" without details → This skill automatically starts asking:
 
 - "What type of web application?" [E-commerce, Blog, Dashboard, Social network]
 - "Who are the target users?" [General public, Business users, Internal team]
@@ -209,7 +209,7 @@ Options: [Allow multiple selections: "Product catalog", "Shopping cart", "Paymen
 
 #### When to Use This Approach
 
-- ✅ User says "XX を作りたい" without detailed requirements
+- ✅ User says "I want to create XX" without detailed requirements
 - ✅ Reference URLs are vague or incomplete
 - ✅ Project is in early conceptual stage
 - ✅ User is unsure about technical decisions
@@ -332,8 +332,8 @@ The following documents are stored (Do not change the following file names):
    - .spec-manager/AppFlow.md: _Required_ Application screen transition and flow diagrams
    - .spec-manager/FileStructure.md: Directory structure (excluding `.claude`, `node_modules`, etc.)
    - .spec-manager/BackendStructure.md: (If applicable) Design principles and guidelines for the backend, such as DB and Storage structures
-     4 .spec-manager/FrontendGuidelines.md: (If applicable) Design principles and guidelines for the frontend
-     5 .spec-manager/DevInstructions.md: Rules file. A natural language document describing the conventions and development rules that should be followed by the AI agents in this project.
+   - .spec-manager/FrontendGuidelines.md: (If applicable) Design principles and guidelines for the frontend
+   - .spec-manager/DevInstructions.md: Rules file. A natural language document describing the conventions and development rules that should be followed by the AI agents in this project.
 
 You can write other specification documents as needed, but **the documents listed above are mandatory**.
 

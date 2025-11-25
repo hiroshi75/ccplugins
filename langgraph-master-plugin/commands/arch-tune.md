@@ -5,298 +5,298 @@ description: Architecture-level tuning through parallel exploration of multiple 
 
 # LangGraph Architecture Tuning Command
 
-LangGraph アプリケーションのグラフ構成を大胆に変更して性能を向上させます。複数の改善案を並列に探索し、最善の構成を特定します。
+Boldly modify the graph structure of LangGraph applications to improve performance. Explore multiple improvement proposals in parallel to identify the optimal configuration.
 
-## 🎯 目的
+## 🎯 Purpose
 
-以下の目的に従ってグラフ構造を最適化します：
+Optimize graph structure according to the following objectives:
 
 ```
 $ARGUMENTS
 ```
 
-**fine-tune スキル**がプロンプトとパラメータの最適化に焦点を当てるのに対し、**arch-tune コマンド**はグラフ構造そのものを変更します：
+While the **fine-tune skill** focuses on prompt and parameter optimization, the **arch-tune command** modifies the graph structure itself:
 
-- ノード・エッジの追加/削除
-- サブグラフの導入
-- 並列処理の追加
-- ルーティング戦略の変更
-- アーキテクチャパターンの切り替え
+- Add/remove nodes and edges
+- Introduce subgraphs
+- Add parallel processing
+- Change routing strategies
+- Switch architectural patterns
 
-## 📋 実行フロー
+## 📋 Execution Flow
 
-### 初期化: タスク登録
+### Initialization: Task Registration
 
-arch-tune コマンドの開始時に TodoWrite ツールを使用して次節以降の全 Phase をそれぞれタスクとして登録してください。(その際、このファイルの内容を忘れないようにこのファイルの参照を入れておくといいでしょう。)
+At the start of the arch-tune command, use the TodoWrite tool to register all Phases from the following sections as tasks. (It's recommended to include a reference to this file to avoid forgetting its contents.)
 
-各 Phase の開始時に `in_progress` に更新し、完了時に `completed` に更新します。
+Update each Phase to `in_progress` at the start and `completed` upon completion.
 
-### Phase 1: 分析と提案（arch-analysis スキル）
+### Phase 1: Analysis and Proposal (arch-analysis skill)
 
-**実行内容**:
+**Execution Steps**:
 
-1. **`arch-analysis` スキルを起動**
-   - 評価プログラムの確認・作成（`.langgraph-master/evaluation/`）
-   - ベースラインパフォーマンス測定（3-5 回実行）
-   - グラフ構造の分析（Serena MCP 使用）
-   - ボトルネックの特定
-   - アーキテクチャパターンの検討
-   - 3-5 個の具体的な改善案を発案
+1. **Launch the `arch-analysis` skill**
+   - Verify/create evaluation program (`.langgraph-master/evaluation/`)
+   - Measure baseline performance (3-5 runs)
+   - Analyze graph structure (using Serena MCP)
+   - Identify bottlenecks
+   - Consider architectural patterns
+   - Generate 3-5 specific improvement proposals
 
-**出力**:
+**Output**:
 
-- `analysis/baseline_performance.json` - ベースライン性能（統計情報含む）
-- `analysis/analysis_report.md` - 現状分析と問題点
-- `analysis/improvement_proposals.md` - 詳細な改善提案（Proposal 1-5）
-- `.langgraph-master/evaluation/` - 評価プログラム（作成または確認済み）
+- `analysis/baseline_performance.json` - Baseline performance (including statistics)
+- `analysis/analysis_report.md` - Current state analysis and issues
+- `analysis/improvement_proposals.md` - Detailed improvement proposals (Proposal 1-5)
+- `.langgraph-master/evaluation/` - Evaluation program (created or verified)
 
-→ 詳細な手順とワークフローは arch-analysis スキルを使用
+→ See arch-analysis skill for detailed procedures and workflow
 
-### Phase 2: 実装（Implementation）
+### Phase 2: Implementation
 
-**目的**: 各改善案のグラフ構造を実装
+**Purpose**: Implement graph structure for each improvement proposal
 
-**実行内容**:
+**Execution Steps**:
 
-1. **Git Worktree の作成と準備**
+1. **Create and Prepare Git Worktrees**
 
-   改善提案ごとに独立した作業環境を作成：
+   Create independent working environments for each improvement proposal:
 
    ```bash
-   # Proposal 1, 2, 3 それぞれに worktree を作成
+   # Create worktree for each Proposal 1, 2, 3
    git worktree add .worktree/proposal-1 -b proposal-1
    git worktree add .worktree/proposal-2 -b proposal-2
    git worktree add .worktree/proposal-3 -b proposal-3
 
-   # 各 worktree に分析結果, .envをコピー
+   # Copy analysis results and .env to each worktree
    for dir in .worktree/*/; do
      cp -r analysis "$dir"
      cp .env "$dir"
    done
 
-   # 評価プログラムが元のディレクトリにある場合、各 worktree で実行可能に
-   # （共有の .langgraph-master/evaluation/ を使用する場合はコピー不要）
+   # If evaluation program is in original directory, make it executable in each worktree
+   # (No copy needed if using shared .langgraph-master/evaluation/)
    ```
 
-   **ディレクトリ構造**:
+   **Directory Structure**:
 
    ```
-   プロジェクト/
+   project/
    ├── .worktree/
-   │   ├── proposal-1/          # 独立した作業環境 1
-   │   │   ├── analysis/        # 分析結果（コピー **これはcommitして渡すのではなく、worktreeを作ったあとにファイルとしてコピーしてください！**）
+   │   ├── proposal-1/          # Independent working environment 1
+   │   │   ├── analysis/        # Analysis results (copy **Copy as files after creating worktree, don't commit and pass!**)
    │   │   │   ├── baseline_performance.json
    │   │   │   ├── analysis_report.md
    │   │   │   └── improvement_proposals.md
-   │   │   └── [プロジェクトファイル]
-   │   ├── proposal-2/          # 独立した作業環境 2
-   │   └── proposal-3/          # 独立した作業環境 3
-   ├── analysis/                # 分析結果（元）
-   └── [元のプロジェクトファイル]
+   │   │   └── [project files]
+   │   ├── proposal-2/          # Independent working environment 2
+   │   └── proposal-3/          # Independent working environment 3
+   ├── analysis/                # Analysis results (original)
+   └── [original project files]
    ```
 
-2. **langgraph-engineer による並列実装**
+2. **Parallel Implementation by langgraph-engineer**
 
-   **各 Proposal に対して langgraph-engineer エージェントを起動**：
+   **Launch langgraph-engineer agent for each Proposal**:
 
    ```markdown
-   作業 worktree: .worktree/proposal-X/
-   改善提案: Proposal X (analysis/improvement_proposals.md より)
-   タスク: グラフ構造の変更を実装し、正しく動くかテストしてください（ノード、エッジ、サブグラフの追加・変更）
+   Working worktree: .worktree/proposal-X/
+   Improvement proposal: Proposal X (from analysis/improvement_proposals.md)
+   Task: Implement graph structure changes and test that it works correctly (add/modify nodes, edges, subgraphs)
 
-   langgraph-engineer として実装を完了してください。
-   詳細は agents/langgraph-engineer.md を参照。
+   Complete implementation as langgraph-engineer.
+   See agents/langgraph-engineer.md for details.
    ```
 
-   **並列実行パターン**：
+   **Parallel Execution Pattern**:
 
-   - 全ての Proposal（1, 2, 3, ...）の実装を並列に開始
-   - 各 langgraph-engineer エージェントが独立して作業
+   - Start implementation for all Proposals (1, 2, 3, ...) in parallel
+   - Each langgraph-engineer agent works independently
 
-3. **全実装の完了を待機**
-   - 親エージェントは全ての実装完了を確認
+3. **Wait for All Implementations to Complete**
+   - Parent agent confirms completion of all implementations
 
-### Phase 3: 最適化（Optimization）
+### Phase 3: Optimization
 
-**目的**: 実装されたグラフのプロンプトとパラメータを最適化
+**Purpose**: Optimize prompts and parameters for implemented graphs
 
-**実行内容**:
+**Execution Steps**:
 
-1. **langgraph-tuner による並列最適化**
+1. **Parallel Optimization by langgraph-tuner**
 
-   **Phase 2 完了後、各 worktree の Proposal の実装に対して langgraph-tuner エージェントを起動**：
+   **After Phase 2 completion, launch langgraph-tuner agent for each worktree Proposal implementation**:
 
    ```markdown
-   作業 worktree: .worktree/proposal-X/
-   改善提案: Proposal X (analysis/improvement_proposals.md より)
-   最適化目標: [ユーザー指定の目標]
+   Working worktree: .worktree/proposal-X/
+   Improvement proposal: Proposal X (from analysis/improvement_proposals.md)
+   Optimization goal: [User-specified goal]
 
-   注意: グラフ構造の変更は Phase 2 で完了済みです。Phase 2 をスキップし、Phase 3（テスト）から開始してください。
+   Note: Graph structure changes are completed in Phase 2. Skip Phase 2 and start from Phase 3 (testing).
 
-   結果レポート:
+   Result report:
 
-   - ファイル名: `proposal_X_result.md` (.worktree/proposal-X/ 直下に保存)
-   - 形式: 短くコンパクトに実験結果と考察をまとめる
-   - 必須項目: ベースラインとの比較表、改善率、主要な変更点、推奨事項
+   - Filename: `proposal_X_result.md` (save directly under .worktree/proposal-X/)
+   - Format: Summarize experiment results and insights concisely
+   - Required items: Comparison table with baseline, improvement rate, key changes, recommendations
 
-   langgraph-tuner として最適化ワークフローを実行してください。
-   詳細は agents/langgraph-tuner.md を参照。
+   Execute optimization workflow as langgraph-tuner.
+   See agents/langgraph-tuner.md for details.
    ```
 
-   **並列実行パターン**：
+   **Parallel Execution Pattern**:
 
-   - 全ての Proposal（1, 2, 3, ...）の最適化を並列に開始
-   - 各 langgraph-tuner エージェントが独立して作業
+   - Start optimization for all Proposals (1, 2, 3, ...) in parallel
+   - Each langgraph-tuner agent works independently
 
-2. **全最適化の完了を待機**
-   - 親エージェントは全ての最適化完了と結果レポート生成を確認
+2. **Wait for All Optimizations to Complete**
+   - Parent agent confirms completion of all optimizations and result report generation
 
-**重要**:
+**Important**:
 
-- 評価プログラムは全 worktree で同じものを使用
+- Use the same evaluation program across all worktrees
 
-### Phase 4: 結果比較（proposal-comparator エージェント）
+### Phase 4: Results Comparison (proposal-comparator agent)
 
-**目的**: 最善の改善案を特定
+**Purpose**: Identify the best improvement proposal
 
-**実行内容**:
+**Execution Steps**:
 
-**proposal-comparator エージェントを起動**:
+**Launch proposal-comparator agent**:
 
 ```markdown
-実装レポート: 各 worktree の `proposal_X_result.md` を読み取る
+Implementation reports: Read `proposal_X_result.md` from each worktree
 
 - .worktree/proposal-1/proposal_1_result.md
 - .worktree/proposal-2/proposal_2_result.md
 - .worktree/proposal-3/proposal_3_result.md
-  最適化目標: [ユーザー指定の目標]
+  Optimization goal: [User-specified goal]
 
-proposal-comparator として比較分析を実行してください。
-詳細は agents/proposal-comparator.md を参照。
+Execute comparative analysis as proposal-comparator.
+See agents/proposal-comparator.md for details.
 ```
 
-### Phase 5: マージ確認（merge-coordinator エージェント）
+### Phase 5: Merge Confirmation (merge-coordinator agent)
 
-**目的**: ユーザーの承認を得てマージ
+**Purpose**: Merge with user approval
 
-**実行内容**:
+**Execution Steps**:
 
-**merge-coordinator エージェントを起動**:
+**Launch merge-coordinator agent**:
 
 ```markdown
-比較レポート: analysis/comparison_report.md
+Comparison report: analysis/comparison_report.md
 Worktree: .worktree/proposal-\*/
 
-merge-coordinator としてユーザー承認とマージを実行してください。
-詳細は agents/merge-coordinator.md を参照。
+Execute user approval and merge as merge-coordinator.
+See agents/merge-coordinator.md for details.
 ```
 
-## 🔧 技術的な詳細
+## 🔧 Technical Details
 
-### Git Worktree コマンド
+### Git Worktree Commands
 
-**作成**:
+**Create**:
 
 ```bash
 git worktree add .worktree/<branch-name> -b <branch-name>
 ```
 
-**一覧**:
+**List**:
 
 ```bash
 git worktree list
 ```
 
-**削除**:
+**Remove**:
 
 ```bash
 git worktree remove .worktree/<branch-name>
 git branch -d <branch-name>
 ```
 
-### 並列実行の実装
+### Parallel Execution Implementation
 
-単一メッセージで複数の `Task` tool を呼び出すことで、Claude Code が自動的に並列実行します。
+Claude Code automatically executes in parallel by calling multiple `Task` tools in a single message.
 
-### サブエージェントの制約
+### Subagent Constraints
 
-- ❌ サブエージェントからサブエージェントは呼べない
-- ✅ サブエージェントからスキルは呼べる
-- → 各サブエージェントが fine-tune スキルを直接実行可能
+- ❌ Subagents cannot call other subagents
+- ✅ Subagents can call skills
+- → Each subagent can directly execute the fine-tune skill
 
-## ⚠️ 注意事項
+## ⚠️ Notes
 
 ### Git Worktree
 
-1. `.worktree/` を `.gitignore` に追加
-2. 各 worktree は独立した作業ディレクトリ
-3. 並列実行しても競合しない
+1. Add `.worktree/` to `.gitignore`
+2. Each worktree is an independent working directory
+3. No conflicts even with parallel execution
 
-### 評価
+### Evaluation
 
-1. **評価プログラムの配置**:
+1. **Evaluation Program Location**:
 
-   - 推奨: `.langgraph-master/evaluation/` に配置（全 worktree から参照可能）
-   - 各 worktree 内の `analysis/` にコピーされたベースラインを参照
+   - Recommended: Place in `.langgraph-master/evaluation/` (accessible from all worktrees)
+   - Each worktree references the baseline copied to `analysis/`
 
-2. **統一された評価条件**:
+2. **Unified Evaluation Conditions**:
 
-   - 全 worktree で同じ評価プログラムを使用
-   - 同じテストケースで評価
-   - 環境変数（API キーなど）は共有
+   - Use the same evaluation program across all worktrees
+   - Evaluate with the same test cases
+   - Share environment variables (API keys, etc.)
 
-3. **評価の実行**:
-   - 各 langgraph-tuner エージェントが独立して評価を実行
-   - 3-5 回のイテレーションで統計的信頼性を確保
-   - ベースラインとの比較を各エージェントが実施
+3. **Evaluation Execution**:
+   - Each langgraph-tuner agent executes evaluation independently
+   - Ensure statistical reliability with 3-5 iterations
+   - Each agent compares against baseline
 
-### クリーンアップ
+### Cleanup
 
-1. マージ後、不要な worktree を削除
-2. ブランチも削除
-3. `.worktree/` ディレクトリを確認
+1. Delete unnecessary worktrees after merge
+2. Delete branches as well
+3. Verify `.worktree/` directory
 
-## 🎓 使用例
+## 🎓 Usage Examples
 
-### 基本的な実行フロー
+### Basic Execution Flow
 
 ```bash
-# arch-tune コマンドの実行
-/arch-tune "Latency を 2.0s 以下、Accuracy を 90% 以上に改善"
+# Execute arch-tune command
+/arch-tune "Improve Latency to under 2.0s and Accuracy to over 90%"
 ```
 
-**実行の流れ**:
+**Execution Flow**:
 
-1. **Phase 1**: arch-analysis スキルが 3-5 個の改善案を生成
+1. **Phase 1**: arch-analysis skill generates 3-5 improvement proposals
 
-   - 詳細な改善提案は [arch-analysis スキル](../skills/arch-analysis/SKILL.md) を参照
+   - See [arch-analysis skill](../skills/arch-analysis/SKILL.md) for detailed improvement proposals
 
-2. **Phase 2**: グラフ構造の実装
+2. **Phase 2**: Graph Structure Implementation
 
-   - Git worktree で独立環境作成
-   - langgraph-engineer が各 Proposal のグラフ構造を並列実装
+   - Create independent environments with Git worktree
+   - langgraph-engineer implements graph structure for each Proposal in parallel
 
-3. **Phase 3**: プロンプトとパラメータの最適化
+3. **Phase 3**: Prompt and Parameter Optimization
 
-   - langgraph-tuner が各 Proposal を並列最適化
-   - 結果レポート（`proposal_X_result.md`）を生成
+   - langgraph-tuner optimizes each Proposal in parallel
+   - Generate result reports (`proposal_X_result.md`)
 
-4. **Phase 4**: 結果を比較し最善案を特定
+4. **Phase 4**: Compare results and identify best proposal
 
-   - 全指標を比較テーブルで表示
+   - Display all metrics in comparison table
 
-5. **Phase 5**: ユーザー承認後にマージ
-   - 選択された案をメインブランチにマージ
-   - 不要な worktree をクリーンアップ
+5. **Phase 5**: Merge after user approval
+   - Merge selected proposal to main branch
+   - Clean up unnecessary worktrees
 
-**具体例**: カスタマーサポートチャットボット最適化の詳細な提案例は [arch-analysis スキルの improvement_proposals セクション](../skills/arch-analysis/SKILL.md#improvement_proposalsmd) を参照してください。
+**Example**: See [arch-analysis skill improvement_proposals section](../skills/arch-analysis/SKILL.md#improvement_proposalsmd) for detailed proposal examples for customer support chatbot optimization.
 
-## 🔗 関連リソース
+## 🔗 Related Resources
 
-- [arch-analysis スキル](../skills/arch-analysis/SKILL.md) - 分析と提案生成（Phase 1）
-- [langgraph-engineer エージェント](../agents/langgraph-engineer.md) - グラフ構造の実装（Phase 2）
-- [langgraph-tuner エージェント](../agents/langgraph-tuner.md) - プロンプト最適化と評価（Phase 3）
-- [proposal-comparator エージェント](../agents/proposal-comparator.md) - 結果比較と推奨案選定（Phase 4）
-- [merge-coordinator エージェント](../agents/merge-coordinator.md) - ユーザー承認とマージ実行（Phase 5）
-- [fine-tune スキル](../skills/fine-tune/SKILL.md) - プロンプト最適化（langgraph-tuner が使用）
-- [langgraph-master スキル](../skills/langgraph-master/SKILL.md) - アーキテクチャパターン
+- [arch-analysis skill](../skills/arch-analysis/SKILL.md) - Analysis and proposal generation (Phase 1)
+- [langgraph-engineer agent](../agents/langgraph-engineer.md) - Graph structure implementation (Phase 2)
+- [langgraph-tuner agent](../agents/langgraph-tuner.md) - Prompt optimization and evaluation (Phase 3)
+- [proposal-comparator agent](../agents/proposal-comparator.md) - Results comparison and recommendation selection (Phase 4)
+- [merge-coordinator agent](../agents/merge-coordinator.md) - User approval and merge execution (Phase 5)
+- [fine-tune skill](../skills/fine-tune/SKILL.md) - Prompt optimization (used by langgraph-tuner)
+- [langgraph-master skill](../skills/langgraph-master/SKILL.md) - Architectural patterns
