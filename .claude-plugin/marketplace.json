@@ -10,9 +10,14 @@
       "description": "Proactive skill that automatically manages and updates application specifications when code changes occur."
     },
     {
-      "name": "langgraph-master-plugin",
-      "source": "./langgraph-master-plugin",
-      "description": "An langraph specialist."
+      "name": "nextjs-plugin",
+      "source": "./nextjs-plugin",
+      "description": "An nextjs specialist."
+    },
+    {
+      "name": "plan-parallel-dev-plugin",
+      "source": "./plan-parallel-dev-plugin",
+      "description": "Skill for creating parallel development plans with multiple developers using git worktree, dependency analysis, critical path calculation, and timeline creation."
     }
   ]
 }
