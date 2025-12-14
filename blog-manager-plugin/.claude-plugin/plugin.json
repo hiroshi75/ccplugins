@@ -1,0 +1,8 @@
+{
+  "name": "blog-manager-plugin",
+  "description": "Unified blog writing workflow for technical articles. Supports Zenn (Japanese), dev.to, and Medium with three-layer structure: ideas (materials), perspectives (writing style), and generated articles.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Hiroshi Ayukawa"
+  }
+}
