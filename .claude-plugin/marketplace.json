@@ -18,6 +18,11 @@
       "name": "plan-parallel-dev-plugin",
       "source": "./plan-parallel-dev-plugin",
       "description": "Skill for creating parallel development plans with multiple developers using git worktree, dependency analysis, critical path calculation, and timeline creation."
+    },
+    {
+      "name": "blog-manager-plugin",
+      "source": "./blog-manager-plugin",
+      "description": "Unified blog writing workflow for technical articles. Supports Zenn (Japanese), dev.to, and Medium with three-layer structure: ideas (materials), perspectives (writing style), and generated articles. Includes idea management, perspective templates, and promotion tips."
     }
   ]
 }
