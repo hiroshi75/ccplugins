@@ -1,7 +1,7 @@
 # タスク指示書テンプレート
 
-各worktreeで作業するAIエージェント向けの指示書テンプレート。
-**このエージェントはマージ担当からサブエージェントとして起動される。**
+各worktreeで作業する claude 向けの指示書テンプレート。
+**この claude はマージ担当から tmux 経由で起動される。**
 
 ファイル名: `.parallel-dev/tasks/{branch-name}.md`
 
@@ -14,7 +14,7 @@
 
 ## 実行コンテキスト
 
-このタスクはマージ担当エージェントからサブエージェントとして起動される。
+このタスクはマージ担当から tmux 経由で起動される。
 作業ディレクトリ: `worktree/{branch-name}/`
 
 ## 基本情報
@@ -140,11 +140,9 @@ pnpm dev
 実装が完了したら、マージ担当に通知する。**コミットは不要**。
 
 ```bash
-# signals ディレクトリがなければ作成
-mkdir -p ../../.parallel-dev/signals
-
 # .done ファイルを作成
-cat > ../../.parallel-dev/signals/{branch-name}.done << 'EOF'
+# PROJECT_ROOT は worktree 作成時に設定される環境変数
+cat > $PROJECT_ROOT/.parallel-dev-signals/{branch-name}.done << 'EOF'
 【完了報告】{branch-name}
 
 ## 実装内容
@@ -159,9 +157,15 @@ cat > ../../.parallel-dev/signals/{branch-name}.done << 'EOF'
 EOF
 ```
 
-### 5. エラー・ブロック時
+### 5. セッション終了
 
-問題が発生した場合は `.parallel-dev/issues/{branch-name}.md` に記録。
+.done ファイル作成後、この claude の作業は完了。セッションを終了する。
+
+マージ担当が .done を検知し、コミット・マージ・テストを行う。
+
+### 6. エラー・ブロック時
+
+問題が発生した場合は `$PROJECT_ROOT/.parallel-dev-issues/{branch-name}.md` に記録。
 
 ---
 
@@ -179,62 +183,29 @@ ls -la src/components/target/
 head -20 src/lib/api.ts  # 既存関数の確認
 ```
 
-### ファイル編集権限の問題が発生した場合
-
-サブエージェントとして起動された場合、ファイル編集権限が制限されることがある。
-
-**対処法**: `.done` ファイルに実装コードを含める
-
-```bash
-cat > ../../.parallel-dev/signals/{branch-name}.done << 'EOF'
-【完了報告】{branch-name}
-
-## 実装内容
-- {実装した機能の説明}
-
-## ファイル編集権限の問題
-ファイル編集権限が制限されていたため、以下にコードを記載します。
-マージ担当がこれらの変更を適用してください。
-
-### ファイル: src/path/to/file.ts
-```typescript
-// 完全な実装コードをここに記載
-export function newFunction() {
-  // ...
-}
-```
-
-### ファイル: src/path/to/another.ts
-```typescript
-// 別ファイルの変更内容
-```
-
-## 備考
-マージ担当が上記コードを対象ファイルに適用してください。
-EOF
-```
-
-**マージ担当への注意**: `.done` ファイルにコードが含まれている場合は、そのコードを該当ファイルに適用すること。
-
 ---
 
-## Phase分離（依存タスクがある場合）
+## Phase分離（オプション：並列性を最大化する場合のみ）
 
-依存するタスクがある場合、作業をPhaseに分離できる。
+**通常**: 依存タスクは依存先がマージされてから起動されるため、Phase 分離は不要。
+
+**Phase 分離を使う場合**: タスク指示書に明記されている場合のみ。
 
 ### Phase 1: 先行実装（依存API完成前）
 
 - [ ] モックAPIで機能実装
 - [ ] ローカルで動作確認
-- [ ] Phase 1 完了時に `.done` ファイル作成
+- [ ] Phase 1 完了時に `.done` ファイル作成（`{branch-name}-phase1.done`）
+- [ ] セッション終了
 
 ### Phase 2: 統合（依存API完成後）
 
-マージ担当から「依存タスク完了通知」を受けたら Phase 2 を開始。
+依存先がマージされると、マージ担当が再度 tmux でこの claude を起動する。
 
 - [ ] モックを本番APIに置換
 - [ ] ローカルで動作確認
-- [ ] Phase 2 完了時に `.done` ファイル作成（`{branch-name}-phase2.done`）
+- [ ] Phase 2 完了時に `.done` ファイル作成（`{branch-name}.done`）
+- [ ] セッション終了
 
 ---
 
@@ -242,7 +213,7 @@ EOF
 
 - [ ] すべての成果物が実装されている
 - [ ] ローカルで動作確認済み
-- [ ] `.parallel-dev/signals/{branch-name}.done` を作成済み
+- [ ] `$PROJECT_ROOT/.parallel-dev-signals/{branch-name}.done` を作成済み
 
 ---
 
@@ -252,7 +223,6 @@ EOF
 - **プッシュしない**: リモートへのプッシュもマージ担当が行う
 - **依存タスクが未完了なら待機**: マージ担当からの通知を待つ
 - **ファイル編集前に存在確認**: 編集対象ファイルが存在することを確認する
-- **編集権限問題時はコードを.doneに記載**: 権限エラー時は実装コードを完了報告に含める
 
 ---
 

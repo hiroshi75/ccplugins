@@ -80,14 +80,14 @@ project/                              # プロジェクトルート (main or 統
     └── search-filter/                # feature/search-filter ブランチ
 ```
 
-### 4. エージェント指示書の配置
+### 4. claude 指示書の配置
 
-AIエージェントによる並列開発では、各エージェントへの指示書を `.parallel-dev/` に配置する。
+claude による並列開発では、各 claude への指示書を `.parallel-dev/` に配置する。
 
 ```
 .parallel-dev/
 ├── README.md                 # 全体概要・進捗サマリ
-├── merge-coordinator.md      # マージ担当エージェント用指示書
+├── merge-coordinator.md      # マージ担当用指示書
 └── tasks/                    # 各タスク用指示書
     ├── recommendation-api.md # worktree/recommendation-api/ の作業指示
     ├── notification-api.md
@@ -106,9 +106,9 @@ AIエージェントによる並列開発では、各エージェントへの指
 
 | ファイル | 対象 | 内容 |
 |----------|------|------|
-| `README.md` | 全エージェント・人間 | 全体進捗、タスク一覧、依存関係図 |
+| `README.md` | 全 claude・人間 | 全体進捗、タスク一覧、依存関係図 |
 | `merge-coordinator.md` | マージ担当 | マージ順序、コンフリクト対応方針 |
-| `tasks/*.md` | 作業エージェント | 実装仕様、依存関係、完了条件 |
+| `tasks/*.md` | 作業用 claude | 実装仕様、依存関係、完了条件 |
 
 テンプレートは以下を参照:
 - [templates/parallel-dev-readme.md](templates/parallel-dev-readme.md)
@@ -175,6 +175,7 @@ PORT_FE=5174
 git worktree add worktree/$BRANCH -b feature/$BRANCH
 cp .env worktree/$BRANCH/.env
 cat > worktree/$BRANCH/.env.local << EOF
+PROJECT_ROOT=$(pwd)
 PORT=$PORT_BE
 VITE_PORT=$PORT_FE
 EOF
@@ -190,11 +191,15 @@ PORT_FE=5176
 git worktree add worktree/$BRANCH -b feature/$BRANCH
 cp .env worktree/$BRANCH/.env
 cat > worktree/$BRANCH/.env.local << EOF
+PROJECT_ROOT=$(pwd)
 PORT=$PORT_BE
 VITE_PORT=$PORT_FE
 EOF
 cd worktree/$BRANCH && pnpm install && cd ../..
 ```
+
+**重要**: `PROJECT_ROOT` は worktree から親プロジェクトのルートを参照するために必要。
+`.parallel-dev-signals/` や `.parallel-dev-issues/` へのパス解決に使用される。
 
 テンプレート: [templates/env-local-template.md](templates/env-local-template.md)
 
@@ -202,7 +207,7 @@ cd worktree/$BRANCH && pnpm install && cd ../..
 
 ### 役割分担
 
-| 役割 | 作業エージェント | マージ担当 |
+| 役割 | 作業用 claude | マージ担当 |
 |------|------------------|------------|
 | コード実装 | ✅ | - |
 | .done ファイル作成 | ✅ | - |
@@ -212,7 +217,7 @@ cd worktree/$BRANCH && pnpm install && cd ../..
 | git push | - | ✅ |
 | 統合ブランチへのマージ | - | ✅ |
 
-**設計思想**: 作業エージェントはコードを書くことに集中。マージ順序の管理はマージ担当のみが把握。
+**設計思想**: 作業用 claude はコードを書くことに集中。マージ順序の管理はマージ担当のみが把握。
 
 ### 各 worktree での作業
 
@@ -231,17 +236,18 @@ cd worktree/recommendation-api
 
 ### 完了通知（.done ファイル）
 
-実装完了後、`.parallel-dev/signals/` に完了通知ファイルを作成する。
+実装完了後、プロジェクトルートの `.parallel-dev-signals/` に完了通知ファイルを作成する。
 **コミットは不要**。実装内容を報告書として記載する。
 
 ```bash
 cd worktree/recommendation-api
 
+# PROJECT_ROOT は worktree 作成時に設定される環境変数
 # signals ディレクトリがなければ作成
-mkdir -p ../../.parallel-dev/signals
+mkdir -p $PROJECT_ROOT/.parallel-dev-signals
 
 # .done ファイルを作成
-cat > ../../.parallel-dev/signals/recommendation-api.done << 'EOF'
+cat > $PROJECT_ROOT/.parallel-dev-signals/recommendation-api.done << 'EOF'
 【完了報告】recommendation-api
 
 ## 実装内容
@@ -262,7 +268,7 @@ cat > ../../.parallel-dev/signals/recommendation-api.done << 'EOF'
 EOF
 ```
 
-マージ担当エージェントはこのファイルを検知して、以下を実行する:
+マージ担当はこのファイルを検知して、以下を実行する:
 1. worktree に移動してコミット
 2. 統合ブランチをマージ
 3. テスト実行
@@ -271,14 +277,15 @@ EOF
 
 ### エラー・ブロック時の対応
 
-問題が発生して作業を継続できない場合、`.parallel-dev/issues/` に記録する。
+問題が発生して作業を継続できない場合、プロジェクトルートの `.parallel-dev-issues/` に記録する。
 
 ```bash
+# PROJECT_ROOT は worktree 作成時に設定される環境変数
 # issues ディレクトリがなければ作成
-mkdir -p .parallel-dev/issues
+mkdir -p $PROJECT_ROOT/.parallel-dev-issues
 
 # issue ファイルを作成
-cat > .parallel-dev/issues/recommendation-api.md << 'EOF'
+cat > $PROJECT_ROOT/.parallel-dev-issues/recommendation-api.md << 'EOF'
 # Issue: recommendation-api
 
 ## 発生日時
@@ -312,7 +319,7 @@ EOF
 
 **マージ担当の対応:**
 
-1. `.parallel-dev/issues/` を監視
+1. `.parallel-dev-issues/` を監視
 2. 問題の内容を確認し、担当を割り当て
 3. 必要に応じて新しい worktree/ブランチを作成
 4. `.parallel-dev/` 内のファイルを更新:
@@ -378,7 +385,7 @@ feature/project-card-enhance  ← 後でマージ（APIを利用するUI）
 ### 統合ブランチの変更を取り込む
 
 統合ブランチの取り込みはマージ担当が行う。
-作業エージェントは依存タスクの完了通知を待ち、Phase 2 の実装を開始する。
+作業用 claude は依存タスクの完了通知を待ち、Phase 2 の実装を開始する。
 
 **マージ担当の手順:**
 ```bash
@@ -396,7 +403,7 @@ git merge origin/feature/ui-improvements --no-ff
 
 ## ルール
 
-### 作業エージェントのルール
+### 作業用 claude のルール
 
 - **コミットしない**: コードを書くだけ。コミットはマージ担当が行う
 - **プッシュしない**: リモートへのプッシュもマージ担当が行う
@@ -408,8 +415,8 @@ git merge origin/feature/ui-improvements --no-ff
 - **`--no-ff` で常にマージ**: マージコミットを残し、履歴を明確にする
 - **マージ順序**: 依存関係 > 変更範囲 > 完了順
 - **テスト必須**: 統合ブランチマージ後、必ずテストを実行
-- **テスト失敗時**: 作業エージェントに修正依頼、統合ブランチへのマージは中止
-- **コンフリクト対応**: 軽微なら自分で解決、複雑なら作業エージェントに依頼
+- **テスト失敗時**: 作業用 claude に修正依頼、統合ブランチへのマージは中止
+- **コンフリクト対応**: 軽微なら自分で解決、複雑なら作業用 claude に依頼
 
 ### 依存関係ルール
 
@@ -480,10 +487,15 @@ git worktree prune
 
 Claude Code で複数の worktree を使って並列開発する場合:
 
-1. **人間はマージ担当エージェントのみを起動**
-2. マージ担当がTaskツールでサブエージェントを起動し、各worktreeで作業
+1. **tmux セッション内で起動**（作業用 claude を別ペインで起動するため必須）
+2. **人間はマージ担当の claude のみを起動**
+3. **マージ担当が Bash ツールで `tmux split-window` を実行** して作業用 claude を起動・管理
+4. **Task ツール（サブエージェント）は使用しない**
 
 ```bash
+# tmux セッションを開始
+tmux new-session -s parallel-dev
+
 # プロジェクトルートでマージ担当を起動
 claude
 
@@ -491,7 +503,7 @@ claude
 ".parallel-dev/merge-coordinator.md を読んで並列開発を開始して"
 ```
 
-マージ担当エージェントが依存関係を考慮して作業エージェントを起動・管理する。
+マージ担当が依存関係を考慮して、tmux で作業用 claude を起動・管理する。
 
 ## 並列開発完了後のクリーンアップ
 
@@ -504,7 +516,7 @@ claude
 - [ ] すべてのタスクがマージ済み
 - [ ] 統合ブランチが main にマージ済み
 - [ ] 統合テストがパス
-- [ ] `.parallel-dev/issues/` に未解決の issue がない
+- [ ] `.parallel-dev-issues/` に未解決の issue がない
 
 ### worktree の削除
 
@@ -552,7 +564,7 @@ git push origin --delete feature/integration
 ```bash
 # 削除前に完了を確認
 cat .parallel-dev/README.md  # 進捗が 100% であること
-ls .parallel-dev/issues/     # 未解決の issue がないこと
+ls .parallel-dev-issues/     # 未解決の issue がないこと
 
 # 削除
 rm -rf .parallel-dev/

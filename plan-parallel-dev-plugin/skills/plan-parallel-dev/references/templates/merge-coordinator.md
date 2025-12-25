@@ -1,6 +1,6 @@
 # マージコーディネーター指示書テンプレート
 
-マージを専門で担当するAIエージェント向けの指示書テンプレート。
+マージを専門で担当する claude 向けの指示書テンプレート。
 
 ファイル名: `.parallel-dev/merge-coordinator.md`
 
@@ -13,80 +13,111 @@
 
 ## 役割
 
-このエージェントは以下を担当する:
-- **作業エージェントをサブエージェントとして起動**
-- `.parallel-dev/signals/` の完了通知（.done ファイル）を監視
-- `.parallel-dev/issues/` の問題報告を監視し、担当を割り当て
-- **作業エージェントの変更をコミット**
+この claude は以下を担当する:
+- **作業用 claudeを tmux で起動**（別ペインで Claude Code を起動）
+- `.parallel-dev-signals/` の完了通知（.done ファイル）を監視
+- `.parallel-dev-issues/` の問題報告を監視し、担当を割り当て
+- **作業用 claudeの変更をコミット**
 - **統合ブランチの最新をマージ**
 - **テスト実行**
 - **統合ブランチへのマージ**
 - マージ順序の管理
 - 必要に応じて新規 worktree/ブランチの作成と指示書の更新
 
-**重要**: 作業エージェントはコミット・プッシュを行わない。マージ担当がすべてのgit操作を行う。
+**重要**: 作業用 claudeはコミット・プッシュを行わない。マージ担当がすべてのgit操作を行う。
 
 ---
 
-## 作業エージェントの起動
+## 作業用 claudeの起動
+
+**重要**: 作業用 claudeは **Bash ツールで `tmux split-window` コマンドを実行** して起動する。
+**Task ツール（サブエージェント）は使用しない。**
+
+tmux 内で実行されているため、直接 `tmux split-window` で別ペインに Claude Code を起動できる。
 
 ### 開始時に起動するタスク
 
-依存のないタスクは並列でサブエージェントを起動する:
+依存のないタスクは並列で起動する。**Bash ツールで以下のコマンドを実行**:
 
-```
-Taskツールで以下を並列実行:
+```bash
+# PROJECT_ROOT を設定（現在のプロジェクトルートを記録）
+export PROJECT_ROOT=$(pwd)
 
-タスク1: worktree/recommendation-api で作業
-  prompt: "cd worktree/recommendation-api && cat ../../.parallel-dev/tasks/recommendation-api.md を読んで実装してください。完了したら .done ファイルを作成してください。"
+# タスク1: worktree/recommendation-api で作業
+tmux split-window -h "cd worktree/recommendation-api && PROJECT_ROOT=$PROJECT_ROOT claude '../../.parallel-dev/tasks/recommendation-api.md を読んで実装してください。完了したら .done ファイルを作成してください。'"
 
-タスク2: worktree/notification-api で作業
-  prompt: "cd worktree/notification-api && cat ../../.parallel-dev/tasks/notification-api.md を読んで実装してください。完了したら .done ファイルを作成してください。"
+# タスク2: worktree/notification-api で作業
+tmux split-window -h "cd worktree/notification-api && PROJECT_ROOT=$PROJECT_ROOT claude '../../.parallel-dev/tasks/notification-api.md を読んで実装してください。完了したら .done ファイルを作成してください。'"
+
+# ペインレイアウトを調整
+tmux select-layout tiled
 ```
 
 ### 依存タスクの起動
 
 依存タスクがマージされたら、待機中のタスクを起動する:
 
-```
-Taskツールで実行:
-
-タスク: worktree/project-card-enhance で作業
-  prompt: "cd worktree/project-card-enhance && cat ../../.parallel-dev/tasks/project-card-enhance.md を読んで実装してください。依存タスク recommendation-api はマージ済みです。完了したら .done ファイルを作成してください。"
+```bash
+tmux split-window -h "cd worktree/project-card-enhance && PROJECT_ROOT=$PROJECT_ROOT claude '../../.parallel-dev/tasks/project-card-enhance.md を読んで実装してください。依存タスク recommendation-api はマージ済みです。完了したら .done ファイルを作成してください。'"
 ```
 
 ---
 
-## 監視対象ディレクトリ
+## 完了監視
+
+作業用 claude起動後、完了を待つ。
+
+### 監視ループ
+
+以下のコマンドを Bash ツールで実行する（タイムアウト: 600000ms を指定）:
+
+```bash
+# 完了を待機（5秒間隔、最大108回 = 9分）
+for i in {1..108}; do
+  echo "=== チェック $i/108: $(date) ==="
+
+  # 完了通知を確認
+  DONE_FILES=$(ls .parallel-dev-signals/*.done 2>/dev/null || true)
+  if [ -n "$DONE_FILES" ]; then
+    echo "完了通知あり: $DONE_FILES"
+    break
+  fi
+
+  # 問題報告を確認
+  ISSUE_FILES=$(ls .parallel-dev-issues/*.md 2>/dev/null || true)
+  if [ -n "$ISSUE_FILES" ]; then
+    echo "問題報告あり: $ISSUE_FILES"
+    break
+  fi
+
+  sleep 5
+done
+
+# 結果確認
+if [ -n "$DONE_FILES" ]; then
+  echo "=== 完了検知 ==="
+  cat $DONE_FILES
+elif [ -n "$ISSUE_FILES" ]; then
+  echo "=== 問題検知 ==="
+  cat $ISSUE_FILES
+else
+  echo "=== 9分経過、完了通知なし ==="
+  echo "再度監視ループを実行してください"
+fi
+```
+
+- 完了または問題を検知したら、ループを抜けて処理を開始
+- 9分で完了しなければ、再度監視ループを実行
+
+### 監視対象ディレクトリ
 
 ```
 .parallel-dev/
-├── signals/           # 完了通知を監視
-│   ├── task-a.done    # task-a の完了通知
+├── signals/           # 完了通知
+│   ├── task-a.done
 │   └── task-b.done
-├── issues/            # 問題報告を監視
-│   └── task-c.md      # task-c で発生した問題
-└── ...
-```
-
-### 完了通知の確認
-
-```bash
-# signals ディレクトリを確認
-ls -la .parallel-dev/signals/
-
-# 新しい .done ファイルがあればマージを検討
-cat .parallel-dev/signals/{task-name}.done
-```
-
-### 問題報告の確認
-
-```bash
-# issues ディレクトリを確認
-ls -la .parallel-dev/issues/
-
-# 問題があれば内容を確認し、担当を割り当て
-cat .parallel-dev/issues/{task-name}.md
+└── issues/            # 問題報告
+    └── task-c.md
 ```
 
 ---
@@ -181,7 +212,7 @@ git fetch origin
 git merge origin/feature/{integration-branch} --no-ff -m "Merge integration branch"
 
 # 1-4. コンフリクトがあれば解決
-# （複雑な場合は作業エージェントに依頼）
+# （複雑な場合は作業用 claudeに依頼）
 
 # 1-5. テスト実行
 {test-command}
@@ -211,28 +242,54 @@ git push origin feature/{integration-branch}
 
 **テスト失敗時:**
 ```bash
-# 2b-1. 作業エージェントに修正依頼
-# .done ファイルに修正依頼を追記するか、直接通知
+# 2b-1. 既存の .done ファイルを削除
+rm .parallel-dev-signals/{branch-name}.done
 
-# 2b-2. 修正依頼の内容
+# 2b-2. 修正依頼用の issue を作成
+cat > .parallel-dev-issues/{branch-name}.md << 'EOF'
 【修正依頼】{branch-name}
 
+## 状況
 統合ブランチマージ後のテストが失敗しました。
 
-エラー内容:
+## エラー内容
 {テストエラーの出力}
 
-対応依頼:
+## 対応依頼
 1. worktree/{branch-name}/ で修正
 2. 修正完了後、再度 .done ファイルを作成
 
 ※ コミットは不要です。
+EOF
+
+# 2b-3. 作業用 claudeを再起動
+tmux split-window -h "cd worktree/{branch-name} && PROJECT_ROOT=$PROJECT_ROOT claude '$PROJECT_ROOT/.parallel-dev-issues/{branch-name}.md を読んで修正してください。完了したら .done ファイルを作成してください。'"
 ```
 
 ### 3. コンフリクト発生時
 
 1. **軽微なコンフリクト**: 手動解決してマージ続行
-2. **複雑なコンフリクト**: 作業エージェントに依頼
+
+2. **複雑なコンフリクト**: 作業用 claudeを再起動して依頼
+```bash
+# コンフリクト内容を issue に記録
+cat > .parallel-dev-issues/{branch-name}-conflict.md << 'EOF'
+【コンフリクト解決依頼】{branch-name}
+
+## 状況
+統合ブランチマージ時にコンフリクトが発生しました。
+
+## コンフリクトファイル
+{コンフリクトファイル一覧}
+
+## 対応依頼
+コンフリクトを解決してください。解決後 .done ファイルを作成してください。
+EOF
+
+# 作業用 claudeを再起動
+tmux split-window -h "cd worktree/{branch-name} && PROJECT_ROOT=$PROJECT_ROOT claude '$PROJECT_ROOT/.parallel-dev-issues/{branch-name}-conflict.md を読んでコンフリクトを解決してください。完了したら .done ファイルを作成してください。'"
+```
+
 3. **解決不能**: マージを中止し、人間に報告
 
 ---
@@ -245,37 +302,12 @@ git push origin feature/{integration-branch}
 
 - [ ] worktree/{branch-name}/ に未コミットの変更がある
 - [ ] 依存タスクがすべてマージ済み（依存がある場合）
-- [ ] .done ファイル内にコード記載がないか確認（権限問題対応）
 
-**注意**: 作業エージェントはコミット・プッシュを行わない。変更は worktree 内にある。
+**注意**: 作業用 claudeはコミット・プッシュを行わない。変更は worktree 内にある。
 
-### .done ファイルにコードが含まれている場合
+### .done ファイルの確認
 
-サブエージェントがファイル編集権限の問題に遭遇した場合、実装コードを .done ファイルに記載することがある。
-
-**対処手順**:
-
-```bash
-# 1. .done ファイルの内容を確認
-cat .parallel-dev/signals/{branch-name}.done
-
-# 2. 「ファイル編集権限の問題」セクションがあるか確認
-# ある場合は、記載されたコードを該当ファイルに適用
-
-# 3. worktree に移動してコードを適用
-cd worktree/{branch-name}
-
-# 4. 各ファイルを編集（.done に記載されたコードを適用）
-# Edit ツールを使用して変更を適用
-
-# 5. 構文チェック
-python -m py_compile {changed-files}  # Python の場合
-npx tsc --noEmit                       # TypeScript の場合
-
-# 6. 通常のマージフローを続行
-```
-
-**重要**: コードを適用する前に、対象ファイルの現在の状態を確認し、適切な位置に挿入すること。
+完了報告の内容を確認し、問題がないかチェックする。
 
 ### マージ後の更新
 
@@ -285,33 +317,25 @@ npx tsc --noEmit                       # TypeScript の場合
 2. `.parallel-dev/README.md` の進捗を更新
 3. `merge-coordinator.md` のタスク状態を更新
 4. **依存元タスクに完了通知**（下記テンプレート使用）
-5. `.parallel-dev/signals/{branch-name}.done` を削除（または processed/ に移動）
+5. `.parallel-dev-signals/{branch-name}.done` を削除（または processed/ に移動）
 
 ### 状態更新の責任分担
 
 | 更新対象 | 責任者 | タイミング |
 |----------|--------|------------|
-| .done ファイル | 作業エージェント | 実装完了時 |
+| .done ファイル | 作業用 claude | 実装完了時 |
 | git commit/push | マージコーディネーター | .done 検知後 |
 | タスク指示書のステータス | マージコーディネーター | マージ後「マージ済」へ |
 | README.md の進捗 | マージコーディネーター | マージ後 |
-| 依存元タスクへの通知 | マージコーディネーター | マージ後 |
+| 依存タスクの起動 | マージコーディネーター | 依存先マージ後 |
 
-### 依存元タスクへの完了通知
+### 依存タスクの起動
 
-マージしたタスクに依存しているタスクがあれば、通知する:
+マージしたタスクに依存しているタスクがあれば、そのタスクを起動する:
 
-```
-【依存タスク完了通知】{merged-branch}
-
-マージ完了: feature/{merged-branch}
-統合ブランチ: feature/{integration-branch}
-
-依存していたタスク:
-- feature/{dependent-branch}: Phase 2 開始可能
-
-作業エージェントは Phase 2 の実装を開始してください。
-（統合ブランチの取り込みはマージ担当が行います）
+```bash
+# 依存先がマージされたので、依存タスクを起動
+tmux split-window -h "cd worktree/{dependent-branch} && PROJECT_ROOT=$PROJECT_ROOT claude '../../.parallel-dev/tasks/{dependent-branch}.md を読んで実装してください。依存タスク {merged-branch} はマージ済みです。完了したら .done ファイルを作成してください。'"
 ```
 
 ---
@@ -345,7 +369,14 @@ npx tsc --noEmit                       # TypeScript の場合
 - [ ] 統合テストがパス
 - [ ] コードレビュー完了
 
-### 手順
+**重要**: main へのマージは影響が大きいため、AskUserQuestion ツールで人間に確認を取る:
+
+```
+「すべてのタスクがマージ済みで、統合テストがパスしました。
+main ブランチへのマージを実行してよろしいですか？」
+```
+
+### 手順（人間の承認後に実行）
 
 ```bash
 # 1. main を最新に
@@ -423,7 +454,7 @@ cd worktree/$BRANCH && uv sync && cd ../..  # または pnpm install
 
 ```bash
 # issue ファイルの担当・ステータスを更新
-# .parallel-dev/issues/{task-name}.md
+# .parallel-dev-issues/{task-name}.md
 
 ## 担当
 Agent-X（YYYY-MM-DD に割り当て）

@@ -95,16 +95,16 @@ Phase 2: 依存タスク
 
 ---
 
-## 各エージェントへの指示
+## 各 claude への指示
 
-### 作業エージェント
+### 作業用 claude
 
 1. 自分の担当タスクの指示書を確認: `.parallel-dev/tasks/{branch-name}.md`
 2. 対応する worktree で作業: `worktree/{branch-name}/`
 3. 完了したら指示書のステータスを更新
 4. このREADMEの進捗も更新
 
-### マージ担当エージェント
+### マージ担当
 
 1. [merge-coordinator.md](merge-coordinator.md) の指示に従う
 2. タスク完了を検知したらマージ順序に従ってマージ

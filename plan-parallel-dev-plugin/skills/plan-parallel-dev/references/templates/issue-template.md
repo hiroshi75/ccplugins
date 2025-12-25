@@ -2,7 +2,7 @@
 
 作業中に問題が発生して継続できない場合に使用するテンプレート。
 
-ファイル名: `.parallel-dev/issues/{branch-name}.md`
+ファイル名: `.parallel-dev-issues/{branch-name}.md`
 
 ---
 
@@ -210,7 +210,7 @@ Auto-merging failed; fix conflicts and then commit the result.
 
 ## マージ担当の対応フロー
 
-1. **検知**: `.parallel-dev/issues/` に新しいファイルがあるか確認
+1. **検知**: `.parallel-dev-issues/` に新しいファイルがあるか確認
 2. **評価**: issue の内容を確認し、優先度を判断
 3. **割り当て**: 担当を決定（既存タスクの担当 or 新規）
 4. **追跡**: 必要に応じて新しいタスク/worktree を作成
