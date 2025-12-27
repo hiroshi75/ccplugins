@@ -10,30 +10,28 @@ description: 複数開発者での並列開発計画書を作成するスキル�
 
 ## 利用モード
 
-このスキルには 2 つのモードがある:
+このスキルには2つのモードがある:
 
 ### モード A: 初期並列開発（計画書作成モード）
 
 新規プロジェクトや大規模機能開発の初期段階で使用。
 
 **トリガーフレーズ**:
-
 - 「並列開発計画を作って」
 - 「複数人で同時開発したい」
 - 「worktree で分担したい」
 - 「開発を最大限並列化したい」
 
-**ワークフロー**: 9 段階のワークフロー（後述）で計画書を作成し、複数タスクを一斉に開始。
+**ワークフロー**: 9段階のワークフロー（後述）で計画書を作成し、複数タスクを一斉に開始。
 
 ### モード B: メンテナンス並列開発（クイックタスクモード）
 
 既存プロジェクトへのバグ修正・機能追加で使用。計画書なしで即座に作業を開始。
 
 **トリガーフレーズ**:
-
 - 「〇〇を並列で修正して」
 - 「〇〇を並列で対応して」
-- 「worktree で △△ をやって」
+- 「worktree で△△をやって」
 - 「並列タスクを追加: 〇〇」
 - 「これを worktree でやって: 〇〇」
 
@@ -105,11 +103,11 @@ description: 複数開発者での並列開発計画書を作成するスキル�
 
 ### モード A との違い
 
-| 観点     | 初期並列開発（A）   | クイックタスク（B）    |
-| -------- | ------------------- | ---------------------- |
-| 起点     | 計画書作成から開始  | 依頼を受けて即座に開始 |
-| 計画書   | PLAN.md を作成      | 作成しない             |
-| マージ先 | 統合ブランチ → main | main に直接マージ      |
+| 観点 | 初期並列開発（A） | クイックタスク（B） |
+|------|-------------------|---------------------|
+| 起点 | 計画書作成から開始 | 依頼を受けて即座に開始 |
+| 計画書 | PLAN.md を作成 | 作成しない |
+| マージ先 | 統合ブランチ → main | main に直接マージ |
 
 ### 詳細ガイド・テンプレート
 
@@ -454,22 +452,22 @@ git push origin feature/{integration}
 
 以下の詳細ガイドは必要に応じて参照:
 
-- [references/testing-guide.md](references/testing-guide.md) - テスト方針（本番同等テスト、E2E 目視チェック）
-- [references/ui-approval-guide.md](references/ui-approval-guide.md) - UI 仕様の人間確認フロー
+- [references/testing-guide.md](references/testing-guide.md) - テスト方針（本番同等テスト、E2E目視チェック）
+- [references/ui-approval-guide.md](references/ui-approval-guide.md) - UI仕様の人間確認フロー
 - [references/best-practices.md](references/best-practices.md) - よくある問題と対策
-- [references/advanced-features.md](references/advanced-features.md) - Phase 分離、タイムライン可視化、計画書テンプレート
+- [references/advanced-features.md](references/advanced-features.md) - Phase分離、タイムライン可視化、計画書テンプレート
 
 ## Utility Scripts（ユーティリティスクリプト）
 
 よく使う操作を自動化するスクリプト。プロジェクトにコピーして使用する。
 
-| スクリプト                                                      | 用途                                                      |
-| --------------------------------------------------------------- | --------------------------------------------------------- |
-| [setup-quick-task.sh](references/scripts/setup-quick-task.sh)   | クイックタスクのセットアップ（worktree 作成、指示書生成） |
-| [watch-signals.sh](references/scripts/watch-signals.sh)         | .done/.issues ファイルの監視                              |
-| [status.sh](references/scripts/status.sh)                       | 全タスクの状態一覧表示                                    |
-| [update-dashboard.sh](references/scripts/update-dashboard.sh)   | README.md（進捗ダッシュボード）の自動更新                 |
-| [cleanup-worktrees.sh](references/scripts/cleanup-worktrees.sh) | 完了タスクのクリーンアップ                                |
+| スクリプト | 用途 |
+|-----------|------|
+| [setup-quick-task.sh](references/scripts/setup-quick-task.sh) | クイックタスクのセットアップ（worktree作成、指示書生成） |
+| [watch-signals.sh](references/scripts/watch-signals.sh) | .done/.issues ファイルの監視 |
+| [status.sh](references/scripts/status.sh) | 全タスクの状態一覧表示 |
+| [update-dashboard.sh](references/scripts/update-dashboard.sh) | README.md（進捗ダッシュボード）の自動更新 |
+| [cleanup-worktrees.sh](references/scripts/cleanup-worktrees.sh) | 完了タスクのクリーンアップ |
 
 ### 使用例
 
