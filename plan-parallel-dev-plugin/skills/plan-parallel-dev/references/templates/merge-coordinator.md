@@ -14,7 +14,7 @@
 ## 役割
 
 この claude は以下を担当する:
-- **作業用 claudeを tmux で起動**（別ペインで Claude Code を起動）
+- **作業用 claudeを `tmux split-window` で起動**（`new-window` は使用しない。必ずペイン分割で起動）
 - `.parallel-dev-signals/` の完了通知（.done ファイル）を監視
 - `.parallel-dev-issues/` の問題報告を監視し、担当を割り当て
 - **作業用 claudeの変更をコミット**
@@ -31,7 +31,8 @@
 ## 作業用 claudeの起動
 
 **重要**: 作業用 claudeは **Bash ツールで `tmux split-window` コマンドを実行** して起動する。
-**Task ツール（サブエージェント）は使用しない。**
+- **`tmux new-window` は使用しない**: 別ウィンドウではなく、必ずペイン分割で起動すること
+- **Task ツール（サブエージェント）は使用しない**: 必ず tmux コマンドで起動すること
 
 tmux 内で実行されているため、直接 `tmux split-window` で別ペインに Claude Code を起動できる。
 
@@ -43,15 +44,26 @@ tmux 内で実行されているため、直接 `tmux split-window` で別ペイ
 # PROJECT_ROOT を設定（現在のプロジェクトルートを記録）
 export PROJECT_ROOT=$(pwd)
 
+# ペインタイトルを表示（どのペインがどのタスクか識別しやすくする）
+tmux set-option pane-border-status top
+tmux set-option pane-border-format " #{pane_index}: #{pane_title} "
+
 # タスク1: worktree/recommendation-api で作業
 tmux split-window -h "cd worktree/recommendation-api && PROJECT_ROOT=$PROJECT_ROOT claude '../../.parallel-dev/tasks/recommendation-api.md を読んで実装してください。完了したら .done ファイルを作成してください。'"
+tmux select-pane -T "recommendation-api"
 
 # タスク2: worktree/notification-api で作業
 tmux split-window -h "cd worktree/notification-api && PROJECT_ROOT=$PROJECT_ROOT claude '../../.parallel-dev/tasks/notification-api.md を読んで実装してください。完了したら .done ファイルを作成してください。'"
+tmux select-pane -T "notification-api"
 
 # ペインレイアウトを調整
 tmux select-layout tiled
 ```
+
+**ペイン識別のポイント**:
+- `tmux set-option pane-border-status top`: ペイン上部にタイトルを表示
+- `tmux select-pane -T "タスク名"`: 各ペインにタスク名を設定
+- これにより、多くのペインがあっても どのペインがどのタスクか一目でわかる
 
 ### 依存タスクの起動
 
@@ -59,6 +71,7 @@ tmux select-layout tiled
 
 ```bash
 tmux split-window -h "cd worktree/project-card-enhance && PROJECT_ROOT=$PROJECT_ROOT claude '../../.parallel-dev/tasks/project-card-enhance.md を読んで実装してください。依存タスク recommendation-api はマージ済みです。完了したら .done ファイルを作成してください。'"
+tmux select-pane -T "project-card-enhance"
 ```
 
 ---
@@ -112,13 +125,15 @@ fi
 ### 監視対象ディレクトリ
 
 ```
-.parallel-dev/
-├── signals/           # 完了通知
+project-root/
+├── .parallel-dev-signals/     # 完了通知（プロジェクトルート直下）
 │   ├── task-a.done
 │   └── task-b.done
-└── issues/            # 問題報告
+└── .parallel-dev-issues/      # 問題報告（プロジェクトルート直下）
     └── task-c.md
 ```
+
+**注意**: `.parallel-dev/` 内ではなく、プロジェクトルート直下の `.parallel-dev-signals/` と `.parallel-dev-issues/` を監視する。
 
 ---
 
@@ -264,6 +279,7 @@ EOF
 
 # 2b-3. 作業用 claudeを再起動
 tmux split-window -h "cd worktree/{branch-name} && PROJECT_ROOT=$PROJECT_ROOT claude '$PROJECT_ROOT/.parallel-dev-issues/{branch-name}.md を読んで修正してください。完了したら .done ファイルを作成してください。'"
+tmux select-pane -T "{branch-name}-fix"
 ```
 
 ### 3. コンフリクト発生時
@@ -288,6 +304,7 @@ EOF
 
 # 作業用 claudeを再起動
 tmux split-window -h "cd worktree/{branch-name} && PROJECT_ROOT=$PROJECT_ROOT claude '$PROJECT_ROOT/.parallel-dev-issues/{branch-name}-conflict.md を読んでコンフリクトを解決してください。完了したら .done ファイルを作成してください。'"
+tmux select-pane -T "{branch-name}-conflict"
 ```
 
 3. **解決不能**: マージを中止し、人間に報告
@@ -336,28 +353,154 @@ tmux split-window -h "cd worktree/{branch-name} && PROJECT_ROOT=$PROJECT_ROOT cl
 ```bash
 # 依存先がマージされたので、依存タスクを起動
 tmux split-window -h "cd worktree/{dependent-branch} && PROJECT_ROOT=$PROJECT_ROOT claude '../../.parallel-dev/tasks/{dependent-branch}.md を読んで実装してください。依存タスク {merged-branch} はマージ済みです。完了したら .done ファイルを作成してください。'"
+tmux select-pane -T "{dependent-branch}"
 ```
 
 ---
 
-## 統合テスト
+## テスト方針
 
-### マージごとのテスト
+**原則: 本番に近い状態でテストする**
+
+モックではなく、実際の外部API・DBに接続してテストを実行する。
+
+### テスト環境
+
+| 項目 | 設定 |
+|------|------|
+| DATABASE_URL | {開発/ステージングDBの接続先} |
+| 外部APIキー | {テスト用APIキー} |
+| その他シークレット | `.env` に設定済み |
+
+**注意**: worktree には `.env` がコピーされているため、本番同等の接続情報が利用可能。
+
+### マージごとのテスト（本番同等）
+
+各タスクをマージする前に実行:
 
 ```bash
-# 各マージ後に実行
+# worktree/{branch-name}/ で実行
+
+# 1. Lint/型チェック（高速なチェック）
 {lint-command}
 {type-check-command}
-{unit-test-command}
+
+# 2. 本番同等テスト（外部API・DB接続あり）
+# .env から環境変数が読み込まれる
+{test-command}
 ```
+
+**テスト失敗時**: 統合ブランチへのマージを中止し、作業用 claude に修正を依頼。
 
 ### 全タスクマージ後のテスト
 
+すべてのタスクが統合ブランチにマージされた後:
+
 ```bash
-# すべてのタスクがマージされた後
-{integration-test-command}
+# プロジェクトルートで実行
+
+# 全体テスト（本番同等）
+{full-test-command}
+
+# E2Eテスト（ブラウザ/API経由）
 {e2e-test-command}
 ```
+
+### テストで確認すべきこと
+
+- [ ] 外部APIとの通信が正常に動作する
+- [ ] DBへの読み書きが正常に動作する
+- [ ] 認証・認可が正しく機能する
+- [ ] 複数機能間の連携が動作する
+
+### E2E 確認（dev-browser スキル）
+
+UIを含むタスクをマージする際は、dev-browser スキルでブラウザを操作し、**正常系フローの動作確認**と**目視確認**を行う。
+
+**手順**:
+
+```bash
+# 1. worktree で開発サーバーを起動（バックグラウンド）
+cd worktree/{branch-name}
+{dev-server-command} &
+
+# 2. dev-browser スキルを実行
+```
+
+dev-browser スキルで以下を実行:
+
+```
+/dev-browser
+
+# ブラウザ操作
+1. http://localhost:{port} にアクセス
+2. 該当機能の画面に遷移
+3. スクリーンショットを撮影
+4. 正常系フローを一通り実行（下記参照）
+5. 結果画面のスクリーンショットを撮影
+```
+
+#### 正常系フロー確認
+
+実際のユーザー操作を模倣して、主要な機能が正しく動作することを確認する。
+
+**確認すべき正常系フロー（例）**:
+
+| 機能種別 | 確認フロー |
+|----------|------------|
+| ログイン機能 | 正しい認証情報を入力 → ログインボタンをクリック → ダッシュボードに遷移することを確認 |
+| フォーム送信 | フォームに有効な値を入力 → 送信ボタンをクリック → 成功メッセージが表示されることを確認 |
+| CRUD操作 | 新規作成 → 一覧に表示される → 編集 → 変更が反映される → 削除 → 一覧から消えることを確認 |
+| 検索機能 | 検索キーワードを入力 → 検索実行 → 期待する結果が表示されることを確認 |
+| ナビゲーション | メニュー/リンクをクリック → 正しいページに遷移することを確認 |
+| データ表示 | ページを開く → APIからデータが取得される → 正しくレンダリングされることを確認 |
+
+**正常系フロー確認のポイント**:
+
+1. **ハッピーパスを優先**: まず最も一般的な成功ケースを確認
+2. **エンドツーエンド**: 操作開始から完了まで一連の流れを確認
+3. **データの永続化**: 作成・更新したデータが実際に保存されているか確認
+4. **画面遷移**: 操作後に正しい画面に遷移するか確認
+5. **フィードバック**: 成功メッセージ・ローディング表示など、適切なUIフィードバックがあるか確認
+
+**正常系確認の具体例**:
+
+```
+# 例: ユーザー登録機能の正常系フロー
+1. /register にアクセス
+2. 以下を入力:
+   - ユーザー名: testuser123
+   - メール: test@example.com
+   - パスワード: SecurePass123!
+3. 「登録」ボタンをクリック
+4. 確認:
+   - 「登録完了」メッセージが表示される
+   - ログインページまたはダッシュボードにリダイレクトされる
+   - 登録したユーザーでログインできる
+```
+
+#### 目視確認ポイント
+
+| 確認項目 | 内容 |
+|----------|------|
+| レイアウト | 崩れ、はみ出し、重なりがないか |
+| 表示内容 | 期待するテキスト・画像が表示されているか |
+| エラー表示 | 予期しないエラーメッセージがないか |
+| インタラクション | ボタン・リンクが正常に動作するか |
+| コンソール | ブラウザコンソールにエラーがないか |
+
+**E2E確認が必要なタスク**:
+
+- フロントエンド（UI）を含むタスク
+- 画面遷移・ナビゲーションに影響するタスク
+- レイアウト・スタイリングを変更するタスク
+- フォーム処理・データ送信を含むタスク
+- 認証・認可に関連するタスク
+
+**E2E確認が不要なタスク**:
+
+- バックエンドAPIのみのタスク（API テストで代替）
+- バッチ処理・CLIツールのタスク
 
 ---
 

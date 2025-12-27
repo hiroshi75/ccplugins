@@ -17,6 +17,9 @@
 このタスクはマージ担当から tmux 経由で起動される。
 作業ディレクトリ: `worktree/{branch-name}/`
 
+**環境変数 `PROJECT_ROOT`**: マージ担当が tmux 起動時に渡すプロジェクトルートへの絶対パス。
+`.done` ファイルは `$PROJECT_ROOT/.parallel-dev-signals/` に、問題報告は `$PROJECT_ROOT/.parallel-dev-issues/` に作成する（worktree 内ではなく親プロジェクトに作成）。
+
 ## 基本情報
 
 | 項目 | 内容 |
@@ -141,7 +144,7 @@ pnpm dev
 
 ```bash
 # .done ファイルを作成
-# PROJECT_ROOT は worktree 作成時に設定される環境変数
+# PROJECT_ROOT は tmux 起動時にマージ担当から渡される環境変数
 cat > $PROJECT_ROOT/.parallel-dev-signals/{branch-name}.done << 'EOF'
 【完了報告】{branch-name}
 

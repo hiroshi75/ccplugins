@@ -242,7 +242,7 @@ cd worktree/recommendation-api
 ```bash
 cd worktree/recommendation-api
 
-# PROJECT_ROOT は worktree 作成時に設定される環境変数
+# PROJECT_ROOT は tmux 起動時にマージ担当から渡される環境変数
 # signals ディレクトリがなければ作成
 mkdir -p $PROJECT_ROOT/.parallel-dev-signals
 
@@ -280,7 +280,7 @@ EOF
 問題が発生して作業を継続できない場合、プロジェクトルートの `.parallel-dev-issues/` に記録する。
 
 ```bash
-# PROJECT_ROOT は worktree 作成時に設定される環境変数
+# PROJECT_ROOT は tmux 起動時にマージ担当から渡される環境変数
 # issues ディレクトリがなければ作成
 mkdir -p $PROJECT_ROOT/.parallel-dev-issues
 
@@ -503,7 +503,7 @@ claude
 ".parallel-dev/merge-coordinator.md を読んで並列開発を開始して"
 ```
 
-マージ担当が依存関係を考慮して、tmux で作業用 claude を起動・管理する。
+マージ担当が依存関係を考慮して、`tmux split-window` で作業用 claude を起動・管理する（`new-window` は使用しない）。
 
 ## 並列開発完了後のクリーンアップ
 
@@ -614,3 +614,200 @@ rm -rf .parallel-dev/
 echo "クリーンアップ完了。"
 echo "ブランチの削除は手動で行ってください: git branch -d <branch-name>"
 ```
+
+---
+
+## クイックタスクモード（モード B）での worktree 運用
+
+クイックタスクモードでは、計画書なしで即座に worktree を作成してタスクを開始する。
+初期並列開発モード（モード A）との主な違いは以下の通り。
+
+### モード A と モード B の違い
+
+| 観点 | 初期並列開発（A） | クイックタスク（B） |
+|------|-------------------|---------------------|
+| 起点 | 計画書作成から開始 | 依頼を受けて即座に開始 |
+| worktree 作成 | 一斉に複数作成 | 必要時に都度作成 |
+| 統合ブランチ | 必須 | 不要（main に直接マージ） |
+| 計画書 | PLAN.md を作成 | 作成しない |
+| マージ先 | 統合ブランチ → main | main（または指定ブランチ）に直接 |
+| クリーンアップ | 全タスク完了後に一括 | 各タスク完了後に即座に |
+
+### クイックタスク用 worktree の作成
+
+```bash
+# タスク名を決定（kebab-case）
+TASK_NAME="fix-login-validation"
+BRANCH="fix/${TASK_NAME}"  # バグ修正なら fix/、機能追加なら feature/
+BASE_BRANCH="main"
+
+# ディレクトリ作成（初回のみ）
+mkdir -p .parallel-dev/tasks
+mkdir -p .parallel-dev-signals
+mkdir -p .parallel-dev-issues
+
+# .gitignore に追加（未追加の場合）
+grep -q ".parallel-dev-signals/" .gitignore 2>/dev/null || echo ".parallel-dev-signals/" >> .gitignore
+grep -q ".parallel-dev-issues/" .gitignore 2>/dev/null || echo ".parallel-dev-issues/" >> .gitignore
+grep -q "worktree/" .gitignore 2>/dev/null || echo "worktree/" >> .gitignore
+
+# worktree 作成
+git worktree add worktree/${TASK_NAME} -b ${BRANCH}
+
+# 環境セットアップ
+cp .env worktree/${TASK_NAME}/.env 2>/dev/null || true
+cd worktree/${TASK_NAME}
+
+# 依存関係インストール
+if [ -f "pyproject.toml" ]; then
+  uv sync
+elif [ -f "package.json" ]; then
+  pnpm install
+fi
+
+cd ../..
+```
+
+### クイックタスクのディレクトリ構造
+
+```
+project/
+├── .parallel-dev/                    # タスク管理（初回作成時に追加）
+│   └── tasks/
+│       └── fix-login-validation.md   # 簡易タスク指示書
+├── .parallel-dev-signals/            # 完了通知（.gitignore）
+│   └── fix-login-validation.done
+├── .parallel-dev-issues/             # 問題報告（.gitignore）
+│   └── fix-login-validation.md
+└── worktree/                         # worktree（.gitignore）
+    └── fix-login-validation/         # fix/fix-login-validation ブランチ
+```
+
+### 作業用 Claude の起動
+
+```bash
+export PROJECT_ROOT=$(pwd)
+
+# tmux ペインで起動
+tmux split-window -h "cd worktree/${TASK_NAME} && PROJECT_ROOT=$PROJECT_ROOT claude '../../.parallel-dev/tasks/${TASK_NAME}.md を読んで実装してください。完了したら .done ファイルを作成してください。'"
+tmux select-pane -T "${TASK_NAME}"
+```
+
+### 完了後のマージとクリーンアップ
+
+クイックタスクモードでは、各タスク完了後に即座にマージ・クリーンアップを行う:
+
+```bash
+TASK_NAME="fix-login-validation"
+BRANCH="fix/${TASK_NAME}"
+BASE_BRANCH="main"
+
+# 1. worktree で変更をコミット
+cd worktree/${TASK_NAME}
+git add .
+git commit -m "fix: ${TASK_NAME}"
+
+# 2. ベースブランチの最新を取り込み
+git fetch origin
+git merge origin/${BASE_BRANCH} --no-ff
+
+# 3. テスト実行
+{test-command}
+
+# 4. プッシュ
+git push origin ${BRANCH}
+
+# 5. ベースブランチにマージ
+cd ../..
+git checkout ${BASE_BRANCH}
+git pull origin ${BASE_BRANCH}
+git merge origin/${BRANCH} --no-ff
+git push origin ${BASE_BRANCH}
+
+# 6. クリーンアップ
+rm .parallel-dev-signals/${TASK_NAME}.done
+git worktree remove worktree/${TASK_NAME}
+git branch -d ${BRANCH}
+
+# リモートブランチも削除（オプション）
+git push origin --delete ${BRANCH}
+```
+
+### 複数クイックタスクの並列実行
+
+複数のタスクを同時に依頼された場合:
+
+```bash
+TASKS=("fix-login-validation" "add-logout-button" "update-header-style")
+export PROJECT_ROOT=$(pwd)
+
+# 各タスクのセットアップと起動
+for TASK in "${TASKS[@]}"; do
+  BRANCH="fix/${TASK}"
+
+  # worktree 作成
+  git worktree add worktree/${TASK} -b ${BRANCH}
+  cp .env worktree/${TASK}/.env 2>/dev/null || true
+
+  # 依存関係インストール
+  cd worktree/${TASK}
+  if [ -f "pyproject.toml" ]; then uv sync; fi
+  if [ -f "package.json" ]; then pnpm install; fi
+  cd ../..
+
+  # 指示書生成
+  cat > .parallel-dev/tasks/${TASK}.md << EOF
+# クイックタスク: ${TASK}
+
+## 基本情報
+| 項目 | 内容 |
+|------|------|
+| ブランチ | ${BRANCH} |
+| worktree | worktree/${TASK}/ |
+| ステータス | 作業中 |
+
+## 依頼内容
+{各タスクの依頼内容}
+
+## ルール
+- コミットしない
+- プッシュしない
+- 完了したら .done ファイルを作成
+EOF
+
+  # 作業用 Claude 起動
+  tmux split-window -h "cd worktree/${TASK} && PROJECT_ROOT=$PROJECT_ROOT claude '../../.parallel-dev/tasks/${TASK}.md を読んで実装してください。'"
+  tmux select-pane -T "${TASK}"
+done
+
+# レイアウト調整
+tmux select-layout tiled
+```
+
+### クイックタスクのポート割り当て
+
+クイックタスクモードでもポートの競合を避ける:
+
+```bash
+# 現在の worktree 数を確認
+CURRENT_COUNT=$(git worktree list | wc -l)
+
+# 次のインデックス
+INDEX=$CURRENT_COUNT
+
+# ポート設定
+PORT_BE=$((3000 + INDEX))
+PORT_FE=$((5173 + INDEX))
+
+cat > worktree/${TASK_NAME}/.env.local << EOF
+PORT=${PORT_BE}
+VITE_PORT=${PORT_FE}
+EOF
+```
+
+### テンプレート
+
+クイックタスクモード用のテンプレート:
+
+- [templates/quick-task-template.md](templates/quick-task-template.md) - 簡易タスク指示書
+- [templates/quick-task-coordinator.md](templates/quick-task-coordinator.md) - タスク受付・マージ担当

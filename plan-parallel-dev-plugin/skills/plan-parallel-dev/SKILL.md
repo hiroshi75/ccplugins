@@ -1,13 +1,47 @@
 ---
 name: plan-parallel-dev
-description: 複数開発者での並列開発計画書を作成するスキル。git worktree を活用したブランチ戦略、タスクの依存関係分析、クリティカルパス計算、開発者ロール割り当て、タイムライン作成を行う。「並列開発計画を作って」「複数人で同時開発したい」「worktree で分担したい」「開発を最大限並列化したい」などのリクエスト時に使用。
+description: 複数開発者での並列開発計画書を作成するスキル。git worktree を活用したブランチ戦略、タスクの依存関係分析、クリティカルパス計算、開発者ロール割り当て、タイムライン作成を行う。「並列開発計画を作って」「複数人で同時開発したい」「worktree で分担したい」「開発を最大限並列化したい」などのリクエスト時に使用。また、「〇〇を並列で修正して」「worktree で△△をやって」「並列タスクを追加」などのリクエストで、オンデマンドの並列タスクを即座に開始できる。
 ---
 
 # Parallel Development Planning
 
 機能開発を複数開発者で最大限並列化するための実装計画書を作成する。
+また、完成後のプロジェクトに対するオンデマンドの並列タスク（バグ修正・機能追加）もサポートする。
 
-## Workflow
+## 利用モード
+
+このスキルには 2 つのモードがある:
+
+### モード A: 初期並列開発（計画書作成モード）
+
+新規プロジェクトや大規模機能開発の初期段階で使用。
+
+**トリガーフレーズ**:
+
+- 「並列開発計画を作って」
+- 「複数人で同時開発したい」
+- 「worktree で分担したい」
+- 「開発を最大限並列化したい」
+
+**ワークフロー**: 9 段階のワークフロー（後述）で計画書を作成し、複数タスクを一斉に開始。
+
+### モード B: メンテナンス並列開発（クイックタスクモード）
+
+既存プロジェクトへのバグ修正・機能追加で使用。計画書なしで即座に作業を開始。
+
+**トリガーフレーズ**:
+
+- 「〇〇を並列で修正して」
+- 「〇〇を並列で対応して」
+- 「worktree で △△ をやって」
+- 「並列タスクを追加: 〇〇」
+- 「これを worktree でやって: 〇〇」
+
+**ワークフロー**: 詳細は「Quick Task Workflow（クイックタスク）」セクション参照。
+
+---
+
+## Workflow（モード A: 初期並列開発）
 
 ```
 1. 要件の把握
@@ -55,6 +89,35 @@ description: 複数開発者での並列開発計画書を作成するスキル�
    └─→ tmux 内で起動することを明示
    └─→ マージ担当の初期指示を伝える
 ```
+
+## Quick Task Workflow（モード B: クイックタスク）
+
+既存プロジェクトに対するバグ修正や機能追加を、計画書なしで即座に開始するモード。
+
+### ワークフロー概要
+
+```
+1. タスク受付 → タスク名を決定（kebab-case）
+2. 自動セットアップ → worktree 作成、環境設定、簡易指示書生成
+3. 作業用 claude を起動 → tmux split-window で起動
+4. 完了検知 → マージ → クリーンアップ
+```
+
+### モード A との違い
+
+| 観点     | 初期並列開発（A）   | クイックタスク（B）    |
+| -------- | ------------------- | ---------------------- |
+| 起点     | 計画書作成から開始  | 依頼を受けて即座に開始 |
+| 計画書   | PLAN.md を作成      | 作成しない             |
+| マージ先 | 統合ブランチ → main | main に直接マージ      |
+
+### 詳細ガイド・テンプレート
+
+- [references/templates/quick-task-template.md](references/templates/quick-task-template.md) - 簡易タスク指示書テンプレート
+- [references/templates/quick-task-coordinator.md](references/templates/quick-task-coordinator.md) - タスク受付・マージ担当用
+- [references/worktree-guide.md](references/worktree-guide.md) - クイックタスクモードでの worktree 運用
+
+---
 
 ## Terminology（用語定義）
 
@@ -263,7 +326,7 @@ worktree/
 
 ```bash
 # 作業完了時（コミットはしない）
-# PROJECT_ROOT は worktree 作成時に設定される環境変数
+# PROJECT_ROOT は tmux 起動時にマージ担当から渡される環境変数
 cat > $PROJECT_ROOT/.parallel-dev-signals/{branch-name}.done << 'EOF'
 【完了報告】{branch-name}
 
@@ -345,111 +408,6 @@ git push origin feature/{integration}
 
 テンプレート: [references/templates/issue-template.md](references/templates/issue-template.md)
 
-## Phased Task Design（オプション）
-
-**通常のフロー**: 依存タスクは依存先がマージされてから起動する。この場合、Phase 分離は不要。
-
-**Phase 分離を使うケース**: 並列性を最大化するため、依存タスクも最初から起動したい場合。
-
-### Phase 分離のパターン
-
-**例: フロントエンドがバックエンド API に依存するが、先行開始したい場合**
-
-```markdown
-## Phase 1: UI 実装（API 完成前）
-
-- [ ] モック API で UI 完成
-- [ ] .done ファイル作成（{branch-name}-phase1.done）
-
-## Phase 2: API 統合（依存 API 完成後）
-
-- [ ] 依存先がマージされたら開始
-- [ ] モック API を本番 API に置換
-- [ ] .done ファイル作成（{branch-name}.done）
-```
-
-### Phase 分離を使う判断基準
-
-以下の**すべて**を満たす場合のみ Phase 分離を検討:
-
-- 依存タスクの完了を待つと並列性が大きく低下する
-- モック/スタブを使った先行開発が可能
-- Phase 1 と Phase 2 の作業が明確に分離できる
-
-**通常は Phase 分離を使わず、依存先マージ後に起動する方がシンプル。**
-
-## Dependency Task Launch
-
-マージ担当は、依存先タスクをマージした後、依存タスクを tmux で起動する:
-
-```bash
-# 依存先がマージされたので、依存タスクを起動
-tmux split-window -h 'cd worktree/{dependent-branch} && claude "../../.parallel-dev/tasks/{dependent-branch}.md を読んで実装してください。依存タスク {dependency-branch} はマージ済みです。完了したら .done ファイルを作成してください。"'
-```
-
-## Timeline Visualization
-
-ユーザーにタイムラインを伝える際は、ASCII アート形式で視覚的に示す:
-
-```
-Day 1                Day 2                Day 3
-────────────────────────────────────────────────
-BE-1  ████████████████████████████  レビュー
-      BE-01: API実装 (2日)           ↓完了
-
-FE-1  ████████████████  ████████████████████████
-      FE-01: UI (1日)    FE-02: 統合 (1日)
-                         ↑ BE-01完了後
-```
-
-## Output Template
-
-### 計画書（ユーザーに伝える + ファイル保存）
-
-計画書の内容はユーザーに直接伝えつつ、`.parallel-dev/PLAN.md` にも保存する。
-構成の参考: [references/parallel-dev-template.md](references/parallel-dev-template.md)
-
-主要セクション:
-
-1. 概要・目標
-2. claude/ロール定義
-3. ブランチ戦略
-4. 作業一覧（タスク名・担当者付き）
-5. 並行開発タイムライン
-6. 依存関係マトリクス
-7. マージ順序
-8. 各タスク詳細仕様
-9. 完了定義 (Definition of Done)
-10. リスク管理
-
-### claude 指示書（ファイルに作成）
-
-計画書とは別に、各 claude 向けの指示書を `.parallel-dev/` にファイルとして作成:
-
-| テンプレート                                                          | 出力先                               | 用途         |
-| --------------------------------------------------------------------- | ------------------------------------ | ------------ |
-| [parallel-dev-readme.md](references/templates/parallel-dev-readme.md) | `.parallel-dev/README.md`            | 全体進捗管理 |
-| [merge-coordinator.md](references/templates/merge-coordinator.md)     | `.parallel-dev/merge-coordinator.md` | マージ担当用 |
-| [task-instruction.md](references/templates/task-instruction.md)       | `.parallel-dev/tasks/*.md`           | 各タスク用   |
-
-### Claude Code 起動手順を教える
-
-計画書作成後、ユーザーに以下を直接伝える（ファイルではなく会話で）:
-
-```
-## マージ担当の claude を起動
-
-**重要**: tmux 内で起動してください（作業用 claudeを別ペインで起動するため）
-
-プロジェクトルートで:
-tmux new-session -s parallel-dev
-claude
-
-初期指示: ".parallel-dev/merge-coordinator.md を読んで並列開発を開始して"
-```
-
-**注意**: 作業用 claude はマージ担当が `tmux split-window` で起動する。人間が個別に起動する必要はない。
-
 ## Rules（全 claude 共通）
 
 ### 作業用 claude のルール
@@ -463,6 +421,7 @@ claude
 ### マージ担当のルール
 
 - **作業用 claude は Bash ツールで `tmux split-window` を実行して起動**: 別ペインで Claude Code を起動
+- **`tmux new-window` は使用しない**: 別ウィンドウではなく、必ずペイン分割（`split-window`）で起動すること
 - **Task ツール（サブエージェント）は使用しない**: 必ず tmux コマンドで起動すること
 - **`--no-ff` で常にマージ**（マージコミットを残す）
 - **マージ順序**: 依存関係 > 変更範囲 > 完了順
@@ -491,202 +450,69 @@ claude
 | README.md の進捗         | マージコーディネーター | マージ後               |
 | 依存タスクの起動         | マージコーディネーター | 依存先マージ後         |
 
-## Asking Clarifying Questions
+## Additional Guides（詳細ガイド）
 
-計画作成前に確認すべき項目:
+以下の詳細ガイドは必要に応じて参照:
 
-1. **開発対象**: どの機能・改善を実装するか
-2. **技術スタック**: BE/FE/インフラの技術選定
-3. **開発者数**: 最大何名で開発可能か
-4. **既存資料**: PRD、設計書、改善案などの有無
-5. **制約**: 期限、依存する外部要因など
-6. **テストコマンド**: マージ後に実行するテストコマンド（例: `uv run pytest`, `pnpm test`）
+- [references/testing-guide.md](references/testing-guide.md) - テスト方針（本番同等テスト、E2E 目視チェック）
+- [references/ui-approval-guide.md](references/ui-approval-guide.md) - UI 仕様の人間確認フロー
+- [references/best-practices.md](references/best-practices.md) - よくある問題と対策
+- [references/advanced-features.md](references/advanced-features.md) - Phase 分離、タイムライン可視化、計画書テンプレート
 
-## UI Specification Approval（UI 仕様の人間確認）
+## Utility Scripts（ユーティリティスクリプト）
 
-**重要**: UI に関する仕様を決定する際は、必ず人間の確認を取ること。
+よく使う操作を自動化するスクリプト。プロジェクトにコピーして使用する。
 
-### 確認が必要な UI 決定事項
+| スクリプト                                                      | 用途                                                      |
+| --------------------------------------------------------------- | --------------------------------------------------------- |
+| [setup-quick-task.sh](references/scripts/setup-quick-task.sh)   | クイックタスクのセットアップ（worktree 作成、指示書生成） |
+| [watch-signals.sh](references/scripts/watch-signals.sh)         | .done/.issues ファイルの監視                              |
+| [status.sh](references/scripts/status.sh)                       | 全タスクの状態一覧表示                                    |
+| [update-dashboard.sh](references/scripts/update-dashboard.sh)   | README.md（進捗ダッシュボード）の自動更新                 |
+| [cleanup-worktrees.sh](references/scripts/cleanup-worktrees.sh) | 完了タスクのクリーンアップ                                |
 
-以下の項目は人間の承認なしに確定しない:
-
-| カテゴリ         | 確認が必要な項目                                       |
-| ---------------- | ------------------------------------------------------ |
-| レイアウト       | ページ構成、コンポーネント配置、グリッド設計           |
-| デザイン         | 色使い、フォント、アイコン選定、スタイリング方針       |
-| インタラクション | ボタン配置、フォーム設計、ナビゲーション構造           |
-| UX フロー        | 画面遷移、操作手順、エラー表示方法                     |
-| コンポーネント   | 新規 UI コンポーネントの設計、既存コンポーネントの変更 |
-
-### 確認フロー
-
-```
-1. UI仕様案の作成
-   └─→ claude がUI仕様案を作成
-   └─→ 選択肢がある場合は複数案を提示
-
-2. 人間への確認依頼
-   └─→ AskUserQuestion ツールを使用
-   └─→ 仕様案を具体的に説明（ワイヤーフレーム風記述も可）
-   └─→ 判断に必要な情報（トレードオフ等）を提示
-
-3. 承認後に実装開始
-   └─→ 人間の承認を得てからタスク指示書に記載
-   └─→ 承認内容を .parallel-dev/PLAN.md に記録
-```
-
-### 確認依頼のテンプレート
-
-```markdown
-【UI 仕様確認依頼】{機能名}
-
-## 概要
-
-{何の UI についての確認か}
-
-## 提案する仕様
-
-### 案 A: {案の名前}
-
-- レイアウト: {配置の説明}
-- 動作: {インタラクションの説明}
-- メリット: {利点}
-- デメリット: {欠点}
-
-### 案 B: {案の名前}（必要に応じて）
-
-...
-
-## 判断ポイント
-
-- {ユーザーが判断する際に考慮すべき点}
-
-## 推奨
-
-{claude の推奨案とその理由（任意）}
-```
-
-### 作業用 claude での UI 仕様確認
-
-作業用 claude がタスク実行中に UI 仕様を決める必要が生じた場合:
-
-1. **実装を一時停止**
-2. **`.parallel-dev-issues/{branch-name}.md` に確認依頼を記載**
-3. **マージ担当経由で人間に確認**
-4. **人間の回答を得てから実装再開**
-
-```markdown
-<!-- .parallel-dev-issues/{branch-name}.md -->
-
-【UI 仕様確認待ち】{branch-name}
-
-## 状況
-
-{branch-name} の実装中に以下の UI 仕様について判断が必要になりました。
-
-## 確認事項
-
-{上記テンプレートに沿った確認内容}
-
-## 現在のステータス
-
-- 実装: 一時停止中
-- 待ち: 人間からの UI 仕様承認
-```
-
-### ルール
-
-- **勝手に決めない**: UI の見た目・動作に関する決定は人間の承認が必須
-- **選択肢を提示**: 単一案ではなく、可能な限り複数案を提示
-- **根拠を説明**: 各案のメリット・デメリットを明確に
-- **推奨は明示**: claude の推奨がある場合は理由とともに明示
-- **承認を記録**: 人間の決定内容を PLAN.md に記録し、後から参照可能に
-
-## Lessons Learned / Best Practices
-
-並列開発で発生しやすい問題と対策。
-
-### 1. worktree とブランチの履歴分岐
-
-**問題**: 複数の worktree で作業中に統合ブランチが更新され、マージ時に履歴が分岐する。
-
-**対策**:
-
-- **コミット前に必ず統合ブランチの最新を取り込む**（fetch + merge/rebase）
-- worktree 内でのコミット後、プッシュ前に再度統合ブランチをマージ
-- マージコーディネーターが一元的にマージ順序を管理し、履歴の一貫性を保つ
+### 使用例
 
 ```bash
-# worktree でのコミット前チェック
-git fetch origin
-git merge origin/feature/{integration-branch} --no-ff
-# コンフリクトがあれば解決してからコミット
+# 1. スクリプトをプロジェクトにコピー
+cp -r /path/to/scripts .parallel-dev/scripts/
+chmod +x .parallel-dev/scripts/*.sh
+
+# 2. クイックタスクをセットアップ
+.parallel-dev/scripts/setup-quick-task.sh fix-login-validation
+
+# 3. シグナルを監視（完了待ち）
+.parallel-dev/scripts/watch-signals.sh
+
+# 4. 状態を確認
+.parallel-dev/scripts/status.sh
+
+# 5. ダッシュボードを更新
+.parallel-dev/scripts/update-dashboard.sh
+
+# 6. 完了タスクをクリーンアップ
+.parallel-dev/scripts/cleanup-worktrees.sh
 ```
 
-### 2. 統合ブランチの初期化
+### マージ担当のワークフロー
 
-**問題**: 統合ブランチがリモートに未プッシュだと、worktree から `origin/feature/{integration}` を参照できない。
-
-**対策**:
-
-- **並列開発開始時に統合ブランチをリモートにプッシュ**
-- merge-coordinator.md の初期セットアップ手順に明記
+マージ担当はスクリプトを使って効率的に作業できる:
 
 ```bash
-# 統合ブランチ作成後、すぐにプッシュ
-git checkout -b feature/integration main
-git push -u origin feature/integration
+# 1. 完了検知
+.parallel-dev/scripts/watch-signals.sh
+
+# 2. マージ処理（手動）
+cd worktree/{task-name}
+git add . && git commit -m "fix: {task-name}"
+git fetch origin && git merge origin/main --no-ff
+{test-command}
+git push origin {branch}
+
+# 3. ダッシュボード更新
+cd ../..
+.parallel-dev/scripts/update-dashboard.sh
+
+# 4. クリーンアップ
+.parallel-dev/scripts/cleanup-worktrees.sh {task-name}
 ```
-
-### 3. タスク指示書の精度
-
-**問題**: 指示書で参照しているファイルが存在しない、または実装状況が異なる。
-
-**対策**:
-
-- **タスク指示書作成時にファイル存在確認を必須化**
-- 「参考資料」セクションにファイルパスだけでなく、現在の実装状況も記載
-- 指示書作成前にコードベースを探索し、実際の構造を把握
-
-```markdown
-## 参考資料
-
-- 既存実装: `src/components/xxx.tsx`（現在のコンポーネント名: YyyComponent）
-- API: `backend/server.py` の `zzz_endpoint` 関数を参考に
-```
-
-### 4. 完了通知フローの明確化
-
-**問題**: .done ファイルの検知と処理タイミングが曖昧。
-
-**対策**:
-
-- **.done ファイル**: 作業用 claude が実装完了時に作成
-- **マージコーディネーター**: `.parallel-dev-signals/` を定期的に確認
-- 完了報告の内容を確認し、コミット・マージを実行
-
-### 5. 並列度の最適化
-
-**問題**: 依存関係を厳密に守りすぎて、並列性が低下する。
-
-**対策**:
-
-- **依存関係のない部分は可能な限り同時に開始**
-- BE/FE 連携でも、FE のコンポーネント設計・スタイリングは BE 完了前に開始可能
-- タスク分解時に「先行可能な作業」と「依存待ちの作業」を明確に分離
-
-```
-例: FE タスクの分解
-- Phase 1（BE 完了前に開始可能）: UI コンポーネント作成、スタイリング、モック接続
-- Phase 2（BE 完了後）: 本番 API 接続、エラーハンドリング調整
-```
-
-### 6. マージコーディネーターの単一責任
-
-**問題**: マージコーディネーターが実装作業まで行うと、並列性のメリットが失われる。
-
-**対策**:
-
-- マージコーディネーターは**調整・マージ・テストに専念**
-- 実装は作業用 claude に委譲
-- 複雑な修正が必要な場合は、新たな作業用 claude を tmux で起動
