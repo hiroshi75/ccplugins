@@ -104,18 +104,12 @@ FE-1  ████████████████  ████████
 
 ## Claude Code 起動手順
 
-計画書作成後、ユーザーに以下を直接伝える（ファイルではなく会話で）:
+計画書作成後、ユーザーに以下の tmux コマンドを実行するよう伝える:
 
-```
-## マージ担当の claude を起動
-
-**重要**: tmux 内で起動してください（作業用 claudeを別ペインで起動するため）
-
-プロジェクトルートで:
-tmux new-session -s parallel-dev
-claude
-
-初期指示: ".parallel-dev/merge-coordinator.md を読んで並列開発を開始して"
+```bash
+# プロジェクトルートでマージ担当を起動（tmux セッション内で実行すること）
+export PROJECT_ROOT=$(pwd)
+tmux split-window -h "cd $PROJECT_ROOT && claude '.parallel-dev/merge-coordinator.md を読んで並列開発を開始して'"
 ```
 
 **注意**: 作業用 claude はマージ担当が `tmux split-window` で起動する。人間が個別に起動する必要はない。

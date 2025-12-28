@@ -14,7 +14,7 @@ description: 複数開発者での並列開発計画書を作成するスキル�
 
 ### モード A: 初期並列開発（計画書作成モード）
 
-新規プロジェクトや大規模機能開発の初期段階で使用。
+プロジェクト初期化直後（`uv init` や `create-react-app` 直後など）で、これから複数機能を並列開発する場合に使用。
 
 **トリガーフレーズ**:
 - 「並列開発計画を作って」
@@ -26,7 +26,7 @@ description: 複数開発者での並列開発計画書を作成するスキル�
 
 ### モード B: メンテナンス並列開発（クイックタスクモード）
 
-既存プロジェクトへのバグ修正・機能追加で使用。計画書なしで即座に作業を開始。
+すでに機能が実装されているプロジェクトへのバグ修正・機能追加で使用。計画書なしで即座に作業を開始。
 
 **トリガーフレーズ**:
 - 「〇〇を並列で修正して」
@@ -36,6 +36,14 @@ description: 複数開発者での並列開発計画書を作成するスキル�
 - 「これを worktree でやって: 〇〇」
 
 **ワークフロー**: 詳細は「Quick Task Workflow（クイックタスク）」セクション参照。
+
+### モード選択の目安
+
+| 状況 | 推奨モード |
+|------|-----------|
+| プロジェクト初期化直後、複数機能を並列開発 | A |
+| 既存プロジェクトへの単発バグ修正 | B（単一タスク） |
+| 既存プロジェクトへの中規模機能追加 | B（複数タスク + マージ担当を設ける） |
 
 ---
 
@@ -48,7 +56,10 @@ description: 複数開発者での並列開発計画書を作成するスキル�
 
 2. タスク分解
    └─→ 各機能を独立したタスクに分割
-   └─→ 粒度: 0.5〜2日程度の作業単位
+   └─→ 粒度: 以下のいずれか小さい方
+       ├─→ 人間換算 0.5〜2日程度
+       ├─→ 変更ファイル 20ファイル以内
+       └─→ 単独テスト可能な機能単位
    └─→ ⚠️ UI仕様は人間の確認を取ってから確定（後述）
 
 3. 依存関係分析
@@ -68,7 +79,7 @@ description: 複数開発者での並列開発計画書を作成するスキル�
    └─→ Gantt風の並列スケジュール
 
 7. 計画書・指示書の作成
-   └─→ 計画書の内容をユーザーに直接伝える（会話で）
+   └─→ 計画書の内容をユーザーに伝える（実行順序、並列度、各タスクの内容を表形式で提示）
    └─→ .parallel-dev/ にファイルを作成
        ├─→ PLAN.md (計画書)
        ├─→ README.md (全体概要・進捗管理)
@@ -81,11 +92,11 @@ description: 複数開発者での並列開発計画書を作成するスキル�
    └─→ 統合ブランチを作成してリモートにプッシュ
    └─→ 各タスク用の worktree を作成
    └─→ 各 worktree で依存関係インストール
-   └─→ 各 worktree で .env コピー、.env.local 作成
+   └─→ 各 worktree で .env コピー
 
-9. Claude Code 起動手順を伝える（会話で）
-   └─→ tmux 内で起動することを明示
-   └─→ マージ担当の初期指示を伝える
+9. マージ担当の Claude を tmux split-window で起動
+   └─→ tmux split-window で新しいペインを作成し claude を起動
+   └─→ マージ担当の初期指示を渡す
 ```
 
 ## Quick Task Workflow（モード B: クイックタスク）
@@ -134,7 +145,10 @@ description: 複数開発者での並列開発計画書を作成するスキル�
 タスク分割の原則:
 
 1. **単一責任**: 1 タスク = 1 機能/1 コンポーネント
-2. **適切な粒度**: 0.5 日〜2 日の作業量
+2. **適切な粒度**: 以下のいずれか小さい方
+   - 人間換算 0.5〜2日程度
+   - 変更ファイル 20ファイル以内
+   - 単独テスト可能な機能単位
 3. **明確な成果物**: 各タスクに API/コンポーネント/ファイル等の具体的成果物
 4. **テスト可能**: 独立してテスト・レビュー可能な単位
 
@@ -219,23 +233,15 @@ worktree 作成後、各ディレクトリで開発環境を準備する:
 
 1. **依存関係インストール**: `uv sync` / `pnpm install` など
 2. **secrets コピー**: プロジェクトルートの `.env` を worktree にコピー
-3. **ポート設定**: `.env.local` に worktree 固有のポート番号を設定
 
 ```bash
 # 例: worktree作成 + 環境セットアップ
 BRANCH=api-a
-INDEX=1
 
 git worktree add worktree/$BRANCH -b feature/$BRANCH
 cp .env worktree/$BRANCH/.env
-cat > worktree/$BRANCH/.env.local << EOF
-PORT=$((3000 + INDEX))
-VITE_PORT=$((5173 + INDEX))
-EOF
 cd worktree/$BRANCH && uv sync && cd ../..
 ```
-
-ポート番号割り当ての詳細は [references/templates/env-local-template.md](references/templates/env-local-template.md) 参照。
 
 ブランチ構造:
 
@@ -358,8 +364,7 @@ git merge origin/feature/{integration} --no-ff
 
 # 4. コンフリクトがあれば解決（または作業用 claudeに依頼）
 
-# 5. テスト実行
-{test-command}
+# 5. テスト実行（ユーザーの指示に応じてテストコマンドを実行）
 
 # 6. テスト失敗時 → 作業用 claudeに修正依頼して終了
 
@@ -375,7 +380,6 @@ git push origin feature/{integration}
 # 9. 状態更新
 # - タスク指示書のステータスを「マージ済」に
 # - README.md の進捗を更新
-# - 依存元タスクに通知
 ```
 
 ### テスト失敗時の対応
@@ -413,25 +417,29 @@ git push origin feature/{integration}
 - **コミットしない**: コードを書くだけ。コミットはマージ担当が行う
 - **プッシュしない**: リモートへのプッシュもマージ担当が行う
 - **.done ファイルで完了報告**: 実装内容と変更ファイルを記載
-- **依存タスクが未完了なら待機**: マージ担当からの通知を待つ
 - **UI 仕様は人間の承認必須**: UI の見た目・動作の決定は勝手に行わない。issues/ に確認依頼を出し、人間の承認を得てから実装する（詳細は「UI Specification Approval」セクション参照）
 
 ### マージ担当のルール
 
 - **作業用 claude は Bash ツールで `tmux split-window` を実行して起動**: 別ペインで Claude Code を起動
+- **claude 起動時は必ず初期指示を引数で渡す**: 引数なしで起動しない。以下の形式で指示書パスを渡す:
+  ```bash
+  tmux split-window -h "cd worktree/{task-name} && PROJECT_ROOT=$PROJECT_ROOT claude '../../.parallel-dev/tasks/{task-name}.md を読んで実装してください。完了したら .done ファイルを作成してください。'"
+  ```
 - **`tmux new-window` は使用しない**: 別ウィンドウではなく、必ずペイン分割（`split-window`）で起動すること
 - **Task ツール（サブエージェント）は使用しない**: 必ず tmux コマンドで起動すること
 - **`--no-ff` で常にマージ**（マージコミットを残す）
 - **マージ順序**: 依存関係 > 変更範囲 > 完了順
 - **テスト必須**: 統合ブランチマージ後、必ずテストを実行
-- **テスト失敗時**: 作業用 claude に修正依頼、統合ブランチへのマージは中止
-- **コンフリクト対応**: 軽微なら自分で解決、複雑なら作業用 claude に依頼
-- **UI 仕様確認の中継**: 作業用 claude から issues/ に UI 仕様確認依頼が出されたら、AskUserQuestion ツールで人間に確認を取り、回答を作業用 claude に伝達する
+- **テスト失敗時**: 作業用 claude に `tmux send-keys` で修正依頼を送信、統合ブランチへのマージは中止
+- **コンフリクト対応**: マージ担当が自分で解決する（作業用 claude は全体の状況を把握していないため）
+- **UI 仕様確認の中継**: 作業用 claude から issues/ に UI 仕様確認依頼が出されたら、AskUserQuestion ツールで人間に確認を取り、回答を `tmux send-keys` で作業用 claude に伝達する
+- **作業用 claude の終了**: マージ成功後、`tmux send-keys` で `Ctrl+C` を2回送信して作業用 claude を終了させる
 
 ### 依存関係ルール
 
-- 依存タスクが**統合ブランチにマージされるまで**開始しない
-- マージ担当が依存タスクの完了を通知するまで待機
+- 依存タスクが**統合ブランチにマージされるまで**、依存元タスクの作業用 claude は起動しない
+- マージ担当が依存タスクのマージ完了後に、依存元タスクの作業用 claude を起動する
 
 ### ポート割り当てルール
 
@@ -449,8 +457,6 @@ git push origin feature/{integration}
 | 依存タスクの起動         | マージコーディネーター | 依存先マージ後         |
 
 ## Additional Guides（詳細ガイド）
-
-以下の詳細ガイドは必要に応じて参照:
 
 - [references/testing-guide.md](references/testing-guide.md) - テスト方針（本番同等テスト、E2E目視チェック）
 - [references/ui-approval-guide.md](references/ui-approval-guide.md) - UI仕様の人間確認フロー
@@ -504,7 +510,7 @@ chmod +x .parallel-dev/scripts/*.sh
 cd worktree/{task-name}
 git add . && git commit -m "fix: {task-name}"
 git fetch origin && git merge origin/main --no-ff
-{test-command}
+# テスト実行（ユーザーの指示に応じてテストコマンドを実行）
 git push origin {branch}
 
 # 3. ダッシュボード更新

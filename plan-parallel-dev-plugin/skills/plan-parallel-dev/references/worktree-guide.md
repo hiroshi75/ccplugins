@@ -487,20 +487,15 @@ git worktree prune
 
 Claude Code で複数の worktree を使って並列開発する場合:
 
-1. **tmux セッション内で起動**（作業用 claude を別ペインで起動するため必須）
-2. **人間はマージ担当の claude のみを起動**
+1. **tmux セッション内で実行**（作業用 claude を別ペインで起動するため必須）
+2. **人間は `tmux split-window` でマージ担当の claude のみを起動**
 3. **マージ担当が Bash ツールで `tmux split-window` を実行** して作業用 claude を起動・管理
 4. **Task ツール（サブエージェント）は使用しない**
 
 ```bash
-# tmux セッションを開始
-tmux new-session -s parallel-dev
-
-# プロジェクトルートでマージ担当を起動
-claude
-
-# 初期指示
-".parallel-dev/merge-coordinator.md を読んで並列開発を開始して"
+# プロジェクトルートでマージ担当を起動（tmux セッション内で実行すること）
+export PROJECT_ROOT=$(pwd)
+tmux split-window -h "cd $PROJECT_ROOT && claude '.parallel-dev/merge-coordinator.md を読んで並列開発を開始して'"
 ```
 
 マージ担当が依存関係を考慮して、`tmux split-window` で作業用 claude を起動・管理する（`new-window` は使用しない）。
