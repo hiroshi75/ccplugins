@@ -1,7 +1,7 @@
 {
   "name": "plan-parallel-dev-plugin",
   "description": "Skill for creating parallel development plans with multiple developers using git worktree, dependency analysis, critical path calculation, and timeline creation.",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "author": {
     "name": "Hiroshi Ayukawa"
   }

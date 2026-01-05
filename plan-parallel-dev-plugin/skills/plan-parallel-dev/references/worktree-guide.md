@@ -1,6 +1,6 @@
 # Git Worktree を使った並列開発ガイド
 
-git worktree を使うと、1つのリポジトリから複数のブランチを同時にチェックアウトし、並列で開発できる。
+git worktree を使うと、1 つのリポジトリから複数のブランチを同時にチェックアウトし、並列で開発できる。
 
 ## 基本コマンド
 
@@ -97,27 +97,28 @@ claude による並列開発では、各 claude への指示書を `.parallel-de
 
 **ファイルの対応関係:**
 
-| 指示書 | worktree | ブランチ |
-|--------|----------|----------|
+| 指示書                                      | worktree                       | ブランチ                     |
+| ------------------------------------------- | ------------------------------ | ---------------------------- |
 | `.parallel-dev/tasks/recommendation-api.md` | `worktree/recommendation-api/` | `feature/recommendation-api` |
-| `.parallel-dev/tasks/notification-api.md` | `worktree/notification-api/` | `feature/notification-api` |
+| `.parallel-dev/tasks/notification-api.md`   | `worktree/notification-api/`   | `feature/notification-api`   |
 
 **各ファイルの役割:**
 
-| ファイル | 対象 | 内容 |
-|----------|------|------|
-| `README.md` | 全 claude・人間 | 全体進捗、タスク一覧、依存関係図 |
-| `merge-coordinator.md` | マージ担当 | マージ順序、コンフリクト対応方針 |
-| `tasks/*.md` | 作業用 claude | 実装仕様、依存関係、完了条件 |
+| ファイル               | 対象            | 内容                             |
+| ---------------------- | --------------- | -------------------------------- |
+| `README.md`            | 全 claude・人間 | 全体進捗、タスク一覧、依存関係図 |
+| `merge-coordinator.md` | マージ担当      | マージ順序、コンフリクト対応方針 |
+| `tasks/*.md`           | 作業用 claude   | 実装仕様、依存関係、完了条件     |
 
 テンプレートは以下を参照:
+
 - [templates/parallel-dev-readme.md](templates/parallel-dev-readme.md)
 - [templates/merge-coordinator.md](templates/merge-coordinator.md)
 - [templates/task-instruction.md](templates/task-instruction.md)
 
 ### 5. worktree の環境セットアップ
 
-worktree作成後、各ディレクトリで開発環境を準備する。
+worktree 作成後、各ディレクトリで開発環境を準備する。
 
 #### 依存関係のインストール
 
@@ -136,8 +137,8 @@ npm install
 
 #### 環境変数ファイルのセットアップ
 
-プロジェクトルートの `.env`（APIキーなどのsecrets）を各worktreeにコピーし、
-ポート番号などの非secretsは `.env.local` で上書きする。
+プロジェクトルートの `.env`（API キーなどの secrets）を各 worktree にコピーし、
+ポート番号などの非 secrets は `.env.local` で上書きする。
 
 ```bash
 # .env をコピー（secrets）
@@ -152,70 +153,47 @@ EOF
 
 #### ポート番号の割り当て
 
-各worktreeで開発サーバーが衝突しないよう、異なるポートを割り当てる:
+各 worktree で開発サーバーが衝突しないよう、異なるポートを割り当てる:
 
-| worktree | バックエンドポート | フロントエンドポート |
-|----------|-------------------|---------------------|
-| (プロジェクトルート) | 3000 | 5173 |
-| recommendation-api | 3001 | 5174 |
-| notification-api | 3002 | 5175 |
-| project-card-enhance | 3003 | 5176 |
-| search-filter | 3004 | 5177 |
+| worktree             | バックエンドポート | フロントエンドポート |
+| -------------------- | ------------------ | -------------------- |
+| (プロジェクトルート) | 3000               | 5173                 |
+| recommendation-api   | 3001               | 5174                 |
+| notification-api     | 3002               | 5175                 |
+| project-card-enhance | 3003               | 5176                 |
+| search-filter        | 3004               | 5177                 |
 
 #### セットアップの自動化
 
-worktree作成時に環境セットアップも行う例:
+`scripts/setup-worktree.sh` を使用:
 
 ```bash
-# worktree作成 + 環境セットアップ（Python/uv）
-BRANCH=recommendation-api
-PORT_BE=3001
-PORT_FE=5174
+# 基本使用（ポート自動割り当て）
+./scripts/setup-worktree.sh recommendation-api
 
-git worktree add worktree/$BRANCH -b feature/$BRANCH
-cp .env worktree/$BRANCH/.env
-cat > worktree/$BRANCH/.env.local << EOF
-PROJECT_ROOT=$(pwd)
-PORT=$PORT_BE
-VITE_PORT=$PORT_FE
-EOF
-cd worktree/$BRANCH && uv sync && cd ../..
-```
+# ポート指定
+./scripts/setup-worktree.sh recommendation-api 3001 5174
 
-```bash
-# worktree作成 + 環境セットアップ（Node.js/pnpm）
-BRANCH=project-card-enhance
-PORT_BE=3003
-PORT_FE=5176
-
-git worktree add worktree/$BRANCH -b feature/$BRANCH
-cp .env worktree/$BRANCH/.env
-cat > worktree/$BRANCH/.env.local << EOF
-PROJECT_ROOT=$(pwd)
-PORT=$PORT_BE
-VITE_PORT=$PORT_FE
-EOF
-cd worktree/$BRANCH && pnpm install && cd ../..
+# fix/ プレフィックスでブランチ作成
+./scripts/setup-worktree.sh login-bug 3001 5174 fix
 ```
 
 **重要**: `PROJECT_ROOT` は worktree から親プロジェクトのルートを参照するために必要。
 `.parallel-dev-signals/` や `.parallel-dev-issues/` へのパス解決に使用される。
 
-テンプレート: [templates/env-local-template.md](templates/env-local-template.md)
-
 ## 作業フロー
 
 ### 役割分担
 
-| 役割 | 作業用 claude | マージ担当 |
-|------|------------------|------------|
-| コード実装 | ✅ | - |
-| .done ファイル作成 | ✅ | - |
-| git commit | - | ✅ |
-| git fetch/merge (統合ブランチ) | - | ✅ |
-| テスト実行 | - | ✅ |
-| git push | - | ✅ |
-| 統合ブランチへのマージ | - | ✅ |
+| 役割                           | 作業用 claude | マージ担当 |
+| ------------------------------ | ------------- | ---------- |
+| コード実装                     | ✅            | -          |
+| .done ファイル作成             | ✅            | -          |
+| git commit                     | -             | ✅         |
+| git fetch/merge (統合ブランチ) | -             | ✅         |
+| テスト実行                     | -             | ✅         |
+| git push                       | -             | ✅         |
+| 統合ブランチへのマージ         | -             | ✅         |
 
 **設計思想**: 作業用 claude はコードを書くことに集中。マージ順序の管理はマージ担当のみが把握。
 
@@ -237,38 +215,18 @@ cd worktree/recommendation-api
 ### 完了通知（.done ファイル）
 
 実装完了後、プロジェクトルートの `.parallel-dev-signals/` に完了通知ファイルを作成する。
-**コミットは不要**。実装内容を報告書として記載する。
+**コミットは不要**。
+
+`scripts/create-done-file.sh` を使用:
 
 ```bash
+# worktree 内で実行
 cd worktree/recommendation-api
-
-# PROJECT_ROOT は tmux 起動時にマージ担当から渡される環境変数
-# signals ディレクトリがなければ作成
-mkdir -p $PROJECT_ROOT/.parallel-dev-signals
-
-# .done ファイルを作成
-cat > $PROJECT_ROOT/.parallel-dev-signals/recommendation-api.done << 'EOF'
-【完了報告】recommendation-api
-
-## 実装内容
-- レコメンドAPIエンドポイント（GET /api/v1/recommendations）
-- レコメンドサービス（src/services/recommendation.py）
-- テスト（tests/test_recommendations.py）
-
-## 変更ファイル
-- src/api/recommendations.py
-- src/services/recommendation.py
-- tests/test_recommendations.py
-
-## 動作確認
-ローカルでの動作確認: OK
-
-## 備考
-特になし
-EOF
+../../scripts/create-done-file.sh recommendation-api "APIエンドポイント実装完了"
 ```
 
 マージ担当はこのファイルを検知して、以下を実行する:
+
 1. worktree に移動してコミット
 2. 統合ブランチをマージ
 3. テスト実行
@@ -279,42 +237,13 @@ EOF
 
 問題が発生して作業を継続できない場合、プロジェクトルートの `.parallel-dev-issues/` に記録する。
 
+`scripts/create-issue-file.sh` を使用:
+
 ```bash
-# PROJECT_ROOT は tmux 起動時にマージ担当から渡される環境変数
-# issues ディレクトリがなければ作成
-mkdir -p $PROJECT_ROOT/.parallel-dev-issues
-
-# issue ファイルを作成
-cat > $PROJECT_ROOT/.parallel-dev-issues/recommendation-api.md << 'EOF'
-# Issue: recommendation-api
-
-## 発生日時
-2025-01-16 14:30
-
-## 状況
-ビルドエラー / テスト失敗 / 依存タスクの問題 / その他
-
-## エラー内容
-```
-（エラーメッセージをここに貼り付け）
-```
-
-## 影響範囲
-- このタスク: recommendation-api
-- 依存しているタスク: project-card-enhance
-
-## 試した対応
-1. xxx を試したが解決せず
-2. yyy を確認したが問題なし
-
-## 必要な対応
-- [ ] 他タスクとの調整が必要
-- [ ] 新しいブランチ/worktree が必要
-- [ ] 人間のエスカレーションが必要
-
-## 担当
-（マージ担当が割り当てる）
-EOF
+# worktree 内で実行
+cd worktree/recommendation-api
+../../scripts/create-issue-file.sh recommendation-api "ビルドエラー"
+# → エディタで詳細を編集
 ```
 
 **マージ担当の対応:**
@@ -322,12 +251,6 @@ EOF
 1. `.parallel-dev-issues/` を監視
 2. 問題の内容を確認し、担当を割り当て
 3. 必要に応じて新しい worktree/ブランチを作成
-4. `.parallel-dev/` 内のファイルを更新:
-   - `README.md`: タスク一覧に追加
-   - `merge-coordinator.md`: マージ順序を更新
-   - `tasks/`: 新しいタスク指示書を作成
-
-テンプレート: [templates/issue-template.md](templates/issue-template.md)
 
 ### 統合ブランチへのマージ
 
@@ -349,12 +272,12 @@ git merge feature/notification-api
 
 **マージ順序を決める基準:**
 
-| 優先度 | 基準 | 説明 |
-|--------|------|------|
-| 1 | **依存関係** | 他のブランチが依存するブランチを先にマージ |
-| 2 | **変更範囲** | 広範囲の変更を先に、小さい変更で調整 |
-| 3 | **コンフリクトリスク** | 同じファイルを変更するブランチ間の順序を考慮 |
-| 4 | **完了順** | 上記に該当しなければ完了した順 |
+| 優先度 | 基準                   | 説明                                         |
+| ------ | ---------------------- | -------------------------------------------- |
+| 1      | **依存関係**           | 他のブランチが依存するブランチを先にマージ   |
+| 2      | **変更範囲**           | 広範囲の変更を先に、小さい変更で調整         |
+| 3      | **コンフリクトリスク** | 同じファイルを変更するブランチ間の順序を考慮 |
+| 4      | **完了順**             | 上記に該当しなければ完了した順               |
 
 **依存関係の例:**
 
@@ -388,6 +311,7 @@ feature/project-card-enhance  ← 後でマージ（APIを利用するUI）
 作業用 claude は依存タスクの完了通知を待ち、Phase 2 の実装を開始する。
 
 **マージ担当の手順:**
+
 ```bash
 # 対象の worktree で
 cd worktree/project-card-enhance
@@ -403,25 +327,7 @@ git merge origin/feature/ui-improvements --no-ff
 
 ## ルール
 
-### 作業用 claude のルール
-
-- **コミットしない**: コードを書くだけ。コミットはマージ担当が行う
-- **プッシュしない**: リモートへのプッシュもマージ担当が行う
-- **.done ファイルで完了報告**: 実装内容と変更ファイルを記載
-
-### マージ担当のルール
-
-- **コミット前に必ず統合ブランチの最新を取り込む**: `git fetch origin && git merge origin/feature/{integration} --no-ff`
-- **`--no-ff` で常にマージ**: マージコミットを残し、履歴を明確にする
-- **マージ順序**: 依存関係 > 変更範囲 > 完了順
-- **テスト必須**: 統合ブランチマージ後、必ずテストを実行
-- **テスト失敗時**: 作業用 claude に `tmux send-keys` で修正依頼
-- **コンフリクト対応**: マージ担当が自分で解決する
-
-### 依存関係ルール
-
-- **依存タスクがマージされるまで起動しない**: マージ担当が依存タスクのマージ完了後に作業用 claude を起動
-- **依存先ブランチを直接 checkout/merge しない**: 常に `origin/feature/integration` から取り込む
+→ **[SKILL.md の Rules セクション](../SKILL.md#rules全-claude-共通) を参照**
 
 ## 注意点
 
@@ -482,17 +388,21 @@ git worktree prune
 Claude Code で複数の worktree を使って並列開発する場合:
 
 1. **tmux セッション内で実行**（作業用 claude を別ペインで起動するため必須）
-2. **人間は `tmux split-window` でマージ担当の claude のみを起動**
-3. **マージ担当が Bash ツールで `tmux split-window` を実行** して作業用 claude を起動・管理
+2. **人間は `scripts/start-coordinator.sh` でマージ担当のみを起動**
+3. **マージ担当が `scripts/start-worker.sh` で作業用 claude を起動・管理**
 4. **Task ツール（サブエージェント）は使用しない**
 
 ```bash
-# プロジェクトルートでマージ担当を起動（tmux セッション内で実行すること）
-export PROJECT_ROOT=$(pwd)
-tmux split-window -h "cd $PROJECT_ROOT && claude '.parallel-dev/merge-coordinator.md を読んで並列開発を開始して'"
-```
+# マージ担当を起動（tmux セッション内で実行すること）
+./scripts/start-coordinator.sh
 
-マージ担当が依存関係を考慮して、`tmux split-window` で作業用 claude を起動・管理する（`new-window` は使用しない）。
+# 作業用 claude を起動（マージ担当が実行）
+./scripts/start-worker.sh recommendation-api
+./scripts/start-worker.sh notification-api
+
+# マージ完了後、作業用 claude を終了
+./scripts/stop-worker.sh recommendation-api
+```
 
 ## 並列開発完了後のクリーンアップ
 
@@ -507,296 +417,35 @@ tmux split-window -h "cd $PROJECT_ROOT && claude '.parallel-dev/merge-coordinato
 - [ ] 統合テストがパス
 - [ ] `.parallel-dev-issues/` に未解決の issue がない
 
-### worktree の削除
+### クリーンアップの実行
+
+`scripts/cleanup-parallel-dev.sh` を使用:
 
 ```bash
-# プロジェクトルートで実行
+# 確認ありでクリーンアップ
+./scripts/cleanup-parallel-dev.sh
 
-# 1. worktree 一覧を確認
-git worktree list
-
-# 2. 各 worktree を削除
-git worktree remove worktree/recommendation-api
-git worktree remove worktree/notification-api
-git worktree remove worktree/project-card-enhance
-git worktree remove worktree/search-filter
-
-# 3. worktree ディレクトリが残っていれば削除
-rm -rf worktree/
-
-# 4. worktree の整理（孤立した参照を削除）
-git worktree prune
+# 確認なしでクリーンアップ
+./scripts/cleanup-parallel-dev.sh --force
 ```
 
-### ブランチの削除
+**注意**: ブランチの削除は手動で行う:
 
 ```bash
-# ローカルブランチを削除
 git branch -d feature/recommendation-api
 git branch -d feature/notification-api
-git branch -d feature/project-card-enhance
-git branch -d feature/search-filter
-git branch -d feature/integration
-
-# リモートブランチを削除（必要に応じて）
-git push origin --delete feature/recommendation-api
-git push origin --delete feature/notification-api
-git push origin --delete feature/project-card-enhance
-git push origin --delete feature/search-filter
-git push origin --delete feature/integration
-```
-
-### .parallel-dev/ の削除
-
-すべてのタスクが完了したら `.parallel-dev/` ディレクトリを削除する。
-
-```bash
-# 削除前に完了を確認
-cat .parallel-dev/README.md  # 進捗が 100% であること
-ls .parallel-dev-issues/     # 未解決の issue がないこと
-
-# 削除
-rm -rf .parallel-dev/
-```
-
-**注意**: 次回の並列開発で参考にしたい場合は、アーカイブしてから削除:
-
-```bash
-# アーカイブ（日付付き）
-tar -czvf parallel-dev-archive-$(date +%Y%m%d).tar.gz .parallel-dev/
-
-# 削除
-rm -rf .parallel-dev/
-```
-
-### クリーンアップの一括実行
-
-```bash
-#!/bin/bash
-# cleanup-parallel-dev.sh
-
-# 確認
-echo "並列開発のクリーンアップを実行します。"
-echo "すべてのタスクがマージ済みであることを確認してください。"
-read -p "続行しますか？ (y/N): " confirm
-if [[ "$confirm" != "y" ]]; then
-  echo "キャンセルしました。"
-  exit 1
-fi
-
-# worktree 削除
-echo "worktree を削除中..."
-for wt in worktree/*/; do
-  if [ -d "$wt" ]; then
-    git worktree remove "$wt" 2>/dev/null || rm -rf "$wt"
-  fi
-done
-git worktree prune
-
-# worktree ディレクトリ削除
-rm -rf worktree/
-
-# .parallel-dev/ 削除
-echo ".parallel-dev/ を削除中..."
-rm -rf .parallel-dev/
-
-echo "クリーンアップ完了。"
-echo "ブランチの削除は手動で行ってください: git branch -d <branch-name>"
 ```
 
 ---
 
 ## クイックタスクモード（モード B）での worktree 運用
 
-クイックタスクモードでは、計画書なしで即座に worktree を作成してタスクを開始する。
-初期並列開発モード（モード A）との主な違いは以下の通り。
+クイックタスクモードでの worktree 運用については、専用ガイドを参照:
 
-### モード A と モード B の違い
+→ **[quick-mode-guide.md](quick-mode-guide.md)** - クイックタスクモード運用ガイド
 
-| 観点 | 初期並列開発（A） | クイックタスク（B） |
-|------|-------------------|---------------------|
-| 起点 | 計画書作成から開始 | 依頼を受けて即座に開始 |
-| worktree 作成 | 一斉に複数作成 | 必要時に都度作成 |
-| 統合ブランチ | 必須 | 不要（main に直接マージ） |
-| 計画書 | PLAN.md を作成 | 作成しない |
-| マージ先 | 統合ブランチ → main | main（または指定ブランチ）に直接 |
-| クリーンアップ | 全タスク完了後に一括 | 各タスク完了後に即座に |
+クイックタスクモードの主なテンプレート:
 
-### クイックタスク用 worktree の作成
-
-```bash
-# タスク名を決定（kebab-case）
-TASK_NAME="fix-login-validation"
-BRANCH="fix/${TASK_NAME}"  # バグ修正なら fix/、機能追加なら feature/
-BASE_BRANCH="main"
-
-# ディレクトリ作成（初回のみ）
-mkdir -p .parallel-dev/tasks
-mkdir -p .parallel-dev-signals
-mkdir -p .parallel-dev-issues
-
-# .gitignore に追加（未追加の場合）
-grep -q ".parallel-dev-signals/" .gitignore 2>/dev/null || echo ".parallel-dev-signals/" >> .gitignore
-grep -q ".parallel-dev-issues/" .gitignore 2>/dev/null || echo ".parallel-dev-issues/" >> .gitignore
-grep -q "worktree/" .gitignore 2>/dev/null || echo "worktree/" >> .gitignore
-
-# worktree 作成
-git worktree add worktree/${TASK_NAME} -b ${BRANCH}
-
-# 環境セットアップ
-cp .env worktree/${TASK_NAME}/.env 2>/dev/null || true
-cd worktree/${TASK_NAME}
-
-# 依存関係インストール
-if [ -f "pyproject.toml" ]; then
-  uv sync
-elif [ -f "package.json" ]; then
-  pnpm install
-fi
-
-cd ../..
-```
-
-### クイックタスクのディレクトリ構造
-
-```
-project/
-├── .parallel-dev/                    # タスク管理（初回作成時に追加）
-│   └── tasks/
-│       └── fix-login-validation.md   # 簡易タスク指示書
-├── .parallel-dev-signals/            # 完了通知（.gitignore）
-│   └── fix-login-validation.done
-├── .parallel-dev-issues/             # 問題報告（.gitignore）
-│   └── fix-login-validation.md
-└── worktree/                         # worktree（.gitignore）
-    └── fix-login-validation/         # fix/fix-login-validation ブランチ
-```
-
-### 作業用 Claude の起動
-
-```bash
-export PROJECT_ROOT=$(pwd)
-
-# tmux ペインで起動
-tmux split-window -h "cd worktree/${TASK_NAME} && PROJECT_ROOT=$PROJECT_ROOT claude '../../.parallel-dev/tasks/${TASK_NAME}.md を読んで実装してください。完了したら .done ファイルを作成してください。'"
-tmux select-pane -T "${TASK_NAME}"
-```
-
-### 完了後のマージとクリーンアップ
-
-クイックタスクモードでは、各タスク完了後に即座にマージ・クリーンアップを行う:
-
-```bash
-TASK_NAME="fix-login-validation"
-BRANCH="fix/${TASK_NAME}"
-BASE_BRANCH="main"
-
-# 1. worktree で変更をコミット
-cd worktree/${TASK_NAME}
-git add .
-git commit -m "fix: ${TASK_NAME}"
-
-# 2. ベースブランチの最新を取り込み
-git fetch origin
-git merge origin/${BASE_BRANCH} --no-ff
-
-# 3. テスト実行
-{test-command}
-
-# 4. プッシュ
-git push origin ${BRANCH}
-
-# 5. ベースブランチにマージ
-cd ../..
-git checkout ${BASE_BRANCH}
-git pull origin ${BASE_BRANCH}
-git merge origin/${BRANCH} --no-ff
-git push origin ${BASE_BRANCH}
-
-# 6. クリーンアップ
-rm .parallel-dev-signals/${TASK_NAME}.done
-git worktree remove worktree/${TASK_NAME}
-git branch -d ${BRANCH}
-
-# リモートブランチも削除（オプション）
-git push origin --delete ${BRANCH}
-```
-
-### 複数クイックタスクの並列実行
-
-複数のタスクを同時に依頼された場合:
-
-```bash
-TASKS=("fix-login-validation" "add-logout-button" "update-header-style")
-export PROJECT_ROOT=$(pwd)
-
-# 各タスクのセットアップと起動
-for TASK in "${TASKS[@]}"; do
-  BRANCH="fix/${TASK}"
-
-  # worktree 作成
-  git worktree add worktree/${TASK} -b ${BRANCH}
-  cp .env worktree/${TASK}/.env 2>/dev/null || true
-
-  # 依存関係インストール
-  cd worktree/${TASK}
-  if [ -f "pyproject.toml" ]; then uv sync; fi
-  if [ -f "package.json" ]; then pnpm install; fi
-  cd ../..
-
-  # 指示書生成
-  cat > .parallel-dev/tasks/${TASK}.md << EOF
-# クイックタスク: ${TASK}
-
-## 基本情報
-| 項目 | 内容 |
-|------|------|
-| ブランチ | ${BRANCH} |
-| worktree | worktree/${TASK}/ |
-| ステータス | 作業中 |
-
-## 依頼内容
-{各タスクの依頼内容}
-
-## ルール
-- コミットしない
-- プッシュしない
-- 完了したら .done ファイルを作成
-EOF
-
-  # 作業用 Claude 起動
-  tmux split-window -h "cd worktree/${TASK} && PROJECT_ROOT=$PROJECT_ROOT claude '../../.parallel-dev/tasks/${TASK}.md を読んで実装してください。'"
-  tmux select-pane -T "${TASK}"
-done
-
-# レイアウト調整
-tmux select-layout tiled
-```
-
-### クイックタスクのポート割り当て
-
-クイックタスクモードでもポートの競合を避ける:
-
-```bash
-# 現在の worktree 数を確認
-CURRENT_COUNT=$(git worktree list | wc -l)
-
-# 次のインデックス
-INDEX=$CURRENT_COUNT
-
-# ポート設定
-PORT_BE=$((3000 + INDEX))
-PORT_FE=$((5173 + INDEX))
-
-cat > worktree/${TASK_NAME}/.env.local << EOF
-PORT=${PORT_BE}
-VITE_PORT=${PORT_FE}
-EOF
-```
-
-### テンプレート
-
-クイックタスクモード用のテンプレート:
-
+- [templates/quick-session-template.md](templates/quick-session-template.md) - セッションファイル（必須）
 - [templates/quick-task-template.md](templates/quick-task-template.md) - 簡易タスク指示書
 - [templates/quick-task-coordinator.md](templates/quick-task-coordinator.md) - タスク受付・マージ担当

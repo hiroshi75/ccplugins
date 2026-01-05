@@ -3,7 +3,10 @@
 クイックタスクモード（モード B）で、タスク受付・worktree セットアップ・マージを担当する Claude 向けの指示書。
 初期並列開発モード（モード A）の merge-coordinator.md とは異なり、計画書なしでオンデマンドにタスクを処理する。
 
-ファイル名: `.parallel-dev/quick-task-coordinator.md`（任意、セッション中に参照用として作成）
+**重要**: セッション開始時に必ず `.parallel-dev/quick-session-{timestamp}.md` を作成する。
+詳細は [quick-session-template.md](quick-session-template.md) 参照。
+
+参照用テンプレート: `.parallel-dev/quick-task-coordinator.md`
 
 ---
 
@@ -54,7 +57,63 @@
 | 改善 | `improve-` | `improve-search-perf` |
 | リファクタリング | `refactor-` | `refactor-auth` |
 
-### 3. 初期セットアップ
+### 3. セッションファイル作成（初回のみ）
+
+クイックセッション開始時に、一意のセッションファイルを作成する:
+
+```bash
+# セッションIDを生成（タイムスタンプ）
+SESSION_ID=$(date +%Y%m%d%H%M%S)
+SESSION_FILE=".parallel-dev/quick-session-${SESSION_ID}.md"
+
+mkdir -p .parallel-dev
+
+# セッションファイルを作成
+cat > "$SESSION_FILE" << EOF
+# クイックセッション: ${SESSION_ID}
+
+## セッション情報
+
+| 項目 | 値 |
+|------|-----|
+| 開始日時 | $(date '+%Y-%m-%d %H:%M') |
+| ベースブランチ | main |
+| ステータス | 進行中 |
+
+---
+
+## タスク一覧
+
+| タスク名 | ブランチ | 依頼内容 | ステータス |
+|----------|----------|----------|------------|
+
+---
+
+## 起動済み作業用 claude
+
+| タスク名 | ペイン名 | ステータス |
+|----------|----------|------------|
+
+---
+
+## 完了・マージ履歴
+
+---
+
+## セッション終了チェックリスト
+
+- [ ] すべてのタスクがマージ済み
+- [ ] すべての作業用 claude を終了
+- [ ] worktree をクリーンアップ
+- [ ] ブランチを削除
+EOF
+
+echo "セッションファイル: $SESSION_FILE"
+```
+
+**注意**: セッションファイルは複数のクイックセッションが並行しても衝突しないよう、タイムスタンプで一意に識別される。
+
+### 4. タスク初期セットアップ
 
 ```bash
 # 変数設定
@@ -89,9 +148,9 @@ fi
 cd ../..
 ```
 
-### 4. タスク指示書の生成
+### 5. タスク指示書の生成
 
-`.parallel-dev/tasks/${TASK_NAME}.md` を作成:
+`.parallel-dev/tasks/${TASK_NAME}.md` を作成し、セッションファイルの「タスク一覧」にも追記:
 
 ```markdown
 # クイックタスク: ${TASK_NAME}
@@ -125,7 +184,9 @@ cd ../..
 - 完了したら .done ファイルを作成
 ```
 
-### 5. 作業用 Claude の起動
+### 6. 作業用 Claude の起動
+
+起動後、セッションファイルの「起動済み作業用 claude」を更新する。
 
 ```bash
 export PROJECT_ROOT=$(pwd)
@@ -221,8 +282,12 @@ rm .parallel-dev-signals/${TASK_NAME}.done
 git worktree remove worktree/${TASK_NAME}
 git branch -d ${BRANCH}
 
-# 8. タスク指示書のステータスを更新
-# .parallel-dev/tasks/${TASK_NAME}.md の ステータス を「マージ済」に
+# 8. 作業用 claude を終了
+tmux send-keys -t "${TASK_NAME}" C-c C-c
+
+# 9. ステータス更新
+# - .parallel-dev/tasks/${TASK_NAME}.md の ステータス を「マージ済」に
+# - セッションファイル（.parallel-dev/quick-session-*.md）の「タスク一覧」「完了・マージ履歴」を更新
 ```
 
 ### テスト失敗時
@@ -334,8 +399,10 @@ git worktree add worktree/${NEW_TASK} -b fix/${NEW_TASK}
 
 ## 初期並列開発モード（A）との違い
 
-| 観点 | モード A（merge-coordinator） | モード B（quick-task-coordinator） |
+| 観点 | モード A（merge-coordinator） | モード B（quick-session-{timestamp}） |
 |------|---------------------------|--------------------------------|
+| コーディネーターファイル | `.parallel-dev/merge-coordinator.md`（固定） | `.parallel-dev/quick-session-{timestamp}.md`（一意） |
+| 複数セッション並行 | 不可（1ファイル） | 可能（タイムスタンプで識別） |
 | 計画書 | PLAN.md を参照 | なし（即座に開始） |
 | タスク一覧 | 事前に全タスク把握 | 随時追加 |
 | 依存関係 | 明示的に管理 | 基本的に独立タスク |

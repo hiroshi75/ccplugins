@@ -103,28 +103,12 @@ description: 複数開発者での並列開発計画書を作成するスキル�
 
 既存プロジェクトに対するバグ修正や機能追加を、計画書なしで即座に開始するモード。
 
-### ワークフロー概要
+**特徴**:
+- 計画書不要で即座に開始
+- セッションファイル（`.parallel-dev/quick-session-{timestamp}.md`）で複数セッション並行可能
+- main に直接マージ
 
-```
-1. タスク受付 → タスク名を決定（kebab-case）
-2. 自動セットアップ → worktree 作成、環境設定、簡易指示書生成
-3. 作業用 claude を起動 → tmux split-window で起動
-4. 完了検知 → マージ → クリーンアップ
-```
-
-### モード A との違い
-
-| 観点 | 初期並列開発（A） | クイックタスク（B） |
-|------|-------------------|---------------------|
-| 起点 | 計画書作成から開始 | 依頼を受けて即座に開始 |
-| 計画書 | PLAN.md を作成 | 作成しない |
-| マージ先 | 統合ブランチ → main | main に直接マージ |
-
-### 詳細ガイド・テンプレート
-
-- [references/templates/quick-task-template.md](references/templates/quick-task-template.md) - 簡易タスク指示書テンプレート
-- [references/templates/quick-task-coordinator.md](references/templates/quick-task-coordinator.md) - タスク受付・マージ担当用
-- [references/worktree-guide.md](references/worktree-guide.md) - クイックタスクモードでの worktree 運用
+→ **詳細は [references/quick-mode-guide.md](references/quick-mode-guide.md) を参照**
 
 ---
 
@@ -213,203 +197,47 @@ FE-02     //      待     //       -
 
 ## Branch Strategy with Worktree
 
-git worktree を使った並列開発:
-
-```bash
-# 統合ブランチ作成
-git checkout -b feature/integration main
-
-# worktree ディレクトリを .gitignore に追加
-echo "worktree/" >> .gitignore
-
-# 各機能ブランチ用 worktree（プロジェクト内の worktree/ 以下に作成）
-# ディレクトリ名 = ブランチ名（feature/ プレフィックスを除く）
-git worktree add worktree/api-a -b feature/api-a
-git worktree add worktree/ui-a -b feature/ui-a
-```
-
-### worktree 環境セットアップ
-
-worktree 作成後、各ディレクトリで開発環境を準備する:
-
-1. **依存関係インストール**: `uv sync` / `pnpm install` など
-2. **secrets コピー**: プロジェクトルートの `.env` を worktree にコピー
-
-```bash
-# 例: worktree作成 + 環境セットアップ
-BRANCH=api-a
-
-git worktree add worktree/$BRANCH -b feature/$BRANCH
-cp .env worktree/$BRANCH/.env
-cd worktree/$BRANCH && uv sync && cd ../..
-```
-
-ブランチ構造:
+git worktree を使った並列開発の基本:
 
 ```
 main
 └── feature/integration (統合ブランチ)
     ├── feature/xxx-api     → worktree/xxx-api/
     ├── feature/yyy-api     → worktree/yyy-api/
-    ├── feature/xxx-ui      → worktree/xxx-ui/  ← xxx-api 完了後にAPI統合
-    └── feature/yyy-ui      → worktree/yyy-ui/
+    └── feature/xxx-ui      → worktree/xxx-ui/
 ```
 
-詳細は [references/worktree-guide.md](references/worktree-guide.md) 参照。
+→ **詳細は [references/worktree-guide.md](references/worktree-guide.md) を参照**
 
 ## Agent Instruction Files
 
 claude による並列開発では、各 claude への指示書を `.parallel-dev/` に配置する。
 
-ディレクトリ構成:
+**ディレクトリ構成**:
 
-```
-project/
-├── .parallel-dev/                    # 並列開発管理（git管理）
-│   ├── PLAN.md                       # 計画書（重要な参照情報）
-│   ├── README.md                     # 全体概要・進捗サマリ
-│   ├── merge-coordinator.md          # マージ担当用
-│   └── tasks/                        # 各タスク用指示書
-│       ├── xxx-api.md
-│       └── xxx-ui.md
-├── .parallel-dev-signals/            # 完了通知（.gitignore）
-│   └── xxx-api.done
-├── .parallel-dev-issues/             # 問題報告（.gitignore）
-│   └── xxx-ui.md
-├── worktree/                         # worktree（.gitignore）
-│   ├── xxx-api/
-│   └── xxx-ui/
-└── ...
-```
+| ディレクトリ/ファイル | 用途 |
+|----------------------|------|
+| `.parallel-dev/` | 並列開発管理（git管理） |
+| `.parallel-dev/PLAN.md` | 計画書 |
+| `.parallel-dev/merge-coordinator.md` | マージ担当用 |
+| `.parallel-dev/tasks/*.md` | 各タスク用指示書 |
+| `.parallel-dev-signals/` | 完了通知（.gitignore） |
+| `.parallel-dev-issues/` | 問題報告（.gitignore） |
 
-\*_.gitignore に追加:_
-
-```
-.parallel-dev-signals/
-.parallel-dev-issues/
-worktree/
-```
-
-各ファイルの役割:
-
-| ファイル                              | 対象           | 内容                                   |
-| ------------------------------------- | -------------- | -------------------------------------- |
-| `PLAN.md`                             | 全員（参照用） | 計画書全体、ブランチ戦略、タイムライン |
-| `README.md`                           | 全 claude      | 進捗サマリ、タスク一覧、依存関係図     |
-| `merge-coordinator.md`                | マージ担当     | マージ順序、コンフリクト対応方針       |
-| `tasks/{branch}.md`                   | 作業用 claude  | 実装仕様、依存関係、完了条件           |
-| `.parallel-dev-signals/{branch}.done` | マージ担当     | 完了通知（git 管理外）                 |
-| `.parallel-dev-issues/{branch}.md`    | マージ担当     | 問題報告、ブロッカー（git 管理外）     |
-
-テンプレート:
-
+**テンプレート**:
 - [references/templates/parallel-dev-readme.md](references/templates/parallel-dev-readme.md)
 - [references/templates/merge-coordinator.md](references/templates/merge-coordinator.md)
 - [references/templates/task-instruction.md](references/templates/task-instruction.md)
 
 ## Task Completion Flow
 
-### 役割分担
-
-| 役割                           | 作業用 claude | マージ担当 |
-| ------------------------------ | ------------- | ---------- |
-| コード実装                     | ✅            | -          |
-| .done ファイル作成             | ✅            | -          |
-| git commit                     | -             | ✅         |
-| git fetch/merge (統合ブランチ) | -             | ✅         |
-| テスト実行                     | -             | ✅         |
-| git push                       | -             | ✅         |
-| 統合ブランチへのマージ         | -             | ✅         |
+**役割分担**:
+- **作業用 claude**: コード実装 → `.done` ファイル作成（コミットしない）
+- **マージ担当**: コミット → テスト → マージ → プッシュ
 
 **設計思想**: 作業用 claude はコードを書くことに集中。マージ順序の管理はマージ担当のみが把握。
 
-### 作業用 claude の完了フロー
-
-1. コード実装を完了
-2. `.done` ファイルを作成（コミット前に！）
-3. 作業終了を報告
-
-```bash
-# 作業完了時（コミットはしない）
-# PROJECT_ROOT は tmux 起動時にマージ担当から渡される環境変数
-cat > $PROJECT_ROOT/.parallel-dev-signals/{branch-name}.done << 'EOF'
-【完了報告】{branch-name}
-
-## 実装内容
-- {実装した機能の説明}
-- {変更したファイル}
-
-## 未コミットの変更
-worktree/{branch-name}/ に未コミットの変更あり
-
-## テスト状況
-ローカルでの動作確認: OK / NG（詳細を記載）
-EOF
-```
-
-### マージ担当の統合フロー
-
-.done ファイルを検知したら、マージ担当が以下を実行:
-
-```bash
-# 1. 作業 worktree に移動
-cd worktree/{branch-name}
-
-# 2. 変更をコミット
-git add .
-git commit -m "feat: {branch-name} の実装"
-
-# 3. 統合ブランチの最新を取り込み
-git fetch origin
-git merge origin/feature/{integration} --no-ff
-
-# 4. コンフリクトがあれば解決（または作業用 claudeに依頼）
-
-# 5. テスト実行（ユーザーの指示に応じてテストコマンドを実行）
-
-# 6. テスト失敗時 → 作業用 claudeに修正依頼して終了
-
-# 7. テスト成功時 → プッシュ
-git push origin feature/{branch-name}
-
-# 8. 統合ブランチにマージ
-cd ../..  # プロジェクトルートへ
-git checkout feature/{integration}
-git merge origin/feature/{branch-name} --no-ff
-git push origin feature/{integration}
-
-# 9. 状態更新
-# - タスク指示書のステータスを「マージ済」に
-# - README.md の進捗を更新
-```
-
-### テスト失敗時の対応
-
-マージ担当がテスト失敗を検知したら:
-
-```
-【修正依頼】{branch-name}
-
-統合ブランチマージ後のテストが失敗しました。
-
-エラー内容:
-{テストエラーの出力}
-
-対応依頼:
-1. worktree/{branch-name}/ で修正
-2. 修正完了後、再度 .done ファイルを作成
-
-※ コミットは不要です。マージ担当が行います。
-```
-
-### エラー・ブロック時
-
-問題発生時は `.parallel-dev-issues/{branch-name}.md` に記録:
-
-- エラー内容、影響範囲、試した対応を記載
-- マージ担当が担当を割り当て、必要に応じて新規 worktree/ブランチを作成
-
-テンプレート: [references/templates/issue-template.md](references/templates/issue-template.md)
+→ **詳細は [references/worktree-guide.md](references/worktree-guide.md) を参照**
 
 ## Rules（全 claude 共通）
 
@@ -418,109 +246,39 @@ git push origin feature/{integration}
 - **コミットしない**: コードを書くだけ。コミットはマージ担当が行う
 - **プッシュしない**: リモートへのプッシュもマージ担当が行う
 - **.done ファイルで完了報告**: 実装内容と変更ファイルを記載
-- **UI 仕様は人間の承認必須**: UI の見た目・動作の決定は勝手に行わない。issues/ に確認依頼を出し、人間の承認を得てから実装する（詳細は「UI Specification Approval」セクション参照）
+- **UI 仕様は人間の承認必須**: issues/ に確認依頼を出し、承認を得てから実装
 
 ### マージ担当のルール
 
-- **作業用 claude は Bash ツールで `tmux split-window` を実行して起動**: 別ペインで Claude Code を起動
-- **claude 起動時は必ず初期指示を引数で渡す**: 引数なしで起動しない。以下の形式で指示書パスを渡し、ペインにタスク名を設定する:
+- **`tmux split-window` で作業用 claude を起動**（`new-window` や Task ツールは使用しない）
+- **claude 起動時は必ず初期指示を引数で渡す**:
   ```bash
   tmux split-window -h "cd worktree/{task-name} && PROJECT_ROOT=$PROJECT_ROOT claude '../../.parallel-dev/tasks/{task-name}.md を読んで実装してください。完了したら .done ファイルを作成してください。'"
   tmux select-pane -T "{task-name}"
   ```
-- **`tmux new-window` は使用しない**: 別ウィンドウではなく、必ずペイン分割（`split-window`）で起動すること
-- **Task ツール（サブエージェント）は使用しない**: 必ず tmux コマンドで起動すること
-- **`--no-ff` で常にマージ**（マージコミットを残す）
-- **マージ順序**: 依存関係 > 変更範囲 > 完了順
-- **テスト必須**: 統合ブランチマージ後、必ずテストを実行
-- **テスト失敗時**: 作業用 claude に `tmux send-keys` で修正依頼を送信、統合ブランチへのマージは中止
-- **コンフリクト対応**: マージ担当が自分で解決する（作業用 claude は全体の状況を把握していないため）
-- **UI 仕様確認の中継**: 作業用 claude から issues/ に UI 仕様確認依頼が出されたら、AskUserQuestion ツールで人間に確認を取り、回答を `tmux send-keys` で作業用 claude に伝達する
-- **作業用 claude の終了**: マージ成功後、以下のコマンドで作業用 claude を終了させる:
-  ```bash
-  tmux send-keys -t "{task-name}" C-c C-c
-  ```
+- **マージ成功後は作業用 claude を終了**: `tmux send-keys -t "{task-name}" C-c C-c`
+- **`--no-ff` で常にマージ**
+- **コンフリクト対応**: マージ担当が解決（作業用 claude に依頼しない）
 
 ### 依存関係ルール
 
-- 依存タスクが**統合ブランチにマージされるまで**、依存元タスクの作業用 claude は起動しない
-- マージ担当が依存タスクのマージ完了後に、依存元タスクの作業用 claude を起動する
+- 依存タスクが**統合ブランチにマージされるまで**、依存元タスクは起動しない
 
-### ポート割り当てルール
-
-- BE: 3000 + index, FE: 5173 + index
-- index 0 = プロジェクトルート、worktree は 1 から
-
-### 状態更新の責任分担
-
-| 更新対象                 | 責任者                 | タイミング             |
-| ------------------------ | ---------------------- | ---------------------- |
-| .done ファイル           | 作業用 claude          | 実装完了時             |
-| git commit/push          | マージコーディネーター | .done 検知後           |
-| タスク指示書のステータス | マージコーディネーター | マージ後「マージ済」へ |
-| README.md の進捗         | マージコーディネーター | マージ後               |
-| 依存タスクの起動         | マージコーディネーター | 依存先マージ後         |
+→ **詳細は [references/worktree-guide.md](references/worktree-guide.md) を参照**
 
 ## Additional Guides（詳細ガイド）
 
+- [references/worktree-guide.md](references/worktree-guide.md) - worktree 運用・作業フロー・ルール詳細
+- [references/quick-mode-guide.md](references/quick-mode-guide.md) - クイックタスクモード運用
 - [references/testing-guide.md](references/testing-guide.md) - テスト方針（本番同等テスト、E2E目視チェック）
 - [references/ui-approval-guide.md](references/ui-approval-guide.md) - UI仕様の人間確認フロー
 - [references/advanced-features.md](references/advanced-features.md) - Phase分離、タイムライン可視化、計画書テンプレート
 
 ## Utility Scripts（ユーティリティスクリプト）
 
-よく使う操作を自動化するスクリプト。プロジェクトにコピーして使用する。
-
 | スクリプト | 用途 |
 |-----------|------|
-| [setup-quick-task.sh](references/scripts/setup-quick-task.sh) | クイックタスクのセットアップ（worktree作成、指示書生成） |
-| [watch-signals.sh](references/scripts/watch-signals.sh) | .done/.issues ファイルの監視 |
-| [status.sh](references/scripts/status.sh) | 全タスクの状態一覧表示 |
-| [update-dashboard.sh](references/scripts/update-dashboard.sh) | README.md（進捗ダッシュボード）の自動更新 |
+| [setup-quick-task.sh](references/scripts/setup-quick-task.sh) | クイックタスクのセットアップ |
+| [watch-signals.sh](references/scripts/watch-signals.sh) | .done/.issues 監視 |
+| [status.sh](references/scripts/status.sh) | 全タスク状態一覧 |
 | [cleanup-worktrees.sh](references/scripts/cleanup-worktrees.sh) | 完了タスクのクリーンアップ |
-
-### 使用例
-
-```bash
-# 1. スクリプトをプロジェクトにコピー
-cp -r /path/to/scripts .parallel-dev/scripts/
-chmod +x .parallel-dev/scripts/*.sh
-
-# 2. クイックタスクをセットアップ
-.parallel-dev/scripts/setup-quick-task.sh fix-login-validation
-
-# 3. シグナルを監視（完了待ち）
-.parallel-dev/scripts/watch-signals.sh
-
-# 4. 状態を確認
-.parallel-dev/scripts/status.sh
-
-# 5. ダッシュボードを更新
-.parallel-dev/scripts/update-dashboard.sh
-
-# 6. 完了タスクをクリーンアップ
-.parallel-dev/scripts/cleanup-worktrees.sh
-```
-
-### マージ担当のワークフロー
-
-マージ担当はスクリプトを使って効率的に作業できる:
-
-```bash
-# 1. 完了検知
-.parallel-dev/scripts/watch-signals.sh
-
-# 2. マージ処理（手動）
-cd worktree/{task-name}
-git add . && git commit -m "fix: {task-name}"
-git fetch origin && git merge origin/main --no-ff
-# テスト実行（ユーザーの指示に応じてテストコマンドを実行）
-git push origin {branch}
-
-# 3. ダッシュボード更新
-cd ../..
-.parallel-dev/scripts/update-dashboard.sh
-
-# 4. クリーンアップ
-.parallel-dev/scripts/cleanup-worktrees.sh {task-name}
-```
