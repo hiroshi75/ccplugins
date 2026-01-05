@@ -151,6 +151,7 @@ description: 複数開発者での並列開発計画書を作成するスキル�
    - 単独テスト可能な機能単位
 3. **明確な成果物**: 各タスクに API/コンポーネント/ファイル等の具体的成果物
 4. **テスト可能**: 独立してテスト・レビュー可能な単位
+5. **コンフリクト最小化**: 編集ファイルの重複を最小化し、共通ファイル（ルーティング、型定義等）の変更は1タスクに集約
 
 ブランチ命名:
 
@@ -422,9 +423,10 @@ git push origin feature/{integration}
 ### マージ担当のルール
 
 - **作業用 claude は Bash ツールで `tmux split-window` を実行して起動**: 別ペインで Claude Code を起動
-- **claude 起動時は必ず初期指示を引数で渡す**: 引数なしで起動しない。以下の形式で指示書パスを渡す:
+- **claude 起動時は必ず初期指示を引数で渡す**: 引数なしで起動しない。以下の形式で指示書パスを渡し、ペインにタスク名を設定する:
   ```bash
   tmux split-window -h "cd worktree/{task-name} && PROJECT_ROOT=$PROJECT_ROOT claude '../../.parallel-dev/tasks/{task-name}.md を読んで実装してください。完了したら .done ファイルを作成してください。'"
+  tmux select-pane -T "{task-name}"
   ```
 - **`tmux new-window` は使用しない**: 別ウィンドウではなく、必ずペイン分割（`split-window`）で起動すること
 - **Task ツール（サブエージェント）は使用しない**: 必ず tmux コマンドで起動すること
@@ -434,7 +436,10 @@ git push origin feature/{integration}
 - **テスト失敗時**: 作業用 claude に `tmux send-keys` で修正依頼を送信、統合ブランチへのマージは中止
 - **コンフリクト対応**: マージ担当が自分で解決する（作業用 claude は全体の状況を把握していないため）
 - **UI 仕様確認の中継**: 作業用 claude から issues/ に UI 仕様確認依頼が出されたら、AskUserQuestion ツールで人間に確認を取り、回答を `tmux send-keys` で作業用 claude に伝達する
-- **作業用 claude の終了**: マージ成功後、`tmux send-keys` で `Ctrl+C` を2回送信して作業用 claude を終了させる
+- **作業用 claude の終了**: マージ成功後、以下のコマンドで作業用 claude を終了させる:
+  ```bash
+  tmux send-keys -t "{task-name}" C-c C-c
+  ```
 
 ### 依存関係ルール
 
@@ -460,7 +465,6 @@ git push origin feature/{integration}
 
 - [references/testing-guide.md](references/testing-guide.md) - テスト方針（本番同等テスト、E2E目視チェック）
 - [references/ui-approval-guide.md](references/ui-approval-guide.md) - UI仕様の人間確認フロー
-- [references/best-practices.md](references/best-practices.md) - よくある問題と対策
 - [references/advanced-features.md](references/advanced-features.md) - Phase分離、タイムライン可視化、計画書テンプレート
 
 ## Utility Scripts（ユーティリティスクリプト）

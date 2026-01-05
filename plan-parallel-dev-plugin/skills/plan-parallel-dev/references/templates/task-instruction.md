@@ -270,3 +270,9 @@ head -20 src/lib/api.ts  # 既存関数の確認
 
 - ❌ 「コンポーネントを作成」
 - ✅ 「`RecommendationCard` コンポーネント（`src/components/recommendations/`）」
+
+### 参考資料の精度
+
+タスク指示書作成時にファイル存在を確認し、現在の実装状況も記載する:
+- ❌ `src/components/xxx.tsx` を参考に
+- ✅ `src/components/xxx.tsx`（現在のコンポーネント名: YyyComponent、props: id, name）
