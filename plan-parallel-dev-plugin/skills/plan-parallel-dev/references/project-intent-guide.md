@@ -45,8 +45,8 @@ Issue や Task は「何をするか」を管理するが、並列開発で失�
 
 そのため、以下のように分離して管理する:
 
-- **プロジェクトの根本方針** → `PROJECT.md`（commit する）
-- **worktree ごとの一時的な進め方** → `BRIEF.md`（gitignore する）
+- **プロジェクトの根本方針** → `.intent/project.json`（commit する）
+- **worktree ごとの一時的な進め方** → `.intent/brief.json`（gitignore する）
 
 ---
 
@@ -57,27 +57,32 @@ Issue や Task は「何をするか」を管理するが、並列開発で失�
 - プロジェクト全体の方針は **commit する**
 - worktree ごとの思考メモは **commit しない**
 - Claude Code には毎回、明示的に **両方を読ませる**
+- Intent は **JSON で構造化**（VS Code 拡張での高速パース対応）
 
 ### ファイル構成
 
 ```
 プロジェクトルート/
-├── PROJECT.md              # プロジェクト共通・基本不変（commit）
+├── .intent/
+│   └── project.json            # プロジェクト共通・基本不変（commit）
 ├── worktrees/
 │   ├── task-a/
-│   │   └── BRIEF.md        # worktree 固有・可変（gitignore）
+│   │   └── .intent/
+│   │       └── brief.json      # worktree 固有・可変（gitignore）
 │   ├── task-b/
-│   │   └── BRIEF.md
+│   │   └── .intent/
+│   │       └── brief.json
 │   └── task-c/
-│       └── BRIEF.md
-└── .gitignore              # BRIEF.md を除外
+│       └── .intent/
+│           └── brief.json
+└── .gitignore                  # .intent/brief.json を除外
 ```
 
 ---
 
 ## 各ファイルの役割
 
-### PROJECT.md（commit する）
+### .intent/project.json（commit する）
 
 **役割**: このプロジェクトの「憲法」
 
@@ -86,22 +91,26 @@ Issue や Task は「何をするか」を管理するが、並列開発で失�
 - 絶対に守る制約は何か
 - プロジェクトとして「やらないこと」
 
-→ **将来の自分や、AI エージェントが読んでもブレない内容だけを書く**
+→ **将来の自分や、AI エージェントが読んでもブレない内容だけを記述する**
 
-#### PROJECT.md に書く項目
+#### project.json の JSON キー
 
-- **Intent / North Star**: プロジェクトの狙い・目指す姿
-- **Success Criteria**: 成功条件（客観的な基準）
-- **Guardrails**: 守るべき制約
-- **Project-level Non-goals**: プロジェクト全体でやらないこと
-- **Technical Stack**: 使用する技術スタック
-- **Project History**: 重要な意思決定の履歴
+| キー | 型 | 説明 |
+|------|------|------|
+| `intent` | string | プロジェクトの狙い・目指す姿（1〜2文） |
+| `successCriteria` | string[] | 成功条件（客観的な基準） |
+| `guardrails` | string[] | 守るべき制約 |
+| `nonGoals` | string[] | プロジェクト全体でやらないこと |
+| `technicalStack` | object | 使用する技術スタック |
+| `keyDecisions` | object[] | 重要な意思決定の履歴 |
 
-**テンプレート**: [references/templates/PROJECT.md](templates/PROJECT.md)
+**📌 重要**: JSON には判断の骨格のみを記述する。長文説明は別途 `notes.md` に記載。
+
+**テンプレート**: [references/templates/project.json](templates/project.json)
 
 ---
 
-### BRIEF.md（gitignore する）
+### .intent/brief.json（gitignore する）
 
 **役割**: この worktree における「今の進め方メモ」
 
@@ -112,19 +121,32 @@ Issue や Task は「何をするか」を管理するが、並列開発で失�
 
 → **思考の RAM。PR や履歴に残すことを目的としない**
 
-#### BRIEF.md に書く項目（最小セット）
+#### brief.json の JSON キー（必須）
 
-- **Parent Project**: プロジェクト名
-- **Why this worktree exists**: この枝の目的
-- **Mode**: 探索 / 収束 / 保守
-- **Focus**: いま注目している軸
-- **Non-goals**: この枝ではやらないこと
-- **Next Bet**: 次に試して意思決定する一手
-- **Exit / Merge criteria**: いつ終わるか
-- **Decisions Log**: この worktree での意思決定履歴
-- **Discarded Options**: 捨てた選択肢
+| キー | 型 | 説明 |
+|------|------|------|
+| `parentProject` | string | プロジェクト名 |
+| `purpose` | string | この枝の目的（1〜2文） |
+| `mode` | enum | `explore` / `converge` / `maintain` |
+| `focus` | string[] | いま注目している軸 |
+| `nonGoals` | string[] | この枝ではやらないこと |
+| `nextBet` | string | 次に試して意思決定する一手 |
+| `exitCriteria` | string[] | いつ終わるか |
 
-**テンプレート**: [references/templates/BRIEF.md](templates/BRIEF.md)
+#### brief.json の JSON キー（オプション）
+
+| キー | 型 | 説明 |
+|------|------|------|
+| `decisionsLog` | object[] | この worktree での意思決定履歴 |
+| `discardedOptions` | object[] | 捨てた選択肢 |
+| `notes` | string[] | メモ・気づき |
+
+**📌 重要**: `mode` は以下のいずれかを使用:
+- `explore`: 複数の選択肢を試行錯誤している段階
+- `converge`: 方向性が決まり、実装を詰めている段階
+- `maintain`: 既存機能の修正・改善
+
+**テンプレート**: [references/templates/brief.json](templates/brief.json)
 
 ---
 
@@ -132,14 +154,17 @@ Issue や Task は「何をするか」を管理するが、並列開発で失�
 
 ### 1. プロジェクト全体のセットアップ
 
-プロジェクトルートで PROJECT.md を作成:
+プロジェクトルートで `.intent/project.json` を作成:
 
 ```bash
+# ディレクトリ作成
+mkdir -p .intent
+
 # スクリプトを使用する場合
 bash .claude/skills/plan-parallel-dev/scripts/init-project-intent.sh
 
 # または手動でテンプレートをコピー
-cp .claude/skills/plan-parallel-dev/references/templates/PROJECT.md ./PROJECT.md
+cp .claude/skills/plan-parallel-dev/references/templates/project.json .intent/project.json
 # エディタで編集
 ```
 
@@ -149,23 +174,26 @@ cp .claude/skills/plan-parallel-dev/references/templates/PROJECT.md ./PROJECT.md
 
 ```gitignore
 # Worktree thinking / intent
-BRIEF.md
-worktrees/**/BRIEF.md
+.intent/brief.json
+worktrees/**/.intent/brief.json
 ```
 
-### 3. worktree ごとの BRIEF.md 作成
+### 3. worktree ごとの brief.json 作成
 
-各 worktree で BRIEF.md を作成:
+各 worktree で `.intent/brief.json` を作成:
 
 ```bash
 # worktree ディレクトリに移動
 cd worktrees/task-name
 
+# ディレクトリ作成
+mkdir -p .intent
+
 # スクリプトを使用する場合
 bash ../../.claude/skills/plan-parallel-dev/scripts/init-brief.sh "task-name"
 
 # または手動でテンプレートをコピー
-cp ../../.claude/skills/plan-parallel-dev/references/templates/BRIEF.md ./BRIEF.md
+cp ../../.claude/skills/plan-parallel-dev/references/templates/brief.json .intent/brief.json
 # エディタで編集
 ```
 
@@ -178,45 +206,46 @@ cp ../../.claude/skills/plan-parallel-dev/references/templates/BRIEF.md ./BRIEF.
 各 worktree で作業を開始する際、**必ず以下を Claude に指示する**:
 
 ```
-この worktree の BRIEF.md と、プロジェクトの PROJECT.md を読み、
-Mode / Focus / Non-goals / Next Bet を最初に要約してから作業を開始してください。
+この worktree の .intent/brief.json と、プロジェクトの .intent/project.json を読み、
+mode / focus / nonGoals / nextBet を最初に要約してから作業を開始してください。
 ```
 
 **ポイント**:
 - 「要約してから作業」を必須にする
 - 読み漏れや文脈混線を防ぐための儀式として毎回行う
+- Claude Code は JSON を直接パースして理解する
 
-### BRIEF.md の更新タイミング
+### brief.json の更新タイミング
 
-以下のタイミングで BRIEF.md を更新する:
+以下のタイミングで `.intent/brief.json` を更新する:
 
 1. **重要な判断をしたとき**
    - 技術選定、設計方針の決定など
-   - → `Decisions Log` に記録
+   - → `decisionsLog` 配列に追加
 
 2. **選択肢を捨てたとき**
    - 検討したが採用しなかった方法
-   - → `Discarded Options` に記録
+   - → `discardedOptions` 配列に追加
 
 3. **フォーカスが変わったとき**
    - 注目する軸が変化した
-   - → `Focus` を更新
+   - → `focus` 配列を更新
 
 4. **モードが変わったとき**
    - 探索 → 収束、収束 → 保守など
-   - → `Mode` を更新
+   - → `mode` の値を更新
 
 5. **次の一手が明確になったとき**
    - 仮説や検証方法が決まった
-   - → `Next Bet` を更新
+   - → `nextBet` を更新
 
-### PROJECT.md への昇格
+### project.json への昇格
 
-BRIEF.md で記録した判断のうち、**プロジェクト全体に影響する重要な決定** は PROJECT.md に昇格させる:
+`.intent/brief.json` で記録した判断のうち、**プロジェクト全体に影響する重要な決定** は `.intent/project.json` に昇格させる:
 
 ```bash
-# BRIEF.md から重要な決定を抽出
-# → PROJECT.md の "Project History / Key Decisions" に追記
+# brief.json から重要な決定を抽出
+# → project.json の "keyDecisions" 配列に追記
 # → commit する
 ```
 
@@ -236,15 +265,19 @@ worktree を切り替えても「何を考えていたか」がすぐ戻る。
 
 ### 3. AI エージェントの理解向上
 
-Claude Code が「今の正解」を理解した状態で作業できる。
+Claude Code が JSON を直接パースし、「今の正解」を正確に理解した状態で作業できる。
 
 ### 4. 思考の自由度向上
 
-BRIEF.md を気軽に書き換えられる（履歴を汚さない）。
+brief.json を気軽に書き換えられる（履歴を汚さない）。
 
 ### 5. 設計判断の追跡可能性
 
 なぜその判断をしたのかが明確に記録される。
+
+### 6. VS Code 拡張との連携
+
+JSON 形式により、Intent Board UI での高速・安全なパースが可能。
 
 ---
 
@@ -252,11 +285,12 @@ BRIEF.md を気軽に書き換えられる（履歴を汚さない）。
 
 この Level 1 運用は、将来的に以下へ自然に拡張できる:
 
-- **CONTEXT.md の自動生成**: PROJECT.md + BRIEF.md を統合
+- **CONTEXT.json の自動生成**: project.json + brief.json を統合
 - **worktree 移動時の自動ロード**: シェルスクリプトで自動読み込み
 - **エージェントによる自己チェック**: Claude が自動でコンテキストを確認
+- **Intent Board UI**: VS Code 拡張での視覚的な Intent 管理
 
-まずは **「書く → 読ませる → 要約させる」** を人力で徹底する。
+まずは **「JSON で書く → Claude に読ませる → 要約させる」** を人力で徹底する。
 
 ---
 
@@ -264,7 +298,8 @@ BRIEF.md を気軽に書き換えられる（履歴を汚さない）。
 
 - 並列開発で失われるのはタスクではなく **「判断基準」**
 - Project（不変）と Worktree（可変）を **分離する**
-- BRIEF.md は **思考の RAM** と割り切り、gitignore
+- Intent は **JSON で構造化**（VS Code 拡張でのパース対応）
+- brief.json は **思考の RAM** と割り切り、gitignore
 - Claude Code には毎回、**明示的に両方を読ませる**
 
 この最小構成だけで、並列開発時の混乱は大きく減らせる。
@@ -273,7 +308,7 @@ BRIEF.md を気軽に書き換えられる（履歴を汚さない）。
 
 ## 関連ドキュメント
 
-- [PROJECT.md テンプレート](templates/PROJECT.md)
-- [BRIEF.md テンプレート](templates/BRIEF.md)
+- [project.json テンプレート](templates/project.json)
+- [brief.json テンプレート](templates/brief.json)
 - [Worktree 運用ガイド](worktree-guide.md)
 - [Quick Mode ガイド](quick-mode-guide.md)

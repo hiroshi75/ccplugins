@@ -29,26 +29,26 @@
 ### 1. プロジェクトコンテキストの確認
 
 ```bash
-# PROJECT.md と BRIEF.md を確認（存在する場合）
-cat $PROJECT_ROOT/PROJECT.md  # プロジェクト全体の方針
-cat BRIEF.md                   # この worktree の方針
+# .intent/project.json と .intent/brief.json を確認（存在する場合）
+cat $PROJECT_ROOT/.intent/project.json  # プロジェクト全体の方針
+cat .intent/brief.json                   # この worktree の方針
 ```
 
 ### 2. コンテキストの要約
 
-以下の項目を確認し、要約してから作業を開始する:
+以下の JSON キーを確認し、要約してから作業を開始する:
 
-**PROJECT.md から:**
-- **Intent / North Star**: プロジェクトの狙い
-- **Success Criteria**: 成功条件
-- **Guardrails**: 守るべき制約
-- **Non-goals**: やらないこと
+**.intent/project.json から:**
+- **`intent`**: プロジェクトの狙い
+- **`successCriteria`**: 成功条件（配列）
+- **`guardrails`**: 守るべき制約（配列）
+- **`nonGoals`**: やらないこと（配列）
 
-**BRIEF.md から（存在する場合）:**
-- **Mode**: 探索 / 収束 / 保守
-- **Focus**: いま注目している軸
-- **Non-goals**: この worktree ではやらないこと
-- **Next Bet**: 次に試す一手
+**.intent/brief.json から（存在する場合）:**
+- **`mode`**: `explore` / `converge` / `maintain`
+- **`focus`**: いま注目している軸（配列）
+- **`nonGoals`**: この worktree ではやらないこと（配列）
+- **`nextBet`**: 次に試す一手
 
 **重要**: このコンテキスト確認を省略すると、プロジェクトの方針と異なる実装をしてしまう可能性がある。
 

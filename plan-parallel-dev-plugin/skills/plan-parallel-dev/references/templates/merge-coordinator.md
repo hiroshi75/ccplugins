@@ -37,24 +37,24 @@
 ### 1. プロジェクトコンテキストの確認
 
 ```bash
-# PROJECT.md と BRIEF.md を読み込む（存在する場合）
+# .intent/project.json と .intent/brief.json を読み込む（存在する場合）
 bash scripts/load-context.sh
 
 # または、手動で確認
-cat PROJECT.md      # プロジェクト全体の方針
-cat BRIEF.md        # この worktree の方針（存在する場合）
+cat .intent/project.json      # プロジェクト全体の方針
+cat .intent/brief.json        # この worktree の方針（存在する場合）
 ```
 
 ### 2. コンテキストの要約
 
-以下の項目を確認し、要約してから作業を開始する:
+以下の JSON キーを確認し、要約してから作業を開始する:
 
-- **Intent / North Star**: プロジェクトの狙い
-- **Success Criteria**: 成功条件
-- **Guardrails**: 守るべき制約
-- **Mode**: 探索 / 収束 / 保守（BRIEF.md がある場合）
-- **Focus**: いま注目している軸（BRIEF.md がある場合）
-- **Non-goals**: やらないこと
+- **`intent`**: プロジェクトの狙い
+- **`successCriteria`**: 成功条件（配列）
+- **`guardrails`**: 守るべき制約（配列）
+- **`mode`**: `explore` / `converge` / `maintain`（brief.json がある場合）
+- **`focus`**: いま注目している軸（brief.json がある場合）
+- **`nonGoals`**: やらないこと（配列）
 
 **重要**: このコンテキスト確認を省略すると、プロジェクトの方針と異なる判断をしてしまう可能性がある。
 

@@ -1,6 +1,6 @@
 #!/bin/bash
 # init-brief.sh
-# worktree に BRIEF.md を作成するスクリプト
+# worktree に .intent/brief.json を作成するスクリプト
 
 set -euo pipefail
 
@@ -26,9 +26,12 @@ echo "Worktree 名: $WORKTREE_NAME"
 echo "Worktree パス: $WORKTREE_PATH"
 echo ""
 
-# BRIEF.md が既に存在するかチェック
-if [ -f "$WORKTREE_PATH/BRIEF.md" ]; then
-    echo "⚠️  BRIEF.md は既に存在します。"
+# .intent ディレクトリを作成
+mkdir -p "$WORKTREE_PATH/.intent"
+
+# brief.json が既に存在するかチェック
+if [ -f "$WORKTREE_PATH/.intent/brief.json" ]; then
+    echo "⚠️  .intent/brief.json は既に存在します。"
     read -p "上書きしますか？ (y/N): " -n 1 -r
     echo
     if [[ ! $REPLY =~ ^[Yy]$ ]]; then
@@ -38,48 +41,48 @@ if [ -f "$WORKTREE_PATH/BRIEF.md" ]; then
 fi
 
 # テンプレートをコピー
-cp "$TEMPLATE_DIR/BRIEF.md" "$WORKTREE_PATH/BRIEF.md"
+cp "$TEMPLATE_DIR/brief.json" "$WORKTREE_PATH/.intent/brief.json"
 
-# プロジェクトルートを探す（PROJECT.md がある場所）
+# プロジェクトルートを探す（.intent/project.json がある場所）
 PROJECT_ROOT="$WORKTREE_PATH"
 while [ "$PROJECT_ROOT" != "/" ]; do
-    if [ -f "$PROJECT_ROOT/PROJECT.md" ]; then
+    if [ -f "$PROJECT_ROOT/.intent/project.json" ]; then
         break
     fi
     PROJECT_ROOT="$(dirname "$PROJECT_ROOT")"
 done
 
-# PROJECT.md へのパスを計算
-if [ -f "$PROJECT_ROOT/PROJECT.md" ]; then
-    PROJECT_MD_PATH="$(realpath --relative-to="$WORKTREE_PATH" "$PROJECT_ROOT/PROJECT.md" 2>/dev/null || echo "$PROJECT_ROOT/PROJECT.md")"
+# project.json へのパスを計算
+if [ -f "$PROJECT_ROOT/.intent/project.json" ]; then
+    PROJECT_JSON_PATH="$(realpath --relative-to="$WORKTREE_PATH/.intent" "$PROJECT_ROOT/.intent/project.json" 2>/dev/null || echo "$PROJECT_ROOT/.intent/project.json")"
     PROJECT_NAME="$(basename "$PROJECT_ROOT")"
 else
-    PROJECT_MD_PATH="[PROJECT.md のパスを記入]"
+    PROJECT_JSON_PATH="../.intent/project.json"
     PROJECT_NAME="[プロジェクト名を記入]"
 fi
 
-# プレースホルダーを置き換え
+# プレースホルダーを置き換え（JSON 用）
 if command -v sed &> /dev/null; then
     # macOS と Linux の sed の違いに対応
     if [[ "$OSTYPE" == "darwin"* ]]; then
-        sed -i '' "s|\[プロジェクト名\]|$PROJECT_NAME|g" "$WORKTREE_PATH/BRIEF.md"
-        sed -i '' "s|\[PROJECT.mdへのパス\]|$PROJECT_MD_PATH|g" "$WORKTREE_PATH/BRIEF.md"
+        sed -i '' "s|\[プロジェクト名\]|$PROJECT_NAME|g" "$WORKTREE_PATH/.intent/brief.json"
+        sed -i '' "s|../../.intent/project.json|$PROJECT_JSON_PATH|g" "$WORKTREE_PATH/.intent/brief.json"
     else
-        sed -i "s|\[プロジェクト名\]|$PROJECT_NAME|g" "$WORKTREE_PATH/BRIEF.md"
-        sed -i "s|\[PROJECT.mdへのパス\]|$PROJECT_MD_PATH|g" "$WORKTREE_PATH/BRIEF.md"
+        sed -i "s|\[プロジェクト名\]|$PROJECT_NAME|g" "$WORKTREE_PATH/.intent/brief.json"
+        sed -i "s|../../.intent/project.json|$PROJECT_JSON_PATH|g" "$WORKTREE_PATH/.intent/brief.json"
     fi
 fi
 
-echo "✅ BRIEF.md を作成しました: $WORKTREE_PATH/BRIEF.md"
+echo "✅ .intent/brief.json を作成しました: $WORKTREE_PATH/.intent/brief.json"
 echo ""
 echo "次のステップ:"
-echo "1. BRIEF.md をエディタで開く"
-echo "2. Why this worktree exists を記入"
-echo "3. Mode を選択（探索/収束/保守）"
-echo "4. Focus を明確化"
-echo "5. Non-goals を設定"
-echo "6. Next Bet を定義"
+echo "1. .intent/brief.json をエディタで開く"
+echo "2. purpose を記入（この worktree の目的）"
+echo "3. mode を選択（explore/converge/maintain）"
+echo "4. focus を明確化（配列）"
+echo "5. nonGoals を設定（配列）"
+echo "6. nextBet を定義"
 echo ""
-echo "⚠️  注意: BRIEF.md は .gitignore に含めてください"
-echo "  echo 'BRIEF.md' >> .gitignore"
-echo "  echo 'worktrees/**/BRIEF.md' >> .gitignore"
+echo "⚠️  注意: .intent/brief.json は .gitignore に含めてください"
+echo "  echo '.intent/brief.json' >> .gitignore"
+echo "  echo 'worktrees/**/.intent/brief.json' >> .gitignore"

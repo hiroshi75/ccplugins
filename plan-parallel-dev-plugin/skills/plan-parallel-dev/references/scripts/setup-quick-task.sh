@@ -68,16 +68,16 @@ if [ -f .gitignore ]; then
   grep -q "^\.parallel-dev-signals/$" .gitignore 2>/dev/null || echo ".parallel-dev-signals/" >> .gitignore
   grep -q "^\.parallel-dev-issues/$" .gitignore 2>/dev/null || echo ".parallel-dev-issues/" >> .gitignore
   grep -q "^worktree/$" .gitignore 2>/dev/null || echo "worktree/" >> .gitignore
-  grep -q "^BRIEF\.md$" .gitignore 2>/dev/null || echo "BRIEF.md" >> .gitignore
-  grep -q "^worktree/\*\*/BRIEF\.md$" .gitignore 2>/dev/null || echo "worktree/**/BRIEF.md" >> .gitignore
+  grep -q "^\.intent/brief\.json$" .gitignore 2>/dev/null || echo ".intent/brief.json" >> .gitignore
+  grep -q "^worktree/\*\*/\.intent/brief\.json$" .gitignore 2>/dev/null || echo "worktree/**/.intent/brief.json" >> .gitignore
   success ".gitignore 更新完了"
 else
   cat > .gitignore << 'EOF'
 .parallel-dev-signals/
 .parallel-dev-issues/
 worktree/
-BRIEF.md
-worktree/**/BRIEF.md
+.intent/brief.json
+worktree/**/.intent/brief.json
 EOF
   success ".gitignore 作成完了"
 fi
@@ -114,89 +114,51 @@ VITE_PORT=${PORT_FE}
 EOF
 success ".env.local 作成（BE: ${PORT_BE}, FE: ${PORT_FE}）"
 
-# BRIEF.md 作成（gitignore される）
-info "BRIEF.md を作成中..."
+# .intent/brief.json 作成（gitignore される）
+info ".intent/brief.json を作成中..."
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(pwd)"
 PROJECT_NAME="$(basename "$PROJECT_ROOT")"
 
-cat > "worktree/${TASK_NAME}/BRIEF.md" << EOF
-# Worktree BRIEF（作業コンテキスト）
+# .intent ディレクトリを作成
+mkdir -p "worktree/${TASK_NAME}/.intent"
 
-> **役割**: この worktree における一時的な作業方針・思考メモ
-> **commit**: このファイルは \`.gitignore\` で除外する
-> **更新頻度**: 随時。判断基準が変わったら即座に更新
+cat > "worktree/${TASK_NAME}/.intent/brief.json" << EOF
+{
+  "\$schema": "https://json-schema.org/draft/2020-12/schema",
+  "_comment": "Worktree BRIEF（作業コンテキスト）- このファイルは .gitignore で除外する。随時更新。",
 
----
+  "parentProject": "${PROJECT_NAME}",
+  "projectJsonPath": "../../.intent/project.json",
 
-## Parent Project（親プロジェクト）
+  "purpose": "クイックタスク ${TASK_NAME} のために作成された一時的な worktree。",
 
-**Project**: \`${PROJECT_NAME}\`
+  "mode": "maintain",
 
-**PROJECT.md の場所**: \`../../PROJECT.md\`
+  "focus": [
+    "（注目点を記載。例: バグ修正の正確性、パフォーマンス改善、など）"
+  ],
 
----
+  "nonGoals": [
+    "（このタスクで明示的にやらないことを記載）"
+  ],
 
-## Why this worktree exists（この worktree の目的）
+  "nextBet": "（次に試す一手を記載）",
 
-クイックタスク \`${TASK_NAME}\` のために作成された一時的な worktree。
+  "exitCriteria": [
+    "タスクの実装が完了",
+    "ローカルでの動作確認完了",
+    ".done ファイル作成済み"
+  ],
 
-**この worktree**:
-\`\`\`
-（ここに、このタスクの目的を記載）
-\`\`\`
+  "decisionsLog": [],
 
----
+  "discardedOptions": [],
 
-## Mode（現在のモード）
-
-**現在のモード**: \`保守\`
-
-（クイックタスクは基本的に「保守」モード。大規模な変更の場合は「探索」または「収束」に変更）
-
----
-
-## Focus（いま注目している軸）
-
-**この worktree のフォーカス**:
-- （注目点を記載。例: バグ修正の正確性、パフォーマンス改善、など）
-
----
-
-## Non-goals（この worktree ではやらないこと）
-
-**この worktree では**:
-- （このタスクで明示的にやらないことを記載）
-
----
-
-## Next Bet（次に試す一手）
-
-**次の一手**:
-\`\`\`
-仮説: （記述）
-検証方法: （記述）
-判断基準: （記述）
-\`\`\`
-
----
-
-## Exit / Merge criteria（終了・マージ条件）
-
-**この worktree の終了条件**:
-- [ ] タスクの実装が完了
-- [ ] ローカルでの動作確認完了
-- [ ] .done ファイル作成済み
-
----
-
-## 運用メモ
-
-- このファイルは思考の RAM として使う
-- 迷ったら即座に更新する
-- マージ後は削除して OK
+  "notes": []
+}
 EOF
-success "BRIEF.md 作成"
+success ".intent/brief.json 作成"
 
 # 依存関係インストール
 cd "worktree/${TASK_NAME}"
