@@ -1,0 +1,8 @@
+{
+  "name": "project-intent-plugin",
+  "description": "Project Intent Management - JSON形式でプロジェクトの意図・方針を構造化管理し、AI エージェントとのコンテキスト共有を最適化するスキル",
+  "version": "1.0.0",
+  "author": {
+    "name": "Hiroshi Ayukawa"
+  }
+}

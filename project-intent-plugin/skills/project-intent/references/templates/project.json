@@ -2,7 +2,14 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "_comment": "Project Intent（プロジェクト憲法）- このファイルは git で管理する。基本的に不変。",
 
+  "schemaVersion": "1.0",
+  "type": "project",
+  "id": "proj-example-001",
+  "name": "Example Project",
+
   "intent": "複数の Claude が同時並行で開発タスクを進行できる環境を提供し、開発速度を最大化しながらコンフリクトを最小化する。",
+
+  "summary": "並列開発環境の構築",
 
   "successCriteria": [
     "3つ以上のタスクを同時並行で進行できる",
@@ -22,23 +29,21 @@
     "Windows ネイティブサポートは現時点では提供しない"
   ],
 
-  "technicalStack": {
-    "language": "Python 3.11+",
-    "framework": "FastAPI + React",
-    "testing": "pytest + Jest",
-    "cicd": "GitHub Actions"
-  },
+  "technicalStack": [
+    "Python 3.11+",
+    "FastAPI + React",
+    "pytest + Jest",
+    "GitHub Actions"
+  ],
 
   "keyDecisions": [
     {
       "date": "2024-01-15",
-      "decision": "worktree ベースの並列開発方式を採用",
-      "reason": "コンフリクト最小化"
+      "text": "worktree ベースの並列開発方式を採用（コンフリクト最小化のため）"
     },
     {
       "date": "2024-02-01",
-      "decision": "tmux ベースの Claude 管理を採用",
-      "reason": "状態管理の簡素化"
+      "text": "tmux ベースの Claude 管理を採用（状態管理の簡素化のため）"
     }
   ]
 }

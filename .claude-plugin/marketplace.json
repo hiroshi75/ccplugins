@@ -33,6 +33,11 @@
       "name": "autonomous-dev-plugin",
       "source": "./autonomous-dev-plugin",
       "description": "Autonomous code improvement agent that finds and fixes development tasks without explicit instructions. Scans for TODOs, low test coverage, outdated dependencies, dead code, and missing types. Use when you want continuous codebase maintenance or say 'リポジトリを監視して改善して', 'find tasks and fix them automatically'."
+    },
+    {
+      "name": "project-intent-plugin",
+      "source": "./project-intent-plugin",
+      "description": "Project intent management skill that structures project goals and policies in JSON format. Optimizes context sharing with AI agents through .intent/project.json (project constitution) and .intent/brief.json (worktree thinking memos). Use when you want to set up project intent, create project.json, or manage brief.json."
     }
   ]
 }

@@ -2,10 +2,18 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "_comment": "Worktree BRIEF（作業コンテキスト）- このファイルは .gitignore で除外する。随時更新。",
 
-  "parentProject": "[プロジェクト名]",
-  "projectJsonPath": "../../.intent/project.json",
+  "schemaVersion": "1.0",
+  "type": "worktree",
+  "projectId": "proj-example-001",
+
+  "worktree": {
+    "name": "auth-perf-improvement",
+    "branch": "feature/auth-performance"
+  },
 
   "purpose": "認証APIのパフォーマンス改善を検証するための実験的worktree。3つの最適化手法を試し、最も効果的な方法を特定する。",
+
+  "statusLine": "Redis キャッシュ導入でレスポンス 50% 削減を検証中",
 
   "mode": "explore",
 
@@ -21,7 +29,7 @@
     "エラーハンドリングの改善は後回し"
   ],
 
-  "nextBet": "キャッシュレイヤーを追加することで、レスポンスタイムを50%削減できる。Redis を導入して、よく使われるクエリ結果をキャッシュする。平均レスポンスタイムが 150ms → 75ms になれば成功。",
+  "nextBet": "キャッシュレイヤーを追加することで、レスポンスタイムを50%削減できる。Redis を導入して、よく使われるクエリ結果をキャッシュする。",
 
   "exitCriteria": [
     "パフォーマンステストで目標値をクリア",
@@ -33,29 +41,20 @@
   "decisionsLog": [
     {
       "date": "2024-01-20",
-      "decision": "Redis を採用",
-      "reason": "Memcached より機能が豊富"
+      "text": "Redis を採用（Memcached より機能が豊富なため）"
     },
     {
       "date": "2024-01-21",
-      "decision": "キャッシュTTLを5分に設定",
-      "reason": "データ鮮度とパフォーマンスのバランス"
+      "text": "キャッシュTTLを5分に設定（データ鮮度とパフォーマンスのバランス）"
     }
   ],
 
   "discardedOptions": [
-    {
-      "option": "インメモリキャッシュ",
-      "reason": "スケールしないため却下"
-    },
-    {
-      "option": "CDNキャッシュ",
-      "reason": "API の性質上、適さないため却下"
-    }
+    "インメモリキャッシュ（スケールしないため却下）",
+    "CDNキャッシュ（API の性質上、適さないため却下）"
   ],
 
-  "notes": [
-    "データベースのインデックスが不足している箇所を発見 → 別タスクで対応",
-    "エラーログが冗長すぎる → 将来的に整理が必要"
-  ]
+  "notes": "データベースのインデックス不足を発見 → 別タスクで対応予定。エラーログが冗長すぎる → 将来的に整理が必要。",
+
+  "updatedAt": "2024-01-21T15:30:00Z"
 }

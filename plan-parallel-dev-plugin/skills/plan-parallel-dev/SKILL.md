@@ -274,33 +274,16 @@ claude による並列開発では、各 claude への指示書を `.parallel-de
 ## Project Intent Management（プロジェクト意図管理）
 
 並列開発では、複数の worktree 間でコンテキストが失われやすい。
-「何を正しいとみなしていたか」という上位コンテキストを保持するため、JSON 形式の Intent ファイルを使用する。
+「何を正しいとみなしていたか」という上位コンテキストを保持するため、**project-intent-plugin** を使用する。
 
-### ファイル構成
+→ **詳細は [project-intent-plugin](../../../project-intent-plugin/skills/project-intent/SKILL.md) を参照**
 
-| ファイル                 | 役割                    | commit    | 更新頻度 |
-| ------------------------ | ----------------------- | --------- | -------- |
-| `.intent/project.json`   | プロジェクト全体の憲法  | ✅ する   | 基本不変 |
-| `.intent/brief.json`     | worktree ごとの思考メモ | ❌ しない | 随時     |
+### 概要
 
-### .intent/project.json（プロジェクト憲法）
-
-プロジェクト全体で共有される不変的な方針を JSON で記述:
-
-- **`intent`**: プロジェクトの狙い（1〜2文）
-- **`successCriteria`**: 成功条件（配列）
-- **`guardrails`**: 守るべき制約（配列）
-- **`nonGoals`**: やらないこと（配列）
-
-### .intent/brief.json（worktree 思考メモ）
-
-各 worktree の一時的な作業方針を JSON で記述:
-
-- **`mode`**: `explore` / `converge` / `maintain`
-- **`focus`**: いま注目している軸（配列）
-- **`nonGoals`**: この worktree ではやらないこと（配列）
-- **`nextBet`**: 次に試す一手（文字列）
-- **`exitCriteria`**: 終了条件（配列）
+| ファイル                 | 役割                    | commit    |
+| ------------------------ | ----------------------- | --------- |
+| `.intent/project.json`   | プロジェクト全体の憲法  | ✅ する   |
+| `.intent/brief.json`     | worktree ごとの思考メモ | ❌ しない |
 
 ### 作業開始時の必須ルール
 
@@ -315,11 +298,8 @@ bash scripts/load-context.sh
 #  mode / focus / nonGoals / nextBet を最初に要約してから作業を開始してください。"
 ```
 
-→ **詳細は [references/project-intent-guide.md](references/project-intent-guide.md) を参照**
-
 ## Additional Guides（詳細ガイド）
 
-- [references/project-intent-guide.md](references/project-intent-guide.md) - Project Intent 情報管理（Level 1）
 - [references/worktree-guide.md](references/worktree-guide.md) - worktree 運用・作業フロー・ルール詳細
 - [references/quick-mode-guide.md](references/quick-mode-guide.md) - クイックタスクモード運用
 - [references/testing-guide.md](references/testing-guide.md) - テスト方針（本番同等テスト、E2E 目視チェック）

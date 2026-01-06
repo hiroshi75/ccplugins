@@ -310,5 +310,3 @@ JSON 形式により、Intent Board UI での高速・安全なパースが可�
 
 - [project.json テンプレート](templates/project.json)
 - [brief.json テンプレート](templates/brief.json)
-- [Worktree 運用ガイド](worktree-guide.md)
-- [Quick Mode ガイド](quick-mode-guide.md)
