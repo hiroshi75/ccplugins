@@ -10,28 +10,30 @@ description: 複数開発者での並列開発計画書を作成するスキル�
 
 ## 利用モード
 
-このスキルには2つのモードがある:
+このスキルには 2 つのモードがある:
 
 ### モード A: 初期並列開発（計画書作成モード）
 
 プロジェクト初期化直後（`uv init` や `create-react-app` 直後など）で、これから複数機能を並列開発する場合に使用。
 
 **トリガーフレーズ**:
+
 - 「並列開発計画を作って」
 - 「複数人で同時開発したい」
 - 「worktree で分担したい」
 - 「開発を最大限並列化したい」
 
-**ワークフロー**: 9段階のワークフロー（後述）で計画書を作成し、複数タスクを一斉に開始。
+**ワークフロー**: 9 段階のワークフロー（後述）で計画書を作成し、複数タスクを一斉に開始。
 
 ### モード B: メンテナンス並列開発（クイックタスクモード）
 
 すでに機能が実装されているプロジェクトへのバグ修正・機能追加で使用。計画書なしで即座に作業を開始。
 
 **トリガーフレーズ**:
+
 - 「〇〇を並列で修正して」
 - 「〇〇を並列で対応して」
-- 「worktree で△△をやって」
+- 「worktree で △△ をやって」
 - 「並列タスクを追加: 〇〇」
 - 「これを worktree でやって: 〇〇」
 
@@ -39,11 +41,11 @@ description: 複数開発者での並列開発計画書を作成するスキル�
 
 ### モード選択の目安
 
-| 状況 | 推奨モード |
-|------|-----------|
-| プロジェクト初期化直後、複数機能を並列開発 | A |
-| 既存プロジェクトへの単発バグ修正 | B（単一タスク） |
-| 既存プロジェクトへの中規模機能追加 | B（複数タスク + マージ担当を設ける） |
+| 状況                                       | 推奨モード                           |
+| ------------------------------------------ | ------------------------------------ |
+| プロジェクト初期化直後、複数機能を並列開発 | A                                    |
+| 既存プロジェクトへの単発バグ修正           | B（単一タスク）                      |
+| 既存プロジェクトへの中規模機能追加         | B（複数タスク + マージ担当を設ける） |
 
 ---
 
@@ -104,6 +106,7 @@ description: 複数開発者での並列開発計画書を作成するスキル�
 既存プロジェクトに対するバグ修正や機能追加を、計画書なしで即座に開始するモード。
 
 **特徴**:
+
 - 計画書不要で即座に開始
 - セッションファイル（`.parallel-dev/quick-session-{timestamp}.md`）で複数セッション並行可能
 - main に直接マージ
@@ -130,12 +133,12 @@ description: 複数開発者での並列開発計画書を作成するスキル�
 
 1. **単一責任**: 1 タスク = 1 機能/1 コンポーネント
 2. **適切な粒度**: 以下のいずれか小さい方
-   - 人間換算 0.5〜2日程度
-   - 変更ファイル 20ファイル以内
+   - 人間換算 0.5〜2 日程度
+   - 変更ファイル 20 ファイル以内
    - 単独テスト可能な機能単位
 3. **明確な成果物**: 各タスクに API/コンポーネント/ファイル等の具体的成果物
 4. **テスト可能**: 独立してテスト・レビュー可能な単位
-5. **コンフリクト最小化**: 編集ファイルの重複を最小化し、共通ファイル（ルーティング、型定義等）の変更は1タスクに集約
+5. **コンフリクト最小化**: 編集ファイルの重複を最小化し、共通ファイル（ルーティング、型定義等）の変更は 1 タスクに集約
 
 ブランチ命名:
 
@@ -215,16 +218,17 @@ claude による並列開発では、各 claude への指示書を `.parallel-de
 
 **ディレクトリ構成**:
 
-| ディレクトリ/ファイル | 用途 |
-|----------------------|------|
-| `.parallel-dev/` | 並列開発管理（git管理） |
-| `.parallel-dev/PLAN.md` | 計画書 |
-| `.parallel-dev/merge-coordinator.md` | マージ担当用 |
-| `.parallel-dev/tasks/*.md` | 各タスク用指示書 |
-| `.parallel-dev-signals/` | 完了通知（.gitignore） |
-| `.parallel-dev-issues/` | 問題報告（.gitignore） |
+| ディレクトリ/ファイル                | 用途                     |
+| ------------------------------------ | ------------------------ |
+| `.parallel-dev/`                     | 並列開発管理（git 管理） |
+| `.parallel-dev/PLAN.md`              | 計画書                   |
+| `.parallel-dev/merge-coordinator.md` | マージ担当用             |
+| `.parallel-dev/tasks/*.md`           | 各タスク用指示書         |
+| `.parallel-dev-signals/`             | 完了通知（.gitignore）   |
+| `.parallel-dev-issues/`              | 問題報告（.gitignore）   |
 
 **テンプレート**:
+
 - [references/templates/parallel-dev-readme.md](references/templates/parallel-dev-readme.md)
 - [references/templates/merge-coordinator.md](references/templates/merge-coordinator.md)
 - [references/templates/task-instruction.md](references/templates/task-instruction.md)
@@ -232,6 +236,7 @@ claude による並列開発では、各 claude への指示書を `.parallel-de
 ## Task Completion Flow
 
 **役割分担**:
+
 - **作業用 claude**: コード実装 → `.done` ファイル作成（コミットしない）
 - **マージ担当**: コミット → テスト → マージ → プッシュ
 
@@ -269,18 +274,19 @@ claude による並列開発では、各 claude への指示書を `.parallel-de
 ## Project Intent Management（プロジェクト意図管理）
 
 並列開発では、複数の worktree 間でコンテキストが失われやすい。
-「何を正しいとみなしていたか」という上位コンテキストを保持するため、以下の2つのファイルを使用する。
+「何を正しいとみなしていたか」という上位コンテキストを保持するため、以下の 2 つのファイルを使用する。
 
 ### ファイル構成
 
-| ファイル | 役割 | commit | 更新頻度 |
-|---------|------|--------|---------|
-| `PROJECT.md` | プロジェクト全体の憲法 | ✅ する | 基本不変 |
-| `BRIEF.md` | worktree ごとの思考メモ | ❌ しない | 随時 |
+| ファイル     | 役割                    | commit    | 更新頻度 |
+| ------------ | ----------------------- | --------- | -------- |
+| `PROJECT.md` | プロジェクト全体の憲法  | ✅ する   | 基本不変 |
+| `BRIEF.md`   | worktree ごとの思考メモ | ❌ しない | 随時     |
 
 ### PROJECT.md（プロジェクト憲法）
 
 プロジェクト全体で共有される不変的な方針:
+
 - **Intent / North Star**: プロジェクトの狙い
 - **Success Criteria**: 成功条件
 - **Guardrails**: 守るべき制約
@@ -289,6 +295,7 @@ claude による並列開発では、各 claude への指示書を `.parallel-de
 ### BRIEF.md（worktree 思考メモ）
 
 各 worktree の一時的な作業方針:
+
 - **Mode**: 探索 / 収束 / 保守
 - **Focus**: いま注目している軸
 - **Non-goals**: この worktree ではやらないこと
@@ -314,18 +321,6 @@ bash scripts/load-context.sh
 - [references/project-intent-guide.md](references/project-intent-guide.md) - Project Intent 情報管理（Level 1）
 - [references/worktree-guide.md](references/worktree-guide.md) - worktree 運用・作業フロー・ルール詳細
 - [references/quick-mode-guide.md](references/quick-mode-guide.md) - クイックタスクモード運用
-- [references/testing-guide.md](references/testing-guide.md) - テスト方針（本番同等テスト、E2E目視チェック）
-- [references/ui-approval-guide.md](references/ui-approval-guide.md) - UI仕様の人間確認フロー
-- [references/advanced-features.md](references/advanced-features.md) - Phase分離、タイムライン可視化、計画書テンプレート
-
-## Utility Scripts（ユーティリティスクリプト）
-
-| スクリプト | 用途 |
-|-----------|------|
-| [init-project-intent.sh](scripts/init-project-intent.sh) | PROJECT.md 初期化 |
-| [init-brief.sh](scripts/init-brief.sh) | BRIEF.md 初期化 |
-| [load-context.sh](scripts/load-context.sh) | PROJECT.md + BRIEF.md 読み込み |
-| [setup-quick-task.sh](references/scripts/setup-quick-task.sh) | クイックタスクのセットアップ |
-| [watch-signals.sh](references/scripts/watch-signals.sh) | .done/.issues 監視 |
-| [status.sh](references/scripts/status.sh) | 全タスク状態一覧 |
-| [cleanup-worktrees.sh](references/scripts/cleanup-worktrees.sh) | 完了タスクのクリーンアップ |
+- [references/testing-guide.md](references/testing-guide.md) - テスト方針（本番同等テスト、E2E 目視チェック）
+- [references/ui-approval-guide.md](references/ui-approval-guide.md) - UI 仕様の人間確認フロー
+- [references/advanced-features.md](references/advanced-features.md) - Phase 分離、タイムライン可視化、計画書テンプレート
