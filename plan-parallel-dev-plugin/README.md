@@ -12,6 +12,7 @@
 - **依存関係分析**: タスク間のブロッキング関係を特定し、クリティカルパスを計算
 - **worktree 管理**: 各タスク用の git worktree を自動作成・管理
 - **マージ調整**: 統合ブランチへのマージ順序を管理
+- **Project Intent 管理**: プロジェクト全体の方針と worktree ごとの作業コンテキストを管理
 
 ## 利用モード
 
@@ -47,6 +48,8 @@
 ## ディレクトリ構成
 
 ```
+PROJECT.md               # プロジェクト全体の憲法（git管理）
+
 .parallel-dev/           # 並列開発管理（git管理）
 ├── PLAN.md              # 計画書
 ├── README.md            # 全体概要・進捗管理
@@ -55,7 +58,47 @@
 
 .parallel-dev-signals/   # 完了通知（.gitignore）
 .parallel-dev-issues/    # 問題報告（.gitignore）
+
+worktrees/               # 各タスク用 worktree（.gitignore）
+└── task-name/
+    └── BRIEF.md         # worktree ごとの作業コンテキスト（.gitignore）
 ```
+
+## Project Intent 管理
+
+並列開発では、複数の worktree 間でコンテキストが失われやすい問題があります。
+この機能は「何を正しいとみなしていたか」という上位コンテキストを保持します。
+
+### ファイル構成
+
+| ファイル | 役割 | commit | 更新頻度 |
+|---------|------|--------|---------|
+| `PROJECT.md` | プロジェクト全体の憲法 | ✅ する | 基本不変 |
+| `BRIEF.md` | worktree ごとの思考メモ | ❌ しない | 随時 |
+
+### セットアップ
+
+```bash
+# プロジェクト全体の方針を作成
+bash .claude/skills/plan-parallel-dev/scripts/init-project-intent.sh
+
+# worktree ごとの作業コンテキストを作成
+bash .claude/skills/plan-parallel-dev/scripts/init-brief.sh <task-name>
+
+# コンテキストを読み込む
+bash .claude/skills/plan-parallel-dev/scripts/load-context.sh
+```
+
+### 作業開始時のルール
+
+各 worktree で作業を開始する際、必ず以下を実行:
+
+```
+この worktree の BRIEF.md と、プロジェクトの PROJECT.md を読み、
+Mode / Focus / Non-goals / Next Bet を最初に要約してから作業を開始してください。
+```
+
+詳細は [skills/plan-parallel-dev/references/project-intent-guide.md](skills/plan-parallel-dev/references/project-intent-guide.md) を参照。
 
 ## インストール
 

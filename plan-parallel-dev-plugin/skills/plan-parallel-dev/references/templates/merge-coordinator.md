@@ -30,6 +30,36 @@
 
 ---
 
+## 作業開始時の必須ステップ
+
+作業を開始する前に、必ず以下を実行:
+
+### 1. プロジェクトコンテキストの確認
+
+```bash
+# PROJECT.md と BRIEF.md を読み込む（存在する場合）
+bash scripts/load-context.sh
+
+# または、手動で確認
+cat PROJECT.md      # プロジェクト全体の方針
+cat BRIEF.md        # この worktree の方針（存在する場合）
+```
+
+### 2. コンテキストの要約
+
+以下の項目を確認し、要約してから作業を開始する:
+
+- **Intent / North Star**: プロジェクトの狙い
+- **Success Criteria**: 成功条件
+- **Guardrails**: 守るべき制約
+- **Mode**: 探索 / 収束 / 保守（BRIEF.md がある場合）
+- **Focus**: いま注目している軸（BRIEF.md がある場合）
+- **Non-goals**: やらないこと
+
+**重要**: このコンテキスト確認を省略すると、プロジェクトの方針と異なる判断をしてしまう可能性がある。
+
+---
+
 ## 作業用 claudeの起動
 
 **重要**: 作業用 claudeは **Bash ツールで `tmux split-window` コマンドを実行** して起動する。

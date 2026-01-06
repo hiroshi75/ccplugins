@@ -68,12 +68,16 @@ if [ -f .gitignore ]; then
   grep -q "^\.parallel-dev-signals/$" .gitignore 2>/dev/null || echo ".parallel-dev-signals/" >> .gitignore
   grep -q "^\.parallel-dev-issues/$" .gitignore 2>/dev/null || echo ".parallel-dev-issues/" >> .gitignore
   grep -q "^worktree/$" .gitignore 2>/dev/null || echo "worktree/" >> .gitignore
+  grep -q "^BRIEF\.md$" .gitignore 2>/dev/null || echo "BRIEF.md" >> .gitignore
+  grep -q "^worktree/\*\*/BRIEF\.md$" .gitignore 2>/dev/null || echo "worktree/**/BRIEF.md" >> .gitignore
   success ".gitignore 更新完了"
 else
   cat > .gitignore << 'EOF'
 .parallel-dev-signals/
 .parallel-dev-issues/
 worktree/
+BRIEF.md
+worktree/**/BRIEF.md
 EOF
   success ".gitignore 作成完了"
 fi
@@ -109,6 +113,90 @@ PORT=${PORT_BE}
 VITE_PORT=${PORT_FE}
 EOF
 success ".env.local 作成（BE: ${PORT_BE}, FE: ${PORT_FE}）"
+
+# BRIEF.md 作成（gitignore される）
+info "BRIEF.md を作成中..."
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(pwd)"
+PROJECT_NAME="$(basename "$PROJECT_ROOT")"
+
+cat > "worktree/${TASK_NAME}/BRIEF.md" << EOF
+# Worktree BRIEF（作業コンテキスト）
+
+> **役割**: この worktree における一時的な作業方針・思考メモ
+> **commit**: このファイルは \`.gitignore\` で除外する
+> **更新頻度**: 随時。判断基準が変わったら即座に更新
+
+---
+
+## Parent Project（親プロジェクト）
+
+**Project**: \`${PROJECT_NAME}\`
+
+**PROJECT.md の場所**: \`../../PROJECT.md\`
+
+---
+
+## Why this worktree exists（この worktree の目的）
+
+クイックタスク \`${TASK_NAME}\` のために作成された一時的な worktree。
+
+**この worktree**:
+\`\`\`
+（ここに、このタスクの目的を記載）
+\`\`\`
+
+---
+
+## Mode（現在のモード）
+
+**現在のモード**: \`保守\`
+
+（クイックタスクは基本的に「保守」モード。大規模な変更の場合は「探索」または「収束」に変更）
+
+---
+
+## Focus（いま注目している軸）
+
+**この worktree のフォーカス**:
+- （注目点を記載。例: バグ修正の正確性、パフォーマンス改善、など）
+
+---
+
+## Non-goals（この worktree ではやらないこと）
+
+**この worktree では**:
+- （このタスクで明示的にやらないことを記載）
+
+---
+
+## Next Bet（次に試す一手）
+
+**次の一手**:
+\`\`\`
+仮説: （記述）
+検証方法: （記述）
+判断基準: （記述）
+\`\`\`
+
+---
+
+## Exit / Merge criteria（終了・マージ条件）
+
+**この worktree の終了条件**:
+- [ ] タスクの実装が完了
+- [ ] ローカルでの動作確認完了
+- [ ] .done ファイル作成済み
+
+---
+
+## 運用メモ
+
+- このファイルは思考の RAM として使う
+- 迷ったら即座に更新する
+- マージ後は削除して OK
+EOF
+success "BRIEF.md 作成"
 
 # 依存関係インストール
 cd "worktree/${TASK_NAME}"
