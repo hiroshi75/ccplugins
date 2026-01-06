@@ -7,6 +7,8 @@ description: プロジェクトの意図・方針を JSON 形式で構造化管�
 
 プロジェクトや worktree の意図・方針を JSON 形式で構造化管理し、AI エージェントとのコンテキスト共有を最適化する。
 
+特定ファイル名（.intent/project.json / .intent/brief.json）が指定されない限りは両方のファイルを更新してください。ただし、project.json はプロジェクト全体の方針を示すものなのでそうそう大きくは変わりません。その場合は編集せず、brief.json のみを更新してください。
+
 ## 解決する課題
 
 Claude Code を使って開発を進める際、以下の問題が発生しやすい：
@@ -108,7 +110,6 @@ Issue や Task は「何をするか」を管理するが、失われやすい�
 | --------------- | ---------- | ----------------------------------- |
 | `schemaVersion` | string     | スキーマバージョン（例: "1.0"）     |
 | `type`          | "worktree" | 固定値                              |
-| `projectId`     | string     | 親プロジェクトの ID                 |
 | `mode`          | enum       | `explore` / `converge` / `maintain` |
 
 #### JSON キー（オプション）
