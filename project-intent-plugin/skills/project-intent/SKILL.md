@@ -1,6 +1,6 @@
 ---
 name: project-intent
-description: プロジェクトの意図・方針を JSON 形式で構造化管理するスキル。AI エージェントとのコンテキスト共有を最適化し、並列開発やコンテキストスイッチ時の混乱を防ぐ。「プロジェクトの Intent を設定して」「project.json を作成して」「brief.json を更新して」などのリクエスト時に使用。
+description: プロジェクトの意図・方針を JSON 形式で構造化管理するスキル。AI エージェントとのコンテキスト共有を最適化し、並列開発やコンテキストスイッチ時の混乱を防ぐ。セッションの開始、終了前、ユーザー入力で開発の方向性・局面が変わった時点、一定量のタスクを終えた時点、「プロジェクトの Intent を設定して」「project.json を作成して」「brief.json を更新して」などのリクエスト時に使用。
 ---
 
 # Project Intent Management
@@ -31,10 +31,10 @@ Issue や Task は「何をするか」を管理するが、失われやすい�
 
 ### 2 層構造
 
-| ファイル | 役割 | commit | 更新頻度 |
-|---------|------|--------|---------|
-| `.intent/project.json` | プロジェクト全体の憲法 | ✅ する | 基本不変 |
-| `.intent/brief.json` | worktree ごとの思考メモ | ❌ しない | 随時 |
+| ファイル               | 役割                    | commit    | 更新頻度 |
+| ---------------------- | ----------------------- | --------- | -------- |
+| `.intent/project.json` | プロジェクト全体の憲法  | ✅ する   | 基本不変 |
+| `.intent/brief.json`   | worktree ごとの思考メモ | ❌ しない | 随時     |
 
 ---
 
@@ -46,24 +46,24 @@ Issue や Task は「何をするか」を管理するが、失われやすい�
 
 #### JSON キー（必須）
 
-| キー | 型 | 説明 |
-|------|------|------|
-| `schemaVersion` | string | スキーマバージョン（例: "1.0"） |
-| `type` | "project" | 固定値 |
-| `id` | string | プロジェクトの一意識別子 |
-| `name` | string | プロジェクト名 |
-| `intent` | string | プロジェクトの狙い・目指す姿（最大200文字） |
+| キー            | 型        | 説明                                          |
+| --------------- | --------- | --------------------------------------------- |
+| `schemaVersion` | string    | スキーマバージョン（例: "1.0"）               |
+| `type`          | "project" | 固定値                                        |
+| `id`            | string    | プロジェクトの一意識別子                      |
+| `name`          | string    | プロジェクト名                                |
+| `intent`        | string    | プロジェクトの狙い・目指す姿（最大 200 文字） |
 
 #### JSON キー（オプション）
 
-| キー | 型 | 説明 |
-|------|------|------|
-| `summary` | string | 短い要約（最大120文字、UI表示用） |
-| `successCriteria` | string[] | 成功条件（客観的な基準） |
-| `guardrails` | string[] | 守るべき制約 |
-| `nonGoals` | string[] | プロジェクト全体でやらないこと |
-| `technicalStack` | string[] | 使用する技術スタック |
-| `keyDecisions` | object[] | 重要な意思決定の履歴（date, text） |
+| キー              | 型       | 説明                                 |
+| ----------------- | -------- | ------------------------------------ |
+| `summary`         | string   | 短い要約（最大 120 文字、UI 表示用） |
+| `successCriteria` | string[] | 成功条件（客観的な基準）             |
+| `guardrails`      | string[] | 守るべき制約                         |
+| `nonGoals`        | string[] | プロジェクト全体でやらないこと       |
+| `technicalStack`  | string[] | 使用する技術スタック                 |
+| `keyDecisions`    | object[] | 重要な意思決定の履歴（date, text）   |
 
 #### 例
 
@@ -83,14 +83,8 @@ Issue や Task は「何をするか」を管理するが、失われやすい�
     "マージ前に必ずテストを実行する",
     "全タスクで同じコーディング規約を使用する"
   ],
-  "nonGoals": [
-    "リアルタイム協調編集機能は提供しない",
-    "IDE 統合は対象外"
-  ],
-  "technicalStack": [
-    "Python 3.11+",
-    "FastAPI"
-  ],
+  "nonGoals": ["リアルタイム協調編集機能は提供しない", "IDE 統合は対象外"],
+  "technicalStack": ["Python 3.11+", "FastAPI"],
   "keyDecisions": [
     {
       "date": "2024-01-15",
@@ -110,36 +104,36 @@ Issue や Task は「何をするか」を管理するが、失われやすい�
 
 #### JSON キー（必須）
 
-| キー | 型 | 説明 |
-|------|------|------|
-| `schemaVersion` | string | スキーマバージョン（例: "1.0"） |
-| `type` | "worktree" | 固定値 |
-| `projectId` | string | 親プロジェクトの ID |
-| `mode` | enum | `explore` / `converge` / `maintain` |
+| キー            | 型         | 説明                                |
+| --------------- | ---------- | ----------------------------------- |
+| `schemaVersion` | string     | スキーマバージョン（例: "1.0"）     |
+| `type`          | "worktree" | 固定値                              |
+| `projectId`     | string     | 親プロジェクトの ID                 |
+| `mode`          | enum       | `explore` / `converge` / `maintain` |
 
 #### JSON キー（オプション）
 
-| キー | 型 | 説明 |
-|------|------|------|
-| `worktree` | object | worktree 情報（name, branch） |
-| `purpose` | string | この枝の目的（最大200文字） |
-| `statusLine` | string | 現在の状況（最大120文字、UI表示用） |
-| `focus` | string[] | いま注目している軸 |
-| `nonGoals` | string[] | この枝ではやらないこと |
-| `nextBet` | string | 次に試して意思決定する一手 |
-| `exitCriteria` | string[] | いつ終わるか |
-| `decisionsLog` | object[] | この worktree での意思決定履歴（date, text） |
-| `discardedOptions` | string[] | 捨てた選択肢 |
-| `notes` | string | メモ・気づき |
-| `updatedAt` | string | 最終更新日時（ISO 8601形式） |
+| キー               | 型       | 説明                                         |
+| ------------------ | -------- | -------------------------------------------- |
+| `worktree`         | object   | worktree 情報（name, branch）                |
+| `purpose`          | string   | この枝の目的（最大 200 文字）                |
+| `statusLine`       | string   | 現在の状況（最大 120 文字、UI 表示用）       |
+| `focus`            | string[] | いま注目している軸                           |
+| `nonGoals`         | string[] | この枝ではやらないこと                       |
+| `nextBet`          | string   | 次に試して意思決定する一手                   |
+| `exitCriteria`     | string[] | いつ終わるか                                 |
+| `decisionsLog`     | object[] | この worktree での意思決定履歴（date, text） |
+| `discardedOptions` | string[] | 捨てた選択肢                                 |
+| `notes`            | string   | メモ・気づき                                 |
+| `updatedAt`        | string   | 最終更新日時（ISO 8601 形式）                |
 
 #### Mode の定義
 
-| 値 | 説明 |
-|------|------|
-| `explore` | 複数の選択肢を試行錯誤している段階 |
+| 値         | 説明                                 |
+| ---------- | ------------------------------------ |
+| `explore`  | 複数の選択肢を試行錯誤している段階   |
 | `converge` | 方向性が決まり、実装を詰めている段階 |
-| `maintain` | 既存機能の修正・改善 |
+| `maintain` | 既存機能の修正・改善                 |
 
 **テンプレート**: [references/templates/brief.json](references/templates/brief.json)
 
@@ -235,7 +229,7 @@ brief.json で記録した判断のうち、プロジェクト全体に影響す
 
 ### JSON には判断の骨格のみ
 
-- 1〜2文で表現できる内容のみ
+- 1〜2 文で表現できる内容のみ
 - 長文説明は別途 `notes.md` に記載
 - AI に曖昧な自然文解釈をさせない
 
