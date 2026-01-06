@@ -266,8 +266,52 @@ claude による並列開発では、各 claude への指示書を `.parallel-de
 
 → **詳細は [references/worktree-guide.md](references/worktree-guide.md) を参照**
 
+## Project Intent Management（プロジェクト意図管理）
+
+並列開発では、複数の worktree 間でコンテキストが失われやすい。
+「何を正しいとみなしていたか」という上位コンテキストを保持するため、以下の2つのファイルを使用する。
+
+### ファイル構成
+
+| ファイル | 役割 | commit | 更新頻度 |
+|---------|------|--------|---------|
+| `PROJECT.md` | プロジェクト全体の憲法 | ✅ する | 基本不変 |
+| `BRIEF.md` | worktree ごとの思考メモ | ❌ しない | 随時 |
+
+### PROJECT.md（プロジェクト憲法）
+
+プロジェクト全体で共有される不変的な方針:
+- **Intent / North Star**: プロジェクトの狙い
+- **Success Criteria**: 成功条件
+- **Guardrails**: 守るべき制約
+- **Non-goals**: やらないこと
+
+### BRIEF.md（worktree 思考メモ）
+
+各 worktree の一時的な作業方針:
+- **Mode**: 探索 / 収束 / 保守
+- **Focus**: いま注目している軸
+- **Non-goals**: この worktree ではやらないこと
+- **Next Bet**: 次に試す一手
+
+### 作業開始時の必須ルール
+
+各 worktree で作業を開始する際、**必ず以下を実行**:
+
+```bash
+# コンテキストを読み込む
+bash scripts/load-context.sh
+
+# または、Claude に直接指示
+# "この worktree の BRIEF.md と、プロジェクトの PROJECT.md を読み、
+#  Mode / Focus / Non-goals / Next Bet を最初に要約してから作業を開始してください。"
+```
+
+→ **詳細は [references/project-intent-guide.md](references/project-intent-guide.md) を参照**
+
 ## Additional Guides（詳細ガイド）
 
+- [references/project-intent-guide.md](references/project-intent-guide.md) - Project Intent 情報管理（Level 1）
 - [references/worktree-guide.md](references/worktree-guide.md) - worktree 運用・作業フロー・ルール詳細
 - [references/quick-mode-guide.md](references/quick-mode-guide.md) - クイックタスクモード運用
 - [references/testing-guide.md](references/testing-guide.md) - テスト方針（本番同等テスト、E2E目視チェック）
@@ -278,6 +322,9 @@ claude による並列開発では、各 claude への指示書を `.parallel-de
 
 | スクリプト | 用途 |
 |-----------|------|
+| [init-project-intent.sh](scripts/init-project-intent.sh) | PROJECT.md 初期化 |
+| [init-brief.sh](scripts/init-brief.sh) | BRIEF.md 初期化 |
+| [load-context.sh](scripts/load-context.sh) | PROJECT.md + BRIEF.md 読み込み |
 | [setup-quick-task.sh](references/scripts/setup-quick-task.sh) | クイックタスクのセットアップ |
 | [watch-signals.sh](references/scripts/watch-signals.sh) | .done/.issues 監視 |
 | [status.sh](references/scripts/status.sh) | 全タスク状態一覧 |

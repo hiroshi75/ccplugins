@@ -20,6 +20,40 @@
 **環境変数 `PROJECT_ROOT`**: マージ担当が tmux 起動時に渡すプロジェクトルートへの絶対パス。
 `.done` ファイルは `$PROJECT_ROOT/.parallel-dev-signals/` に、問題報告は `$PROJECT_ROOT/.parallel-dev-issues/` に作成する（worktree 内ではなく親プロジェクトに作成）。
 
+---
+
+## 作業開始時の必須ステップ
+
+**重要**: 作業を開始する前に、必ず以下を実行する。
+
+### 1. プロジェクトコンテキストの確認
+
+```bash
+# PROJECT.md と BRIEF.md を確認（存在する場合）
+cat $PROJECT_ROOT/PROJECT.md  # プロジェクト全体の方針
+cat BRIEF.md                   # この worktree の方針
+```
+
+### 2. コンテキストの要約
+
+以下の項目を確認し、要約してから作業を開始する:
+
+**PROJECT.md から:**
+- **Intent / North Star**: プロジェクトの狙い
+- **Success Criteria**: 成功条件
+- **Guardrails**: 守るべき制約
+- **Non-goals**: やらないこと
+
+**BRIEF.md から（存在する場合）:**
+- **Mode**: 探索 / 収束 / 保守
+- **Focus**: いま注目している軸
+- **Non-goals**: この worktree ではやらないこと
+- **Next Bet**: 次に試す一手
+
+**重要**: このコンテキスト確認を省略すると、プロジェクトの方針と異なる実装をしてしまう可能性がある。
+
+---
+
 ## 基本情報
 
 | 項目 | 内容 |
