@@ -8,11 +8,6 @@
       "name": "parallel-dev-plugin",
       "source": "./parallel-dev-plugin",
       "description": "English version of plan-parallel-dev-plugin. Skill for creating parallel development plans with multiple developers using git worktree, dependency analysis, critical path calculation, and timeline creation."
-    },
-    {
-      "name": "project-intent-plugin",
-      "source": "./project-intent-plugin",
-      "description": "Project intent management skill that structures project goals and policies in JSON format. Optimizes context sharing with AI agents through .intent/project.json (project constitution) and .intent/brief.json (worktree thinking memos). Use when you want to set up project intent, create project.json, or manage brief.json."
     }
   ]
 }
