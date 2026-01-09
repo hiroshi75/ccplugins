@@ -270,33 +270,6 @@ For parallel development with Claude, place instruction documents for each Claud
 
 → **See [references/worktree-guide.md](references/worktree-guide.md) for details**
 
-## Project Intent Management
-
-In parallel development, context is easily lost across multiple worktrees.
-Use **project-intent-plugin** to maintain higher-level context of "what we considered correct."
-
-→ **See [project-intent-plugin](../../../project-intent-plugin/skills/project-intent/SKILL.md) for details**
-
-### Overview
-
-| File                     | Role                    | Commit    |
-| ------------------------ | ----------------------- | --------- |
-| `.intent/project.json`   | Project-wide constitution | ✅ Yes   |
-| `.intent/brief.json`     | Thinking notes per worktree | ❌ No |
-
-### Mandatory Rules for Starting Work
-
-When starting work in each worktree, **always execute the following**:
-
-```bash
-# Load context
-bash scripts/load-context.sh
-
-# Or, direct instruction to Claude:
-# "Read this worktree's .intent/brief.json and the project's .intent/project.json,
-#  summarize mode / focus / nonGoals / nextBet first, then start working."
-```
-
 ## Additional Guides
 
 - [references/worktree-guide.md](references/worktree-guide.md) - Worktree operations, workflows, detailed rules

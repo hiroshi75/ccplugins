@@ -1,9 +1,9 @@
 #!/bin/bash
-# cleanup-parallel-dev.sh - 並列開発完了後のクリーンアップ
+# cleanup-parallel-dev.sh - Cleanup after parallel development completion
 #
-# 使用例:
-#   ./cleanup-parallel-dev.sh           # 確認ありでクリーンアップ
-#   ./cleanup-parallel-dev.sh --force   # 確認なしでクリーンアップ
+# Usage:
+#   ./cleanup-parallel-dev.sh           # Cleanup with confirmation
+#   ./cleanup-parallel-dev.sh --force   # Cleanup without confirmation
 
 set -e
 
@@ -12,62 +12,62 @@ if [ "$1" = "--force" ]; then
   FORCE=true
 fi
 
-echo "=== 並列開発クリーンアップ ==="
+echo "=== Parallel Development Cleanup ==="
 
-# 確認
+# Confirmation
 if [ "$FORCE" = false ]; then
-  echo "すべてのタスクがマージ済みであることを確認してください。"
-  read -p "続行しますか？ (y/N): " confirm
+  echo "Please confirm that all tasks have been merged."
+  read -p "Continue? (y/N): " confirm
   if [[ "$confirm" != "y" ]]; then
-    echo "キャンセルしました。"
+    echo "Cancelled."
     exit 1
   fi
 fi
 
-# worktree 削除
-echo "worktree を削除中..."
+# Remove worktrees
+echo "Removing worktrees..."
 for wt in worktree/*/; do
   if [ -d "$wt" ]; then
-    echo "  削除: $wt"
+    echo "  Removing: $wt"
     git worktree remove "$wt" 2>/dev/null || rm -rf "$wt"
   fi
 done
 git worktree prune
 
-# worktree ディレクトリ削除
+# Remove worktree directory
 if [ -d "worktree" ]; then
   rm -rf worktree/
-  echo "worktree/ ディレクトリを削除しました"
+  echo "Removed worktree/ directory"
 fi
 
-# シグナルディレクトリ削除
+# Remove signals directory
 if [ -d ".parallel-dev-signals" ]; then
   rm -rf .parallel-dev-signals/
-  echo ".parallel-dev-signals/ を削除しました"
+  echo "Removed .parallel-dev-signals/"
 fi
 
-# issue ディレクトリ削除
+# Remove issues directory
 if [ -d ".parallel-dev-issues" ]; then
   rm -rf .parallel-dev-issues/
-  echo ".parallel-dev-issues/ を削除しました"
+  echo "Removed .parallel-dev-issues/"
 fi
 
-# .parallel-dev/ 削除（オプション）
+# Remove .parallel-dev/ (optional)
 if [ -d ".parallel-dev" ]; then
   if [ "$FORCE" = false ]; then
-    read -p ".parallel-dev/ も削除しますか？ (y/N): " confirm_pd
+    read -p "Also remove .parallel-dev/? (y/N): " confirm_pd
     if [[ "$confirm_pd" = "y" ]]; then
       rm -rf .parallel-dev/
-      echo ".parallel-dev/ を削除しました"
+      echo "Removed .parallel-dev/"
     else
-      echo ".parallel-dev/ は残しました"
+      echo "Kept .parallel-dev/"
     fi
   else
     rm -rf .parallel-dev/
-    echo ".parallel-dev/ を削除しました"
+    echo "Removed .parallel-dev/"
   fi
 fi
 
 echo ""
-echo "=== クリーンアップ完了 ==="
-echo "ブランチの削除は手動で行ってください: git branch -d <branch-name>"
+echo "=== Cleanup Complete ==="
+echo "Please delete branches manually: git branch -d <branch-name>"

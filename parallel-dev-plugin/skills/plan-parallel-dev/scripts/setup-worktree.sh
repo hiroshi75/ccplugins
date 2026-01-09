@@ -1,77 +1,77 @@
 #!/bin/bash
-# setup-worktree.sh - worktree作成 + 環境セットアップ
+# setup-worktree.sh - Create worktree + environment setup
 #
-# 使用例:
+# Usage:
 #   ./setup-worktree.sh recommendation-api
 #   ./setup-worktree.sh recommendation-api 3001 5174
 #   ./setup-worktree.sh recommendation-api 3001 5174 feature
 
 set -e
 
-TASK_NAME="${1:?タスク名を指定してください}"
+TASK_NAME="${1:?Please specify a task name}"
 PORT_BE="${2:-}"
 PORT_FE="${3:-}"
-PREFIX="${4:-feature}"  # feature または fix
+PREFIX="${4:-feature}"  # feature or fix
 
 BRANCH="${PREFIX}/${TASK_NAME}"
 
-# 現在の worktree 数からポートを自動計算
+# Auto-calculate ports from current worktree count
 if [ -z "$PORT_BE" ]; then
   CURRENT_COUNT=$(git worktree list | wc -l)
   PORT_BE=$((3000 + CURRENT_COUNT))
   PORT_FE=$((5173 + CURRENT_COUNT))
 fi
 
-echo "=== worktree セットアップ ==="
-echo "タスク名: $TASK_NAME"
-echo "ブランチ: $BRANCH"
-echo "ポート: BE=$PORT_BE, FE=$PORT_FE"
+echo "=== Worktree Setup ==="
+echo "Task name: $TASK_NAME"
+echo "Branch: $BRANCH"
+echo "Ports: BE=$PORT_BE, FE=$PORT_FE"
 
-# ディレクトリ作成
+# Create directories
 mkdir -p .parallel-dev/tasks
 mkdir -p .parallel-dev-signals
 mkdir -p .parallel-dev-issues
 
-# .gitignore に追加
+# Add to .gitignore
 grep -q ".parallel-dev-signals/" .gitignore 2>/dev/null || echo ".parallel-dev-signals/" >> .gitignore
 grep -q ".parallel-dev-issues/" .gitignore 2>/dev/null || echo ".parallel-dev-issues/" >> .gitignore
 grep -q "worktree/" .gitignore 2>/dev/null || echo "worktree/" >> .gitignore
 
-# worktree 作成
-echo "worktree を作成中..."
+# Create worktree
+echo "Creating worktree..."
 git worktree add "worktree/${TASK_NAME}" -b "$BRANCH"
 
-# .env コピー
+# Copy .env
 if [ -f ".env" ]; then
   cp .env "worktree/${TASK_NAME}/.env"
-  echo ".env をコピーしました"
+  echo "Copied .env"
 fi
 
-# .env.local 作成
+# Create .env.local
 cat > "worktree/${TASK_NAME}/.env.local" << EOF
 PROJECT_ROOT=$(pwd)
 PORT=$PORT_BE
 VITE_PORT=$PORT_FE
 EOF
-echo ".env.local を作成しました"
+echo "Created .env.local"
 
-# 依存関係インストール
+# Install dependencies
 cd "worktree/${TASK_NAME}"
 if [ -f "pyproject.toml" ]; then
-  echo "uv sync を実行中..."
+  echo "Running uv sync..."
   uv sync
 elif [ -f "package.json" ]; then
   if command -v pnpm &> /dev/null; then
-    echo "pnpm install を実行中..."
+    echo "Running pnpm install..."
     pnpm install
   else
-    echo "npm install を実行中..."
+    echo "Running npm install..."
     npm install
   fi
 fi
 cd ../..
 
 echo ""
-echo "=== セットアップ完了 ==="
+echo "=== Setup Complete ==="
 echo "worktree: worktree/${TASK_NAME}/"
-echo "ブランチ: $BRANCH"
+echo "Branch: $BRANCH"

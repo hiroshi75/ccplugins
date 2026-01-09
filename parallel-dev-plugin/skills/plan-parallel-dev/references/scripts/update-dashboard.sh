@@ -1,24 +1,24 @@
 #!/bin/bash
 # update-dashboard.sh
-# 進捗ダッシュボード（.parallel-dev/README.md）を自動更新するスクリプト
+# Script to automatically update the progress dashboard (.parallel-dev/README.md)
 #
-# 使用方法:
+# Usage:
 #   ./update-dashboard.sh
-#   ./update-dashboard.sh --init    # README.md を新規作成
+#   ./update-dashboard.sh --init    # Create a new README.md
 #
-# このスクリプトは以下を実行します:
-#   1. タスク一覧と状態を収集
-#   2. 進捗状況を計算
-#   3. .parallel-dev/README.md を更新
+# This script performs the following:
+#   1. Collect task list and status
+#   2. Calculate progress
+#   3. Update .parallel-dev/README.md
 
 set -e
 
-# 色の定義
+# Color definitions
 GREEN='\033[0;32m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-# ヘルパー関数
+# Helper functions
 info() { echo -e "${BLUE}[INFO]${NC} $1"; }
 success() { echo -e "${GREEN}[OK]${NC} $1"; }
 
@@ -27,16 +27,16 @@ TASKS_DIR=".parallel-dev/tasks"
 SIGNALS_DIR=".parallel-dev-signals"
 ISSUES_DIR=".parallel-dev-issues"
 
-# ディレクトリ確認
+# Check directory
 if [ ! -d ".parallel-dev" ]; then
-  echo "エラー: .parallel-dev/ ディレクトリが見つかりません"
-  echo "先にタスクをセットアップしてください"
+  echo "Error: .parallel-dev/ directory not found"
+  echo "Please set up tasks first"
   exit 1
 fi
 
-info "ダッシュボードを更新中..."
+info "Updating dashboard..."
 
-# タスク情報を収集
+# Collect task information
 TASK_COUNT=0
 COMPLETED_COUNT=0
 IN_PROGRESS_COUNT=0
@@ -51,37 +51,37 @@ if [ -d "$TASKS_DIR" ]; then
       TASK_COUNT=$((TASK_COUNT + 1))
       TASK_NAME=$(basename "$TASK_FILE" .md)
 
-      # ステータスを判定
-      if grep -q "マージ済" "$TASK_FILE" 2>/dev/null; then
-        STATUS="✅ マージ済"
+      # Determine status
+      if grep -q "Merged" "$TASK_FILE" 2>/dev/null; then
+        STATUS="✅ Merged"
         COMPLETED_COUNT=$((COMPLETED_COUNT + 1))
-        COMPLETED_AT=$(grep -E "完了日時|マージ日時" "$TASK_FILE" 2>/dev/null | head -1 | sed 's/.*| //' | sed 's/ |.*//' || echo "-")
+        COMPLETED_AT=$(grep -E "Completed at|Merged at" "$TASK_FILE" 2>/dev/null | head -1 | sed 's/.*| //' | sed 's/ |.*//' || echo "-")
       elif [ -f "${SIGNALS_DIR}/${TASK_NAME}.done" ]; then
-        STATUS="📦 完了（マージ待ち）"
+        STATUS="📦 Completed (awaiting merge)"
         COMPLETED_AT=$(stat -f "%Sm" -t "%Y-%m-%d %H:%M" "${SIGNALS_DIR}/${TASK_NAME}.done" 2>/dev/null || stat -c "%y" "${SIGNALS_DIR}/${TASK_NAME}.done" 2>/dev/null | cut -d. -f1 || echo "-")
       elif [ -f "${ISSUES_DIR}/${TASK_NAME}.md" ]; then
-        STATUS="⚠️ 問題あり"
+        STATUS="⚠️ Has issues"
         ISSUE_COUNT=$((ISSUE_COUNT + 1))
         COMPLETED_AT="-"
-      elif grep -q "作業中" "$TASK_FILE" 2>/dev/null; then
-        STATUS="🔄 作業中"
+      elif grep -q "In progress" "$TASK_FILE" 2>/dev/null; then
+        STATUS="🔄 In progress"
         IN_PROGRESS_COUNT=$((IN_PROGRESS_COUNT + 1))
         COMPLETED_AT="-"
       else
-        STATUS="⏳ 待機中"
+        STATUS="⏳ Waiting"
         WAITING_COUNT=$((WAITING_COUNT + 1))
         COMPLETED_AT="-"
       fi
 
-      # ブランチ名を取得
-      BRANCH=$(grep -E "^\| ブランチ" "$TASK_FILE" 2>/dev/null | head -1 | sed 's/.*`//' | sed 's/`.*//' || echo "-")
+      # Get branch name
+      BRANCH=$(grep -E "^\| Branch" "$TASK_FILE" 2>/dev/null | head -1 | sed 's/.*`//' | sed 's/`.*//' || echo "-")
 
       TASK_ROWS+=("| ${TASK_NAME} | ${STATUS} | ${BRANCH} | ${COMPLETED_AT} |")
     fi
   done
 fi
 
-# 進捗率を計算
+# Calculate progress rate
 if [ $TASK_COUNT -gt 0 ]; then
   PROGRESS=$((COMPLETED_COUNT * 100 / TASK_COUNT))
   FILLED=$((PROGRESS / 5))
@@ -92,49 +92,49 @@ else
   BAR="░░░░░░░░░░░░░░░░░░░░"
 fi
 
-# 更新日時
+# Update timestamp
 UPDATED_AT=$(date '+%Y-%m-%d %H:%M:%S')
 
-# README.md を生成
+# Generate README.md
 cat > "$README_FILE" << EOF
-# 並列開発ダッシュボード
+# Parallel Development Dashboard
 
-最終更新: ${UPDATED_AT}
+Last updated: ${UPDATED_AT}
 
-## 進捗状況
+## Progress
 
 \`\`\`
 [${BAR}] ${PROGRESS}% (${COMPLETED_COUNT}/${TASK_COUNT})
 \`\`\`
 
-| 指標 | 数 |
-|------|-----|
-| 総タスク数 | ${TASK_COUNT} |
-| 完了（マージ済） | ${COMPLETED_COUNT} |
-| 作業中 | ${IN_PROGRESS_COUNT} |
-| 待機中 | ${WAITING_COUNT} |
-| 問題発生 | ${ISSUE_COUNT} |
+| Metric | Count |
+|--------|-------|
+| Total tasks | ${TASK_COUNT} |
+| Completed (Merged) | ${COMPLETED_COUNT} |
+| In progress | ${IN_PROGRESS_COUNT} |
+| Waiting | ${WAITING_COUNT} |
+| Issues | ${ISSUE_COUNT} |
 
-## タスク一覧
+## Task List
 
-| タスク | 状態 | ブランチ | 完了日時 |
-|--------|------|----------|----------|
+| Task | Status | Branch | Completed at |
+|------|--------|--------|--------------|
 EOF
 
-# タスク行を追加
+# Add task rows
 for ROW in "${TASK_ROWS[@]}"; do
   echo "$ROW" >> "$README_FILE"
 done
 
-# タスクがない場合
+# If no tasks
 if [ $TASK_COUNT -eq 0 ]; then
-  echo "| （タスクなし） | - | - | - |" >> "$README_FILE"
+  echo "| (No tasks) | - | - | - |" >> "$README_FILE"
 fi
 
-# 問題報告セクション
+# Issue reports section
 cat >> "$README_FILE" << 'EOF'
 
-## 問題報告
+## Issue Reports
 
 EOF
 
@@ -147,37 +147,37 @@ if [ -d "$ISSUES_DIR" ] && [ -n "$(ls -A $ISSUES_DIR 2>/dev/null)" ]; then
     fi
   done
 else
-  echo "問題報告はありません。" >> "$README_FILE"
+  echo "No issue reports." >> "$README_FILE"
 fi
 
-# フッター
+# Footer
 cat >> "$README_FILE" << 'EOF'
 
 ---
 
-## クイックリンク
+## Quick Links
 
-- [マージ担当指示書](merge-coordinator.md)
-- [タスク一覧](tasks/)
+- [Merge Coordinator Instructions](merge-coordinator.md)
+- [Task List](tasks/)
 
-## コマンド
+## Commands
 
 ```bash
-# 状態確認
+# Check status
 ./scripts/status.sh
 
-# シグナル監視
+# Watch signals
 ./scripts/watch-signals.sh
 
-# クリーンアップ
+# Cleanup
 ./scripts/cleanup-worktrees.sh
 ```
 EOF
 
-success "ダッシュボードを更新しました: ${README_FILE}"
+success "Dashboard updated: ${README_FILE}"
 echo ""
-echo "内容:"
-echo "  - 総タスク数: ${TASK_COUNT}"
-echo "  - 完了: ${COMPLETED_COUNT}"
-echo "  - 進捗: ${PROGRESS}%"
+echo "Contents:"
+echo "  - Total tasks: ${TASK_COUNT}"
+echo "  - Completed: ${COMPLETED_COUNT}"
+echo "  - Progress: ${PROGRESS}%"
 echo ""

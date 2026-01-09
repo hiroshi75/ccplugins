@@ -1,14 +1,14 @@
 #!/bin/bash
-# stop-worker.sh - 作業用 claude を終了
+# stop-worker.sh - Stop a worker claude
 #
-# 使用例:
+# Usage:
 #   ./stop-worker.sh recommendation-api
 
 set -e
 
-TASK_NAME="${1:?タスク名を指定してください}"
+TASK_NAME="${1:?Please specify a task name}"
 
-echo "作業用 claude を終了します: ${TASK_NAME}"
+echo "Stopping worker claude: ${TASK_NAME}"
 tmux send-keys -t "${TASK_NAME}" C-c C-c
 
-echo "終了コマンドを送信しました"
+echo "Stop command sent"

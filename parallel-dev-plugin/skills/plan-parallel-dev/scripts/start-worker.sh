@@ -1,44 +1,44 @@
 #!/bin/bash
-# start-worker.sh - 作業用 claude を起動
+# start-worker.sh - Start a worker claude
 #
-# 使用例:
+# Usage:
 #   ./start-worker.sh recommendation-api
-#   ./start-worker.sh recommendation-api "依存タスク api-base はマージ済みです"
+#   ./start-worker.sh recommendation-api "Dependency task api-base has been merged"
 #
-# 前提: tmux セッション内で実行すること
+# Prerequisite: Run within a tmux session
 
 set -e
 
-TASK_NAME="${1:?タスク名を指定してください}"
+TASK_NAME="${1:?Please specify a task name}"
 EXTRA_MESSAGE="${2:-}"
 
 WORKTREE_DIR="worktree/${TASK_NAME}"
 TASK_FILE=".parallel-dev/tasks/${TASK_NAME}.md"
 
 if [ ! -d "$WORKTREE_DIR" ]; then
-  echo "エラー: $WORKTREE_DIR が見つかりません"
+  echo "Error: $WORKTREE_DIR not found"
   exit 1
 fi
 
 if [ ! -f "$TASK_FILE" ]; then
-  echo "エラー: $TASK_FILE が見つかりません"
+  echo "Error: $TASK_FILE not found"
   exit 1
 fi
 
 export PROJECT_ROOT=$(pwd)
 
-echo "=== 作業用 claude を起動 ==="
-echo "タスク: $TASK_NAME"
+echo "=== Starting Worker Claude ==="
+echo "Task: $TASK_NAME"
 echo "worktree: $WORKTREE_DIR"
 
-# 指示メッセージを構築
-INSTRUCTION="../../${TASK_FILE} を読んで実装してください。"
+# Build instruction message
+INSTRUCTION="Read ../../${TASK_FILE} and implement it."
 if [ -n "$EXTRA_MESSAGE" ]; then
   INSTRUCTION="${INSTRUCTION} ${EXTRA_MESSAGE}"
 fi
-INSTRUCTION="${INSTRUCTION} 完了したら \$PROJECT_ROOT/.parallel-dev-signals/ に .done ファイルを作成してください（worktree 内ではなく親プロジェクトに作成）。"
+INSTRUCTION="${INSTRUCTION} When complete, create a .done file in \$PROJECT_ROOT/.parallel-dev-signals/ (create in parent project, not within worktree)."
 
-# 作業用 claude を新しいウィンドウで起動
+# Start worker claude in a new window
 tmux new-window -n "${TASK_NAME}" "cd ${WORKTREE_DIR} && PROJECT_ROOT=$PROJECT_ROOT claude '${INSTRUCTION}'"
 
-echo "作業用 claude を起動しました (window: ${TASK_NAME})"
+echo "Worker claude started (window: ${TASK_NAME})"

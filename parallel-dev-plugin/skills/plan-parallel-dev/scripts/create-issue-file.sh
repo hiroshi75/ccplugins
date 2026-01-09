@@ -1,16 +1,16 @@
 #!/bin/bash
-# create-issue-file.sh - 問題報告ファイルを作成
+# create-issue-file.sh - Create issue report file
 #
-# 使用例:
+# Usage:
 #   ./create-issue-file.sh recommendation-api
-#   ./create-issue-file.sh recommendation-api "ビルドエラー"
+#   ./create-issue-file.sh recommendation-api "Build error"
 
 set -e
 
-TASK_NAME="${1:?タスク名を指定してください}"
-SITUATION="${2:-問題が発生}"
+TASK_NAME="${1:?Please specify task name}"
+SITUATION="${2:-Issue occurred}"
 
-# PROJECT_ROOT が設定されていなければ現在のディレクトリから推測
+# If PROJECT_ROOT is not set, infer from current directory
 if [ -z "$PROJECT_ROOT" ]; then
   if [[ "$(pwd)" == *"/worktree/"* ]]; then
     PROJECT_ROOT="$(cd ../.. && pwd)"
@@ -27,32 +27,32 @@ mkdir -p "$ISSUES_DIR"
 cat > "$ISSUE_FILE" << EOF
 # Issue: ${TASK_NAME}
 
-## 発生日時
+## Date/Time
 $(date '+%Y-%m-%d %H:%M')
 
-## 状況
+## Situation
 ${SITUATION}
 
-## エラー内容
+## Error Details
 \`\`\`
-（エラーメッセージをここに貼り付け）
+(Paste error message here)
 \`\`\`
 
-## 影響範囲
-- このタスク: ${TASK_NAME}
-- 依存しているタスク: （該当があれば記載）
+## Impact Scope
+- This task: ${TASK_NAME}
+- Dependent tasks: (List if applicable)
 
-## 試した対応
+## Attempted Solutions
 1.
 
-## 必要な対応
-- [ ] 他タスクとの調整が必要
-- [ ] 新しいブランチ/worktree が必要
-- [ ] 人間のエスカレーションが必要
+## Required Actions
+- [ ] Coordination with other tasks needed
+- [ ] New branch/worktree needed
+- [ ] Human escalation needed
 
-## 担当
-（マージ担当が割り当てる）
+## Assignee
+(To be assigned by merge coordinator)
 EOF
 
-echo "問題報告を作成しました: $ISSUE_FILE"
-echo "エラー内容を編集してください"
+echo "Created issue report: $ISSUE_FILE"
+echo "Please edit the error details"

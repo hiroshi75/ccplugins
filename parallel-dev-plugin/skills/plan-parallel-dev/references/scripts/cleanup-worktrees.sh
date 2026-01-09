@@ -1,121 +1,121 @@
 #!/bin/bash
 # cleanup-worktrees.sh
-# 完了したタスクの worktree をクリーンアップするスクリプト
+# Script to clean up worktrees for completed tasks
 #
-# 使用方法:
+# Usage:
 #   ./cleanup-worktrees.sh [task-name]
 #
-# 例:
-#   ./cleanup-worktrees.sh                    # マージ済みの全タスクをクリーンアップ
-#   ./cleanup-worktrees.sh fix-login          # 特定のタスクのみクリーンアップ
-#   ./cleanup-worktrees.sh --all              # 全 worktree を強制クリーンアップ（確認あり）
+# Examples:
+#   ./cleanup-worktrees.sh                    # Clean up all merged tasks
+#   ./cleanup-worktrees.sh fix-login          # Clean up a specific task only
+#   ./cleanup-worktrees.sh --all              # Force clean up all worktrees (with confirmation)
 #
-# このスクリプトは以下を実行します:
-#   1. worktree の削除
-#   2. ローカルブランチの削除
-#   3. .done ファイルの削除
-#   4. タスク指示書のステータス更新
+# This script performs the following:
+#   1. Delete the worktree
+#   2. Delete the local branch
+#   3. Delete the .done file
+#   4. Update the task instruction status
 
 set -e
 
-# 色の定義
+# Color definitions
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-# ヘルパー関数
+# Helper functions
 info() { echo -e "${BLUE}[INFO]${NC} $1"; }
 success() { echo -e "${GREEN}[OK]${NC} $1"; }
 warn() { echo -e "${YELLOW}[WARN]${NC} $1"; }
 error() { echo -e "${RED}[ERROR]${NC} $1"; }
 
-# 単一タスクのクリーンアップ
+# Clean up a single task
 cleanup_task() {
   local TASK_NAME="$1"
   local FORCE="$2"
 
-  info "クリーンアップ中: ${TASK_NAME}"
+  info "Cleaning up: ${TASK_NAME}"
 
-  # worktree パス
+  # worktree path
   WORKTREE_PATH="worktree/${TASK_NAME}"
 
-  # worktree が存在するか確認
+  # Check if worktree exists
   if [ ! -d "$WORKTREE_PATH" ]; then
-    warn "worktree が見つかりません: ${WORKTREE_PATH}"
+    warn "worktree not found: ${WORKTREE_PATH}"
     return 1
   fi
 
-  # ブランチ名を取得
+  # Get branch name
   BRANCH=$(cd "$WORKTREE_PATH" && git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "")
 
   if [ -z "$BRANCH" ]; then
-    warn "ブランチ名を取得できません"
+    warn "Unable to get branch name"
     return 1
   fi
 
-  # 未コミットの変更があるか確認
+  # Check for uncommitted changes
   if [ -n "$(cd "$WORKTREE_PATH" && git status --porcelain)" ]; then
     if [ "$FORCE" != "true" ]; then
-      warn "${TASK_NAME} に未コミットの変更があります"
-      echo -e "  ${YELLOW}クリーンアップをスキップします。強制実行するには --force を使用してください。${NC}"
+      warn "${TASK_NAME} has uncommitted changes"
+      echo -e "  ${YELLOW}Skipping cleanup. Use --force to force execution.${NC}"
       return 1
     else
-      warn "未コミットの変更を無視してクリーンアップします"
+      warn "Cleaning up despite uncommitted changes"
     fi
   fi
 
-  # 1. worktree を削除
-  info "worktree を削除中..."
+  # 1. Delete worktree
+  info "Deleting worktree..."
   git worktree remove "$WORKTREE_PATH" --force 2>/dev/null || {
     rm -rf "$WORKTREE_PATH"
     git worktree prune
   }
-  success "worktree 削除完了"
+  success "worktree deleted"
 
-  # 2. ローカルブランチを削除
-  info "ローカルブランチを削除中: ${BRANCH}"
-  git branch -D "$BRANCH" 2>/dev/null && success "ブランチ削除完了" || warn "ブランチが見つからないか、既に削除されています"
+  # 2. Delete local branch
+  info "Deleting local branch: ${BRANCH}"
+  git branch -D "$BRANCH" 2>/dev/null && success "Branch deleted" || warn "Branch not found or already deleted"
 
-  # 3. .done ファイルを削除
+  # 3. Delete .done file
   if [ -f ".parallel-dev-signals/${TASK_NAME}.done" ]; then
     rm ".parallel-dev-signals/${TASK_NAME}.done"
-    success ".done ファイル削除完了"
+    success ".done file deleted"
   fi
 
-  # 4. .issue ファイルを削除（解決済みの場合）
+  # 4. Delete .issue file (if resolved)
   if [ -f ".parallel-dev-issues/${TASK_NAME}.md" ]; then
     rm ".parallel-dev-issues/${TASK_NAME}.md"
-    success ".issue ファイル削除完了"
+    success ".issue file deleted"
   fi
 
-  # 5. タスク指示書のステータスを更新
+  # 5. Update task instruction status
   TASK_FILE=".parallel-dev/tasks/${TASK_NAME}.md"
   if [ -f "$TASK_FILE" ]; then
-    if grep -q "| ステータス" "$TASK_FILE"; then
-      # macOS と Linux の両方に対応
+    if grep -q "| Status" "$TASK_FILE"; then
+      # Compatible with both macOS and Linux
       if [[ "$OSTYPE" == "darwin"* ]]; then
-        sed -i '' 's/| ステータス | .* |/| ステータス | クリーンアップ済 |/' "$TASK_FILE"
+        sed -i '' 's/| Status | .* |/| Status | Cleaned up |/' "$TASK_FILE"
       else
-        sed -i 's/| ステータス | .* |/| ステータス | クリーンアップ済 |/' "$TASK_FILE"
+        sed -i 's/| Status | .* |/| Status | Cleaned up |/' "$TASK_FILE"
       fi
-      success "タスク指示書のステータスを更新"
+      success "Task instruction status updated"
     fi
   fi
 
-  success "${TASK_NAME} のクリーンアップ完了"
+  success "Cleanup completed for ${TASK_NAME}"
   echo ""
 }
 
-# メイン処理
+# Main process
 echo ""
 echo -e "${BLUE}========================================${NC}"
-echo -e "${BLUE} 並列開発クリーンアップ${NC}"
+echo -e "${BLUE} Parallel Development Cleanup${NC}"
 echo -e "${BLUE}========================================${NC}"
 echo ""
 
-# 引数処理
+# Argument processing
 TARGET="$1"
 FORCE="false"
 
@@ -124,16 +124,16 @@ if [ "$TARGET" == "--force" ] || [ "$2" == "--force" ]; then
 fi
 
 if [ "$TARGET" == "--all" ]; then
-  # 全 worktree をクリーンアップ
-  echo -e "${YELLOW}警告: 全ての worktree をクリーンアップします${NC}"
+  # Clean up all worktrees
+  echo -e "${YELLOW}Warning: This will clean up all worktrees${NC}"
   echo ""
-  read -p "続行しますか？ (y/N): " CONFIRM
+  read -p "Continue? (y/N): " CONFIRM
   if [[ "$CONFIRM" != "y" && "$CONFIRM" != "Y" ]]; then
-    echo "キャンセルしました"
+    echo "Cancelled"
     exit 0
   fi
 
-  # worktree/ 以下の全ディレクトリを対象
+  # Target all directories under worktree/
   if [ -d "worktree" ]; then
     for WORKTREE_DIR in worktree/*/; do
       if [ -d "$WORKTREE_DIR" ]; then
@@ -143,22 +143,22 @@ if [ "$TARGET" == "--all" ]; then
     done
   fi
 
-  # worktree ディレクトリ自体を削除
+  # Delete the worktree directory itself
   if [ -d "worktree" ]; then
-    rmdir worktree 2>/dev/null && success "worktree/ ディレクトリを削除" || true
+    rmdir worktree 2>/dev/null && success "worktree/ directory deleted" || true
   fi
 
-  # 孤立した worktree を整理
+  # Clean up orphaned worktrees
   git worktree prune
-  success "git worktree prune 完了"
+  success "git worktree prune completed"
 
 elif [ -n "$TARGET" ] && [ "$TARGET" != "--force" ]; then
-  # 特定のタスクをクリーンアップ
+  # Clean up a specific task
   cleanup_task "$TARGET" "$FORCE"
 
 else
-  # マージ済みのタスクを自動検出してクリーンアップ
-  info "マージ済みタスクを検索中..."
+  # Auto-detect and clean up merged tasks
+  info "Searching for merged tasks..."
   echo ""
 
   CLEANED=0
@@ -168,9 +168,9 @@ else
       if [ -f "$TASK_FILE" ]; then
         TASK_NAME=$(basename "$TASK_FILE" .md)
 
-        # ステータスがマージ済みかどうか確認
-        if grep -q "マージ済" "$TASK_FILE" 2>/dev/null; then
-          # worktree が存在する場合のみクリーンアップ
+        # Check if status is merged
+        if grep -q "Merged" "$TASK_FILE" 2>/dev/null; then
+          # Only clean up if worktree exists
           if [ -d "worktree/${TASK_NAME}" ]; then
             cleanup_task "$TASK_NAME" "$FORCE" && CLEANED=$((CLEANED + 1)) || true
           fi
@@ -180,25 +180,25 @@ else
   fi
 
   if [ $CLEANED -eq 0 ]; then
-    info "クリーンアップ対象のタスクはありません"
+    info "No tasks to clean up"
     echo ""
-    echo "特定のタスクをクリーンアップするには:"
+    echo "To clean up a specific task:"
     echo "  $0 <task-name>"
     echo ""
-    echo "全てのタスクをクリーンアップするには:"
+    echo "To clean up all tasks:"
     echo "  $0 --all"
   else
-    success "${CLEANED} 個のタスクをクリーンアップしました"
+    success "${CLEANED} task(s) cleaned up"
   fi
 fi
 
 echo ""
 echo -e "${GREEN}========================================${NC}"
-echo -e "${GREEN} クリーンアップ完了${NC}"
+echo -e "${GREEN} Cleanup Complete${NC}"
 echo -e "${GREEN}========================================${NC}"
 echo ""
 
-# 残りの worktree を表示
-info "残りの worktree:"
+# Display remaining worktrees
+info "Remaining worktrees:"
 git worktree list
 echo ""

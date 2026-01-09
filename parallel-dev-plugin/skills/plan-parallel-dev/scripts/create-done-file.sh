@@ -1,18 +1,18 @@
 #!/bin/bash
-# create-done-file.sh - 完了通知ファイル (.done) を作成
+# create-done-file.sh - Create completion notification file (.done)
 #
-# 使用例:
+# Usage:
 #   ./create-done-file.sh recommendation-api
-#   ./create-done-file.sh recommendation-api "APIエンドポイント実装完了"
+#   ./create-done-file.sh recommendation-api "API endpoint implementation complete"
 
 set -e
 
-TASK_NAME="${1:?タスク名を指定してください}"
-SUMMARY="${2:-実装完了}"
+TASK_NAME="${1:?Please specify task name}"
+SUMMARY="${2:-Implementation complete}"
 
-# PROJECT_ROOT が設定されていなければ現在のディレクトリから推測
+# If PROJECT_ROOT is not set, infer from current directory
 if [ -z "$PROJECT_ROOT" ]; then
-  # worktree 内から実行された場合は親ディレクトリ
+  # If running from within worktree, use parent directory
   if [[ "$(pwd)" == *"/worktree/"* ]]; then
     PROJECT_ROOT="$(cd ../.. && pwd)"
   else
@@ -25,23 +25,23 @@ DONE_FILE="${SIGNALS_DIR}/${TASK_NAME}.done"
 
 mkdir -p "$SIGNALS_DIR"
 
-# 変更ファイル一覧を取得
-CHANGED_FILES=$(git diff --name-only HEAD 2>/dev/null || echo "(変更なし)")
+# Get list of changed files
+CHANGED_FILES=$(git diff --name-only HEAD 2>/dev/null || echo "(no changes)")
 
 cat > "$DONE_FILE" << EOF
-【完了報告】${TASK_NAME}
+[Completion Report] ${TASK_NAME}
 
-## 実装内容
+## Implementation Summary
 ${SUMMARY}
 
-## 変更ファイル
+## Changed Files
 ${CHANGED_FILES}
 
-## 動作確認
-ローカルでの動作確認: OK
+## Verification
+Local verification: OK
 
-## 備考
-$(date '+%Y-%m-%d %H:%M') に作成
+## Notes
+Created at $(date '+%Y-%m-%d %H:%M')
 EOF
 
-echo "完了通知を作成しました: $DONE_FILE"
+echo "Created completion notification: $DONE_FILE"

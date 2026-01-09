@@ -1,111 +1,285 @@
 # parallel-dev-plugin
 
-A Claude Code plugin for parallel development with multiple Claude instances.
+**Turn one Claude into a development team.**
 
-## Overview
+Run 5 features in parallel. Merge automatically. Ship faster.
 
-This plugin builds and manages a parallel development environment that leverages git worktree to enable multiple Claude instances to work on different tasks simultaneously.
+---
+
+## The Problem
+
+You have 10 tasks to complete. With traditional development:
+
+- You work on them **one by one**
+- Context switching kills productivity
+- A single blocker stalls everything
+- "I'll review your PR tomorrow" delays compound
+
+What if you could run them all **at the same time**?
+
+---
+
+## The Solution
+
+This plugin orchestrates **multiple Claude instances** working in parallel, each in its own git worktree, with automatic coordination and merging.
+
+```
+You: "Build user auth, payment integration, and admin dashboard in parallel"
+
+Claude: Creates 3 worktrees, launches 3 worker instances,
+        coordinates dependencies, merges completed work automatically
+```
 
 ### Key Features
 
-- **Task Decomposition**: Break down feature development into independent tasks
-- **Dependency Analysis**: Identify blocking relationships between tasks and calculate critical paths
-- **Worktree Management**: Automatically create and manage git worktrees for each task
-- **Merge Coordination**: Manage the merge order into the integration branch
-- **Project Intent Management**: Maintain project-wide policies and per-worktree work context
+| Feature                     | What it does                                                    |
+| --------------------------- | --------------------------------------------------------------- |
+| **Task Decomposition**      | Breaks features into parallelizable units                       |
+| **Dependency Analysis**     | Calculates critical path, identifies blockers                   |
+| **Worktree Isolation**      | Each task gets its own git worktree                             |
+| **Environment Setup**       | Copies `.env`, assigns unique ports per worktree (no conflicts) |
+| **Auto-Merge Coordination** | Handles merge order and conflicts                               |
+
+---
+
+## Design Philosophy
+
+### AI-First, No PRs
+
+This plugin deliberately **skips pull requests**.
+
+Traditional PRs are designed for human review cycles:
+
+- Create PR → Wait for review → Address comments → Wait again → Merge
+
+But when AI handles everything, this overhead becomes waste.
+
+**Our approach:**
+
+- Worker Claude completes implementation → Creates a `.done` file (a simple text file signaling completion)
+- Merge Coordinator detects the file → Runs tests → Merges directly to integration branch
+- Issues? Creates a new task, not a review thread
+
+This enables **continuous integration at AI speed** — no human bottlenecks in the loop.
+
+> Human oversight happens at the planning stage (approving the task breakdown) and the final stage (reviewing the integrated result), not at every merge.
+
+### Full-Power Workers, Not Limited Subagents
+
+Claude Code's built-in Task tool has a critical limitation: **subagents cannot spawn their own subagents**. This creates a shallow execution tree where complex tasks must be handled by a single agent.
+
+This plugin takes a different approach:
+
+```
+Regular subagent:        This plugin:
+
+Parent                   Merge Coordinator
+  └── Subagent ✗           └── Worker (full Claude Code)
+        └── (blocked)            ├── Subagent A
+                                 ├── Subagent B
+                                 └── Subagent C
+```
+
+Each worker is a **full Claude Code instance** launched via tmux, not a subagent. This means:
+
+- **Workers can use the Task tool** to spawn their own subagents
+- **Parallel exploration within each task** — search, analyze, implement simultaneously
+- **No depth limits** — workers have the same capabilities as the parent
+- **Full tool access** — every worker can use all available MCP tools and skills
+
+The result: each parallel task gets the full power of Claude Code, not a watered-down subprocess.
+
+---
+
+## Quick Start
+
+### 1. Install the plugin
+
+```bash
+# Clone to your Claude Code plugins directory
+git clone https://github.com/yourrepo/parallel-dev-plugin ~/.claude/plugins/parallel-dev-plugin
+```
+
+### 2. Launch Claude Code inside tmux
+
+Workers are spawned as new tmux windows, so you must start from within tmux:
+
+```bash
+tmux new -s dev
+cd your-project
+claude
+```
+
+### 3. Start parallel development
+
+**Option A: MVP Build Mode** (build a complete product from scratch)
+
+```
+"Build an MVP with user authentication, payment processing, and notification system"
+```
+
+**Option B: Quick task mode** (for immediate tasks)
+
+```
+"Fix the login bug and add logout button in parallel"
+```
+
+### 4. Watch it work
+
+Claude will:
+
+1. Decompose tasks and analyze dependencies
+2. Create worktrees for each task
+3. Launch worker instances via tmux
+4. Monitor completion signals
+5. Merge in correct order
+6. Report final status
+
+---
+
+## How It Works
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    Merge Coordinator                        │
+│  (monitors .done signals, manages merge order, runs tests)  │
+└─────────────────────┬───────────────────────────────────────┘
+                      │
+        ┌─────────────┼─────────────┐
+        ▼             ▼             ▼
+   ┌─────────┐   ┌─────────┐   ┌─────────┐
+   │Worker 1 │   │Worker 2 │   │Worker 3 │
+   │(auth)   │   │(payment)│   │(admin)  │
+   └────┬────┘   └────┬────┘   └────┬────┘
+        │             │             │
+   worktree/        worktree/          worktree/
+   feat-auth/       feat-payment/      feat-admin/
+```
+
+**Worker Claude**: Focuses only on implementation. No commits, no pushes — just code.
+
+**Merge Coordinator**: Handles all git operations, testing, and integration.
+
+---
 
 ## Usage Modes
 
-### Mode A: Initial Parallel Development (Planning Mode)
+### Mode A: MVP Build Mode
 
-Used immediately after project initialization to develop multiple features in parallel.
+For building a complete product from scratch to working MVP in one shot.
 
-**Trigger Phrases**:
-- "Create a parallel development plan"
-- "I want to develop with multiple people simultaneously"
-- "I want to divide work with worktree"
+**Trigger phrases:**
 
-**Workflow**:
-1. Understand requirements
-2. Task decomposition
-3. Dependency analysis
-4. Determine parallelism
-5. Branch strategy
-6. Timeline creation
-7. Create plan and instruction documents
-8. Environment setup
-9. Launch merge coordinator
+- "Build an MVP with these features"
+- "Create a parallel development plan for this project"
+- "Develop the entire system from scratch"
+
+**What happens:**
+
+1. Requirements analysis and architecture design
+2. Task decomposition with dependency mapping
+3. Critical path calculation for optimal parallelism
+4. Worktree and branch setup for all tasks
+5. Worker launch, coordination, and automatic merging
+6. Integrated MVP ready for review
 
 ### Mode B: Quick Task Mode
 
-Mode for immediately starting bug fixes or feature additions to existing projects.
+For immediate bug fixes or small features.
 
-**Trigger Phrases**:
-- "Fix XX in parallel"
-- "Do YY with worktree"
-- "Add parallel task: XX"
+**Trigger phrases:**
+
+- "Fix X and Y in parallel"
+- "Add these tasks to parallel development"
+- "Run these with worktree"
+
+**What happens:**
+
+1. Instant worktree creation
+2. Minimal task instruction generation
+3. Worker launch
+4. Merge on completion
+
+---
 
 ## Directory Structure
 
 ```
-PROJECT.md               # Project-wide constitution (git-managed)
-
-.parallel-dev/           # Parallel development management (git-managed)
-├── PLAN.md              # Plan document
-├── README.md            # Overall overview and progress management
-├── merge-coordinator.md # Instructions for merge coordinator
-└── tasks/*.md           # Instruction documents for each task
-
-.parallel-dev-signals/   # Completion notifications (.gitignore)
-.parallel-dev-issues/    # Issue reports (.gitignore)
-
-worktrees/               # Worktrees for each task (.gitignore)
-└── task-name/
-    └── BRIEF.md         # Work context per worktree (.gitignore)
+your-project/
+├── src/                        # Your existing source code
+│   └── ...
+├── package.json                # Your existing config files
+├── ...                         # (other project files)
+│
+├── .parallel-dev/              # Git-tracked planning docs
+│   ├── PLAN.md                 # Overall development plan
+│   ├── README.md               # Progress dashboard
+│   ├── merge-coordinator.md    # Coordinator instructions
+│   └── tasks/
+│       ├── auth-system.md      # Task: Authentication
+│       ├── payment-api.md      # Task: Payment
+│       └── admin-panel.md      # Task: Admin
+│
+├── .parallel-dev-signals/      # Gitignored, file-based signals
+│   └── auth-system.done        # Simple text file: "I'm done, here's what I did"
+│
+├── .parallel-dev-issues/       # Gitignored issue reports
+│   └── payment-api.md          # Issue requiring attention
+│
+└── worktree/                   # Gitignored worktrees
+    ├── feat-auth-system/       # Full copy of project + isolated branch
+    │   ├── src/
+    │   ├── package.json
+    │   ├── .env                # Copied from parent
+    │   ├── .env.local          # Unique ports for this worktree
+    │   └── ...
+    ├── feat-payment-api/
+    └── feat-admin-panel/
 ```
 
-## Project Intent Management
+---
 
-In parallel development, context can easily be lost across multiple worktrees.
-This feature maintains the higher-level context of "what we considered correct."
+## When to Use This
 
-### File Structure
+**Good fit:**
 
-| File | Role | Commit | Update Frequency |
-|---------|------|--------|---------|
-| `PROJECT.md` | Project-wide constitution | ✅ Yes | Mostly immutable |
-| `BRIEF.md` | Thinking notes per worktree | ❌ No | As needed |
+- Multiple independent features to build
+- Bug fixes that don't conflict
+- Refactoring across different modules
+- Any work that can be parallelized
 
-### Setup
+**Not ideal for:**
 
-```bash
-# Create project-wide policy
-bash .claude/skills/plan-parallel-dev/scripts/init-project-intent.sh
+- Highly interdependent changes to the same files
+- Tasks requiring extensive human deliberation
+- Single, focused changes (just use regular Claude)
 
-# Create work context per worktree
-bash .claude/skills/plan-parallel-dev/scripts/init-brief.sh <task-name>
+---
 
-# Load context
-bash .claude/skills/plan-parallel-dev/scripts/load-context.sh
-```
+## FAQ
 
-### Rules for Starting Work
+**Q: What if two workers edit the same file?**  
+A: The merge coordinator handles conflicts.
 
-When starting work in each worktree, always execute the following:
+**Q: How many workers can run in parallel?**  
+A: Practically 3-5 works well. More workers = more coordination overhead.
 
-```
-Please read this worktree's BRIEF.md and the project's PROJECT.md,
-summarize the Mode / Focus / Non-goals / Next Bet first, then start working.
-```
+**Q: Can I intervene during parallel development?**  
+A: Yes. Check `.parallel-dev/README.md` for status. Stop workers with `tmux kill-window -t <task-name>`.
 
-For details, see [skills/plan-parallel-dev/references/project-intent-guide.md](skills/plan-parallel-dev/references/project-intent-guide.md).
+**Q: What about code review?**  
+A: Review the integrated result on the integration branch. The AI handles task-level verification.
 
-## Installation
-
-```bash
-# Add this plugin to the plugins directory in Claude Code settings
-```
+---
 
 ## License
 
 MIT
+
+---
+
+## See Also
+
+- [SKILL.md](skills/plan-parallel-dev/SKILL.md) — Detailed skill specification
+- [Worktree Guide](skills/plan-parallel-dev/references/worktree-guide.md) — Git worktree deep dive
+- [Quick Mode Guide](skills/plan-parallel-dev/references/quick-mode-guide.md) — Mode B details
