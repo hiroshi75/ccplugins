@@ -14,7 +14,7 @@
 ## 役割
 
 この claude は以下を担当する:
-- **作業用 claudeを `tmux split-window` で起動**（`new-window` は使用しない。必ずペイン分割で起動）
+- **作業用 claudeを `tmux new-window -n "{task-name}"` で起動**（ウィンドウ名でタスクを識別）
 - `.parallel-dev-signals/` の完了通知（.done ファイル）を監視
 - `.parallel-dev-issues/` の問題報告を監視し、担当を割り当て
 - **作業用 claudeの変更をコミット**
@@ -62,11 +62,10 @@ cat .intent/brief.json        # この worktree の方針（存在する場合�
 
 ## 作業用 claudeの起動
 
-**重要**: 作業用 claudeは **Bash ツールで `tmux split-window` コマンドを実行** して起動する。
-- **`tmux new-window` は使用しない**: 別ウィンドウではなく、必ずペイン分割で起動すること
+**重要**: 作業用 claudeは **Bash ツールで `tmux new-window` コマンドを実行** して起動する。
 - **Task ツール（サブエージェント）は使用しない**: 必ず tmux コマンドで起動すること
 
-tmux 内で実行されているため、直接 `tmux split-window` で別ペインに Claude Code を起動できる。
+tmux 内で実行されているため、直接 `tmux new-window` で別ウィンドウに Claude Code を起動できる。
 
 ### 開始時に起動するタスク
 
@@ -76,34 +75,23 @@ tmux 内で実行されているため、直接 `tmux split-window` で別ペイ
 # PROJECT_ROOT を設定（現在のプロジェクトルートを記録）
 export PROJECT_ROOT=$(pwd)
 
-# ペインタイトルを表示（どのペインがどのタスクか識別しやすくする）
-tmux set-option pane-border-status top
-tmux set-option pane-border-format " #{pane_index}: #{pane_title} "
+# タスク1: worktree/recommendation-api で作業（ウィンドウ名: recommendation-api）
+tmux new-window -n "recommendation-api" "cd worktree/recommendation-api && PROJECT_ROOT=$PROJECT_ROOT claude '../../.parallel-dev/tasks/recommendation-api.md を読んで実装してください。完了したら $PROJECT_ROOT/.parallel-dev-signals/ に .done ファイルを作成してください（worktree 内ではなく親プロジェクトに作成）。'"
 
-# タスク1: worktree/recommendation-api で作業
-tmux split-window -h "cd worktree/recommendation-api && PROJECT_ROOT=$PROJECT_ROOT claude '../../.parallel-dev/tasks/recommendation-api.md を読んで実装してください。完了したら .done ファイルを作成してください。'"
-tmux select-pane -T "recommendation-api"
-
-# タスク2: worktree/notification-api で作業
-tmux split-window -h "cd worktree/notification-api && PROJECT_ROOT=$PROJECT_ROOT claude '../../.parallel-dev/tasks/notification-api.md を読んで実装してください。完了したら .done ファイルを作成してください。'"
-tmux select-pane -T "notification-api"
-
-# ペインレイアウトを調整
-tmux select-layout tiled
+# タスク2: worktree/notification-api で作業（ウィンドウ名: notification-api）
+tmux new-window -n "notification-api" "cd worktree/notification-api && PROJECT_ROOT=$PROJECT_ROOT claude '../../.parallel-dev/tasks/notification-api.md を読んで実装してください。完了したら $PROJECT_ROOT/.parallel-dev-signals/ に .done ファイルを作成してください（worktree 内ではなく親プロジェクトに作成）。'"
 ```
 
-**ペイン識別のポイント**:
-- `tmux set-option pane-border-status top`: ペイン上部にタイトルを表示
-- `tmux select-pane -T "タスク名"`: 各ペインにタスク名を設定
-- これにより、多くのペインがあっても どのペインがどのタスクか一目でわかる
+**ウィンドウ識別のポイント**:
+- `tmux new-window -n "タスク名"`: 新しいウィンドウを作成し、ウィンドウ名を設定
+- tmux のウィンドウリストでタスク名が表示され、切り替えが容易
 
 ### 依存タスクの起動
 
 依存タスクがマージされたら、待機中のタスクを起動する:
 
 ```bash
-tmux split-window -h "cd worktree/project-card-enhance && PROJECT_ROOT=$PROJECT_ROOT claude '../../.parallel-dev/tasks/project-card-enhance.md を読んで実装してください。依存タスク recommendation-api はマージ済みです。完了したら .done ファイルを作成してください。'"
-tmux select-pane -T "project-card-enhance"
+tmux new-window -n "project-card-enhance" "cd worktree/project-card-enhance && PROJECT_ROOT=$PROJECT_ROOT claude '../../.parallel-dev/tasks/project-card-enhance.md を読んで実装してください。依存タスク recommendation-api はマージ済みです。完了したら $PROJECT_ROOT/.parallel-dev-signals/ に .done ファイルを作成してください（worktree 内ではなく親プロジェクトに作成）。'"
 ```
 
 ---
@@ -310,8 +298,7 @@ cat > .parallel-dev-issues/{branch-name}.md << 'EOF'
 EOF
 
 # 2b-3. 作業用 claudeを再起動
-tmux split-window -h "cd worktree/{branch-name} && PROJECT_ROOT=$PROJECT_ROOT claude '$PROJECT_ROOT/.parallel-dev-issues/{branch-name}.md を読んで修正してください。完了したら .done ファイルを作成してください。'"
-tmux select-pane -T "{branch-name}-fix"
+tmux new-window -n "{branch-name}-fix" "cd worktree/{branch-name} && PROJECT_ROOT=$PROJECT_ROOT claude '$PROJECT_ROOT/.parallel-dev-issues/{branch-name}.md を読んで修正してください。完了したら $PROJECT_ROOT/.parallel-dev-signals/ に .done ファイルを作成してください（worktree 内ではなく親プロジェクトに作成）。'"
 ```
 
 ### 3. コンフリクト発生時
@@ -335,8 +322,7 @@ cat > .parallel-dev-issues/{branch-name}-conflict.md << 'EOF'
 EOF
 
 # 作業用 claudeを再起動
-tmux split-window -h "cd worktree/{branch-name} && PROJECT_ROOT=$PROJECT_ROOT claude '$PROJECT_ROOT/.parallel-dev-issues/{branch-name}-conflict.md を読んでコンフリクトを解決してください。完了したら .done ファイルを作成してください。'"
-tmux select-pane -T "{branch-name}-conflict"
+tmux new-window -n "{branch-name}-conflict" "cd worktree/{branch-name} && PROJECT_ROOT=$PROJECT_ROOT claude '$PROJECT_ROOT/.parallel-dev-issues/{branch-name}-conflict.md を読んでコンフリクトを解決してください。完了したら $PROJECT_ROOT/.parallel-dev-signals/ に .done ファイルを作成してください（worktree 内ではなく親プロジェクトに作成）。'"
 ```
 
 3. **解決不能**: マージを中止し、人間に報告
@@ -384,8 +370,7 @@ tmux select-pane -T "{branch-name}-conflict"
 
 ```bash
 # 依存先がマージされたので、依存タスクを起動
-tmux split-window -h "cd worktree/{dependent-branch} && PROJECT_ROOT=$PROJECT_ROOT claude '../../.parallel-dev/tasks/{dependent-branch}.md を読んで実装してください。依存タスク {merged-branch} はマージ済みです。完了したら .done ファイルを作成してください。'"
-tmux select-pane -T "{dependent-branch}"
+tmux new-window -n "{dependent-branch}" "cd worktree/{dependent-branch} && PROJECT_ROOT=$PROJECT_ROOT claude '../../.parallel-dev/tasks/{dependent-branch}.md を読んで実装してください。依存タスク {merged-branch} はマージ済みです。完了したら $PROJECT_ROOT/.parallel-dev-signals/ に .done ファイルを作成してください（worktree 内ではなく親プロジェクトに作成）。'"
 ```
 
 ---

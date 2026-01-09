@@ -96,8 +96,8 @@ description: 複数開発者での並列開発計画書を作成するスキル�
    └─→ 各 worktree で依存関係インストール
    └─→ 各 worktree で .env コピー
 
-9. マージ担当の Claude を tmux split-window で起動
-   └─→ tmux split-window で新しいペインを作成し claude を起動
+9. マージ担当の Claude を tmux new-window で起動
+   └─→ tmux new-window -n "coordinator" で新しいウィンドウを作成し claude を起動
    └─→ マージ担当の初期指示を渡す
 ```
 
@@ -255,11 +255,10 @@ claude による並列開発では、各 claude への指示書を `.parallel-de
 
 ### マージ担当のルール
 
-- **`tmux split-window` で作業用 claude を起動**（`new-window` や Task ツールは使用しない）
+- **`tmux new-window -n "{task-name}"` で作業用 claude を起動**（Task ツールは使用しない）
 - **claude 起動時は必ず初期指示を引数で渡す**:
   ```bash
-  tmux split-window -h "cd worktree/{task-name} && PROJECT_ROOT=$PROJECT_ROOT claude '../../.parallel-dev/tasks/{task-name}.md を読んで実装してください。完了したら .done ファイルを作成してください。'"
-  tmux select-pane -T "{task-name}"
+  tmux new-window -n "{task-name}" "cd worktree/{task-name} && PROJECT_ROOT=$PROJECT_ROOT claude '../../.parallel-dev/tasks/{task-name}.md を読んで実装してください。完了したら \$PROJECT_ROOT/.parallel-dev-signals/{task-name}.done を作成してください（worktree 内ではなく親プロジェクトに作成）。'"
   ```
 - **マージ成功後は作業用 claude を終了**: `tmux send-keys -t "{task-name}" C-c C-c`
 - **`--no-ff` で常にマージ**

@@ -27,12 +27,7 @@ echo "=== マージ担当 claude を起動 ==="
 echo "指示書: $COORDINATOR_FILE"
 echo "PROJECT_ROOT: $PROJECT_ROOT"
 
-# ペインタイトル表示を有効化
-tmux set-option pane-border-status top
-tmux set-option pane-border-format " #{pane_index}: #{pane_title} "
+# マージ担当を新しいウィンドウで起動
+tmux new-window -n "coordinator" "cd $PROJECT_ROOT && PROJECT_ROOT=$PROJECT_ROOT claude '${COORDINATOR_FILE} を読んで並列開発を開始してください。'"
 
-# マージ担当を起動
-tmux split-window -h "cd $PROJECT_ROOT && PROJECT_ROOT=$PROJECT_ROOT claude '${COORDINATOR_FILE} を読んで並列開発を開始してください。'"
-tmux select-pane -T "coordinator"
-
-echo "マージ担当 claude を起動しました"
+echo "マージ担当 claude を起動しました (window: coordinator)"

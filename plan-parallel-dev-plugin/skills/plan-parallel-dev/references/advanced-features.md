@@ -46,9 +46,7 @@
 ```bash
 # 依存先がマージされたので、依存タスクを起動
 # PROJECT_ROOT を渡して、.done ファイルの作成先を伝える
-tmux split-window -h "cd worktree/{dependent-branch} && PROJECT_ROOT=$PROJECT_ROOT claude '../../.parallel-dev/tasks/{dependent-branch}.md を読んで実装してください。依存タスク {dependency-branch} はマージ済みです。完了したら .done ファイルを作成してください。'"
-# ペインにタスク名を設定（どのペインがどのタスクか識別しやすくする）
-tmux select-pane -T "{dependent-branch}"
+tmux new-window -n "{dependent-branch}" "cd worktree/{dependent-branch} && PROJECT_ROOT=$PROJECT_ROOT claude '../../.parallel-dev/tasks/{dependent-branch}.md を読んで実装してください。依存タスク {dependency-branch} はマージ済みです。完了したら .done ファイルを作成してください。'"
 ```
 
 ---
@@ -109,10 +107,10 @@ FE-1  ████████████████  ████████
 ```bash
 # プロジェクトルートでマージ担当を起動（tmux セッション内で実行すること）
 export PROJECT_ROOT=$(pwd)
-tmux split-window -h "cd $PROJECT_ROOT && claude '.parallel-dev/merge-coordinator.md を読んで並列開発を開始して'"
+tmux new-window -n "coordinator" "cd $PROJECT_ROOT && claude '.parallel-dev/merge-coordinator.md を読んで並列開発を開始して'"
 ```
 
-**注意**: 作業用 claude はマージ担当が `tmux split-window` で起動する。人間が個別に起動する必要はない。
+**注意**: 作業用 claude はマージ担当が `tmux new-window` で起動する。人間が個別に起動する必要はない。
 
 ---
 

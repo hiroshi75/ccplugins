@@ -26,9 +26,9 @@
 - 簡易タスク指示書を生成
 
 ### 作業用 Claude の起動
-- **Bash ツールで `tmux split-window` を実行して起動**
+- **Bash ツールで `tmux new-window -n "{task-name}"` を実行して起動**
 - PROJECT_ROOT 環境変数を渡す
-- ペインにタスク名を設定
+- ウィンドウ名でタスクを識別
 
 ### 完了監視・マージ
 - `.parallel-dev-signals/*.done` を監視
@@ -191,16 +191,8 @@ cd ../..
 ```bash
 export PROJECT_ROOT=$(pwd)
 
-# ペインタイトル表示を有効化（初回のみ）
-tmux set-option pane-border-status top
-tmux set-option pane-border-format " #{pane_index}: #{pane_title} "
-
-# 作業用 Claude を起動
-tmux split-window -h "cd worktree/${TASK_NAME} && PROJECT_ROOT=$PROJECT_ROOT claude '../../.parallel-dev/tasks/${TASK_NAME}.md を読んで実装してください。完了したら .done ファイルを作成してください。'"
-tmux select-pane -T "${TASK_NAME}"
-
-# レイアウト調整（複数タスクの場合）
-tmux select-layout tiled
+# 作業用 Claude を新しいウィンドウで起動
+tmux new-window -n "${TASK_NAME}" "cd worktree/${TASK_NAME} && PROJECT_ROOT=$PROJECT_ROOT claude '../../.parallel-dev/tasks/${TASK_NAME}.md を読んで実装してください。完了したら .done ファイルを作成してください。'"
 ```
 
 ---
@@ -311,8 +303,7 @@ worktree/${TASK_NAME}/ で修正し、再度 .done ファイルを作成して�
 EOF
 
 # 作業用 Claude を再起動
-tmux split-window -h "cd worktree/${TASK_NAME} && PROJECT_ROOT=$PROJECT_ROOT claude '$PROJECT_ROOT/.parallel-dev-issues/${TASK_NAME}.md を読んで修正してください。'"
-tmux select-pane -T "${TASK_NAME}-fix"
+tmux new-window -n "${TASK_NAME}-fix" "cd worktree/${TASK_NAME} && PROJECT_ROOT=$PROJECT_ROOT claude '$PROJECT_ROOT/.parallel-dev-issues/${TASK_NAME}.md を読んで修正してください。'"
 ```
 
 ### PR 作成を選択する場合
@@ -349,12 +340,9 @@ for TASK in "${TASKS[@]}"; do
   # 指示書生成（各タスクに応じて内容を変更）
   # ...
 
-  # 作業用 Claude 起動
-  tmux split-window -h "cd worktree/${TASK} && PROJECT_ROOT=$PROJECT_ROOT claude '../../.parallel-dev/tasks/${TASK}.md を読んで実装してください。'"
-  tmux select-pane -T "${TASK}"
+  # 作業用 Claude を新しいウィンドウで起動
+  tmux new-window -n "${TASK}" "cd worktree/${TASK} && PROJECT_ROOT=$PROJECT_ROOT claude '../../.parallel-dev/tasks/${TASK}.md を読んで実装してください。'"
 done
-
-tmux select-layout tiled
 ```
 
 ### 完了したものから順次マージ
@@ -391,7 +379,7 @@ git worktree add worktree/${NEW_TASK} -b fix/${NEW_TASK}
 
 - **`--no-ff` で常にマージ**: マージコミットを残す
 - **マージ後は必ずテスト実行**: テスト失敗なら修正依頼
-- **`tmux split-window` で起動**: `new-window` は使用しない
+- **`tmux new-window -n "{task-name}"` で起動**: ウィンドウ名でタスクを識別
 - **Task ツール（サブエージェント）は使用しない**: tmux で起動
 - **完了したらクリーンアップ**: worktree を削除してリソース解放
 
@@ -431,7 +419,7 @@ worktree を作成しています...
 
 作業用 Claude を起動します...
 
-（tmux split-window を実行）
+（tmux new-window を実行）
 
 作業用 Claude を起動しました。
 完了通知を監視しています...

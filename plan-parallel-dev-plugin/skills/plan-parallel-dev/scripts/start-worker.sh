@@ -31,22 +31,14 @@ echo "=== 作業用 claude を起動 ==="
 echo "タスク: $TASK_NAME"
 echo "worktree: $WORKTREE_DIR"
 
-# ペインタイトル表示を有効化
-tmux set-option pane-border-status top 2>/dev/null || true
-tmux set-option pane-border-format " #{pane_index}: #{pane_title} " 2>/dev/null || true
-
 # 指示メッセージを構築
 INSTRUCTION="../../${TASK_FILE} を読んで実装してください。"
 if [ -n "$EXTRA_MESSAGE" ]; then
   INSTRUCTION="${INSTRUCTION} ${EXTRA_MESSAGE}"
 fi
-INSTRUCTION="${INSTRUCTION} 完了したら .done ファイルを作成してください。"
+INSTRUCTION="${INSTRUCTION} 完了したら \$PROJECT_ROOT/.parallel-dev-signals/ に .done ファイルを作成してください（worktree 内ではなく親プロジェクトに作成）。"
 
-# 作業用 claude を起動
-tmux split-window -h "cd ${WORKTREE_DIR} && PROJECT_ROOT=$PROJECT_ROOT claude '${INSTRUCTION}'"
-tmux select-pane -T "${TASK_NAME}"
+# 作業用 claude を新しいウィンドウで起動
+tmux new-window -n "${TASK_NAME}" "cd ${WORKTREE_DIR} && PROJECT_ROOT=$PROJECT_ROOT claude '${INSTRUCTION}'"
 
-# レイアウト調整
-tmux select-layout tiled 2>/dev/null || true
-
-echo "作業用 claude を起動しました: ${TASK_NAME}"
+echo "作業用 claude を起動しました (window: ${TASK_NAME})"
