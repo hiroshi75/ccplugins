@@ -46,7 +46,7 @@
 ```bash
 # 依存先がマージされたので、依存タスクを起動
 # PROJECT_ROOT を渡して、.done ファイルの作成先を伝える
-tmux new-window -n "{dependent-branch}" "cd worktree/{dependent-branch} && PROJECT_ROOT=$PROJECT_ROOT claude '../../.parallel-dev/tasks/{dependent-branch}.md を読んで実装してください。依存タスク {dependency-branch} はマージ済みです。完了したら .done ファイルを作成してください。'"
+tmux new-window -n "{dependent-branch}" "cd worktree/{dependent-branch} && PROJECT_ROOT=$PROJECT_ROOT claude '../../.parallel-dev/tasks/{dependent-branch}.md を読んで実装してください。依存タスク {dependency-branch} はマージ済みです。完了したら \$PROJECT_ROOT/.parallel-dev-signals/{dependent-branch}.done を作成してください（worktree 内ではなく親プロジェクトに作成）。'"
 ```
 
 ---

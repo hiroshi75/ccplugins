@@ -181,7 +181,7 @@ cd ../..
 
 - コミットしない
 - プッシュしない
-- 完了したら .done ファイルを作成
+- 完了したら $PROJECT_ROOT/.parallel-dev-signals/ に .done ファイルを作成（worktree 内ではなく親プロジェクトに作成）
 ```
 
 ### 6. 作業用 Claude の起動
@@ -192,7 +192,7 @@ cd ../..
 export PROJECT_ROOT=$(pwd)
 
 # 作業用 Claude を新しいウィンドウで起動
-tmux new-window -n "${TASK_NAME}" "cd worktree/${TASK_NAME} && PROJECT_ROOT=$PROJECT_ROOT claude '../../.parallel-dev/tasks/${TASK_NAME}.md を読んで実装してください。完了したら .done ファイルを作成してください。'"
+tmux new-window -n "${TASK_NAME}" "cd worktree/${TASK_NAME} && PROJECT_ROOT=$PROJECT_ROOT claude '../../.parallel-dev/tasks/${TASK_NAME}.md を読んで実装してください。完了したら \$PROJECT_ROOT/.parallel-dev-signals/${TASK_NAME}.done を作成してください（worktree 内ではなく親プロジェクトに作成）。'"
 ```
 
 ---
