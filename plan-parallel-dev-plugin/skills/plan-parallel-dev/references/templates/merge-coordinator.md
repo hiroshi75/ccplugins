@@ -76,10 +76,10 @@ tmux 内で実行されているため、直接 `tmux new-window` で別ウィ�
 export PROJECT_ROOT=$(pwd)
 
 # タスク1: worktree/recommendation-api で作業（ウィンドウ名: recommendation-api）
-tmux new-window -n "recommendation-api" "cd worktree/recommendation-api && PROJECT_ROOT=$PROJECT_ROOT claude '../../.parallel-dev/tasks/recommendation-api.md を読んで実装してください。完了したら .done ファイルを作成してください。'"
+tmux new-window -n "recommendation-api" "cd worktree/recommendation-api && PROJECT_ROOT=$PROJECT_ROOT claude '../../.parallel-dev/tasks/recommendation-api.md を読んで実装してください。完了したら $PROJECT_ROOT/.parallel-dev-signals/ に .done ファイルを作成してください（worktree 内ではなく親プロジェクトに作成）。'"
 
 # タスク2: worktree/notification-api で作業（ウィンドウ名: notification-api）
-tmux new-window -n "notification-api" "cd worktree/notification-api && PROJECT_ROOT=$PROJECT_ROOT claude '../../.parallel-dev/tasks/notification-api.md を読んで実装してください。完了したら .done ファイルを作成してください。'"
+tmux new-window -n "notification-api" "cd worktree/notification-api && PROJECT_ROOT=$PROJECT_ROOT claude '../../.parallel-dev/tasks/notification-api.md を読んで実装してください。完了したら $PROJECT_ROOT/.parallel-dev-signals/ に .done ファイルを作成してください（worktree 内ではなく親プロジェクトに作成）。'"
 ```
 
 **ウィンドウ識別のポイント**:
@@ -91,7 +91,7 @@ tmux new-window -n "notification-api" "cd worktree/notification-api && PROJECT_R
 依存タスクがマージされたら、待機中のタスクを起動する:
 
 ```bash
-tmux new-window -n "project-card-enhance" "cd worktree/project-card-enhance && PROJECT_ROOT=$PROJECT_ROOT claude '../../.parallel-dev/tasks/project-card-enhance.md を読んで実装してください。依存タスク recommendation-api はマージ済みです。完了したら .done ファイルを作成してください。'"
+tmux new-window -n "project-card-enhance" "cd worktree/project-card-enhance && PROJECT_ROOT=$PROJECT_ROOT claude '../../.parallel-dev/tasks/project-card-enhance.md を読んで実装してください。依存タスク recommendation-api はマージ済みです。完了したら $PROJECT_ROOT/.parallel-dev-signals/ に .done ファイルを作成してください（worktree 内ではなく親プロジェクトに作成）。'"
 ```
 
 ---
@@ -298,7 +298,7 @@ cat > .parallel-dev-issues/{branch-name}.md << 'EOF'
 EOF
 
 # 2b-3. 作業用 claudeを再起動
-tmux new-window -n "{branch-name}-fix" "cd worktree/{branch-name} && PROJECT_ROOT=$PROJECT_ROOT claude '$PROJECT_ROOT/.parallel-dev-issues/{branch-name}.md を読んで修正してください。完了したら .done ファイルを作成してください。'"
+tmux new-window -n "{branch-name}-fix" "cd worktree/{branch-name} && PROJECT_ROOT=$PROJECT_ROOT claude '$PROJECT_ROOT/.parallel-dev-issues/{branch-name}.md を読んで修正してください。完了したら $PROJECT_ROOT/.parallel-dev-signals/ に .done ファイルを作成してください（worktree 内ではなく親プロジェクトに作成）。'"
 ```
 
 ### 3. コンフリクト発生時
@@ -322,7 +322,7 @@ cat > .parallel-dev-issues/{branch-name}-conflict.md << 'EOF'
 EOF
 
 # 作業用 claudeを再起動
-tmux new-window -n "{branch-name}-conflict" "cd worktree/{branch-name} && PROJECT_ROOT=$PROJECT_ROOT claude '$PROJECT_ROOT/.parallel-dev-issues/{branch-name}-conflict.md を読んでコンフリクトを解決してください。完了したら .done ファイルを作成してください。'"
+tmux new-window -n "{branch-name}-conflict" "cd worktree/{branch-name} && PROJECT_ROOT=$PROJECT_ROOT claude '$PROJECT_ROOT/.parallel-dev-issues/{branch-name}-conflict.md を読んでコンフリクトを解決してください。完了したら $PROJECT_ROOT/.parallel-dev-signals/ に .done ファイルを作成してください（worktree 内ではなく親プロジェクトに作成）。'"
 ```
 
 3. **解決不能**: マージを中止し、人間に報告
@@ -370,7 +370,7 @@ tmux new-window -n "{branch-name}-conflict" "cd worktree/{branch-name} && PROJEC
 
 ```bash
 # 依存先がマージされたので、依存タスクを起動
-tmux new-window -n "{dependent-branch}" "cd worktree/{dependent-branch} && PROJECT_ROOT=$PROJECT_ROOT claude '../../.parallel-dev/tasks/{dependent-branch}.md を読んで実装してください。依存タスク {merged-branch} はマージ済みです。完了したら .done ファイルを作成してください。'"
+tmux new-window -n "{dependent-branch}" "cd worktree/{dependent-branch} && PROJECT_ROOT=$PROJECT_ROOT claude '../../.parallel-dev/tasks/{dependent-branch}.md を読んで実装してください。依存タスク {merged-branch} はマージ済みです。完了したら $PROJECT_ROOT/.parallel-dev-signals/ に .done ファイルを作成してください（worktree 内ではなく親プロジェクトに作成）。'"
 ```
 
 ---

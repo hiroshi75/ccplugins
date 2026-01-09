@@ -258,7 +258,7 @@ claude による並列開発では、各 claude への指示書を `.parallel-de
 - **`tmux new-window -n "{task-name}"` で作業用 claude を起動**（Task ツールは使用しない）
 - **claude 起動時は必ず初期指示を引数で渡す**:
   ```bash
-  tmux new-window -n "{task-name}" "cd worktree/{task-name} && PROJECT_ROOT=$PROJECT_ROOT claude '../../.parallel-dev/tasks/{task-name}.md を読んで実装してください。完了したら .done ファイルを作成してください。'"
+  tmux new-window -n "{task-name}" "cd worktree/{task-name} && PROJECT_ROOT=$PROJECT_ROOT claude '../../.parallel-dev/tasks/{task-name}.md を読んで実装してください。完了したら \$PROJECT_ROOT/.parallel-dev-signals/{task-name}.done を作成してください（worktree 内ではなく親プロジェクトに作成）。'"
   ```
 - **マージ成功後は作業用 claude を終了**: `tmux send-keys -t "{task-name}" C-c C-c`
 - **`--no-ff` で常にマージ**

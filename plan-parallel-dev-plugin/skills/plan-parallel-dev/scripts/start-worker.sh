@@ -36,7 +36,7 @@ INSTRUCTION="../../${TASK_FILE} を読んで実装してください。"
 if [ -n "$EXTRA_MESSAGE" ]; then
   INSTRUCTION="${INSTRUCTION} ${EXTRA_MESSAGE}"
 fi
-INSTRUCTION="${INSTRUCTION} 完了したら .done ファイルを作成してください。"
+INSTRUCTION="${INSTRUCTION} 完了したら \$PROJECT_ROOT/.parallel-dev-signals/ に .done ファイルを作成してください（worktree 内ではなく親プロジェクトに作成）。"
 
 # 作業用 claude を新しいウィンドウで起動
 tmux new-window -n "${TASK_NAME}" "cd ${WORKTREE_DIR} && PROJECT_ROOT=$PROJECT_ROOT claude '${INSTRUCTION}'"
