@@ -8,7 +8,7 @@ Instructions for Claude managing merges and coordination.
 # Merge Coordinator Instructions
 
 ## Role
-- Launch worker Claude via `tmux split-window` (NOT `new-window`)
+- Launch worker Claude via `tmux new-window -n "{task-name}"` (identify tasks by window name)
 - Monitor `.parallel-dev-signals/` for .done files
 - Monitor `.parallel-dev-issues/` for problem reports
 - Commit worker Claude changes
@@ -23,9 +23,8 @@ Instructions for Claude managing merges and coordination.
 
 ```bash
 export PROJECT_ROOT=$(pwd)
-tmux set-option pane-border-status top
-tmux split-window -h "cd worktree/{task-name} && PROJECT_ROOT=$PROJECT_ROOT claude 'Read ../../.parallel-dev/tasks/{task-name}.md and implement. Create .done file when complete.'"
-tmux select-pane -T "{task-name}"
+# Task 1: work in worktree/task-name (window name: task-name)
+tmux new-window -n "{task-name}" "cd worktree/{task-name} && PROJECT_ROOT=$PROJECT_ROOT claude 'Read ../../.parallel-dev/tasks/{task-name}.md and implement. Create \$PROJECT_ROOT/.parallel-dev-signals/{task-name}.done when complete (create in parent project, not in worktree).'"
 ```
 
 ## Monitor for Completion

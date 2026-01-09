@@ -96,8 +96,8 @@ Used for bug fixes and feature additions to projects with existing implementatio
    └─→ Install dependencies in each worktree
    └─→ Copy .env in each worktree
 
-9. Launch merge coordinator Claude in tmux split-window
-   └─→ Create new pane with tmux split-window and launch claude
+9. Launch merge coordinator Claude in tmux new-window
+   └─→ Create new window with tmux new-window -n "coordinator" and launch claude
    └─→ Pass initial instructions to merge coordinator
 ```
 
@@ -255,11 +255,10 @@ For parallel development with Claude, place instruction documents for each Claud
 
 ### Merge Coordinator Rules
 
-- **Launch worker Claude with `tmux split-window`** (don't use `new-window` or Task tool)
+- **Launch worker Claude with `tmux new-window -n "{task-name}"`** (don't use Task tool)
 - **Always pass initial instructions as argument when launching claude**:
   ```bash
-  tmux split-window -h "cd worktree/{task-name} && PROJECT_ROOT=$PROJECT_ROOT claude 'Please read ../../.parallel-dev/tasks/{task-name}.md and implement. Create .done file when complete.'"
-  tmux select-pane -T "{task-name}"
+  tmux new-window -n "{task-name}" "cd worktree/{task-name} && PROJECT_ROOT=$PROJECT_ROOT claude 'Please read ../../.parallel-dev/tasks/{task-name}.md and implement. Create \$PROJECT_ROOT/.parallel-dev-signals/{task-name}.done when complete (create in parent project, not in worktree).'"
   ```
 - **Terminate worker Claude after successful merge**: `tmux send-keys -t "{task-name}" C-c C-c`
 - **Always merge with `--no-ff`**

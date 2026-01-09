@@ -46,9 +46,7 @@ Merge coordinator launches dependent task in tmux after merging dependency task:
 ```bash
 # Launch dependent task since dependency is merged
 # Pass PROJECT_ROOT to communicate .done file creation location
-tmux split-window -h "cd worktree/{dependent-branch} && PROJECT_ROOT=$PROJECT_ROOT claude 'Please read ../../.parallel-dev/tasks/{dependent-branch}.md and implement. Dependency task {dependency-branch} is already merged. Create .done file when complete.'"
-# Set task name to pane (easier to identify which pane is which task)
-tmux select-pane -T "{dependent-branch}"
+tmux new-window -n "{dependent-branch}" "cd worktree/{dependent-branch} && PROJECT_ROOT=$PROJECT_ROOT claude 'Please read ../../.parallel-dev/tasks/{dependent-branch}.md and implement. Dependency task {dependency-branch} is already merged. Create \$PROJECT_ROOT/.parallel-dev-signals/{dependent-branch}.done when complete (create in parent project, not in worktree).'"
 ```
 
 ---
@@ -109,10 +107,10 @@ After plan creation, tell user to execute following tmux command:
 ```bash
 # Launch merge coordinator at project root (execute within tmux session)
 export PROJECT_ROOT=$(pwd)
-tmux split-window -h "cd $PROJECT_ROOT && claude 'Read .parallel-dev/merge-coordinator.md and start parallel development'"
+tmux new-window -n "coordinator" "cd $PROJECT_ROOT && claude 'Read .parallel-dev/merge-coordinator.md and start parallel development'"
 ```
 
-**Note**: Worker Claude is launched by merge coordinator with `tmux split-window`. Humans don't need to launch individually.
+**Note**: Worker Claude is launched by merge coordinator with `tmux new-window`. Humans don't need to launch individually.
 
 ---
 
