@@ -5,34 +5,9 @@
   },
   "plugins": [
     {
-      "name": "spec-manager-plugin",
-      "source": "./spec-manager-plugin",
-      "description": "Proactive skill that automatically manages and updates application specifications when code changes occur."
-    },
-    {
-      "name": "nextjs-plugin",
-      "source": "./nextjs-plugin",
-      "description": "An nextjs specialist."
-    },
-    {
-      "name": "plan-parallel-dev-plugin",
-      "source": "./plan-parallel-dev-plugin",
-      "description": "Skill for creating parallel development plans with multiple developers using git worktree, dependency analysis, critical path calculation, and timeline creation."
-    },
-    {
-      "name": "blog-manager-plugin",
-      "source": "./blog-manager-plugin",
-      "description": "Unified blog writing workflow for technical articles. Supports Zenn (Japanese), dev.to, and Medium with three-layer structure: ideas (materials), perspectives (writing style), and generated articles. Includes idea management, perspective templates, and promotion tips."
-    },
-    {
-      "name": "ai-labo-plugin",
-      "source": "./ai-labo-plugin",
-      "description": "Evolutionary development engine where AI becomes the development entity. Runs multiple experiments in parallel using tmux pane splitting, evaluates them with short cycles, and selects promising ones while terminating others. Supports nested parallel development within each experiment."
-    },
-    {
-      "name": "autonomous-dev-plugin",
-      "source": "./autonomous-dev-plugin",
-      "description": "Autonomous code improvement agent that finds and fixes development tasks without explicit instructions. Scans for TODOs, low test coverage, outdated dependencies, dead code, and missing types. Use when you want continuous codebase maintenance or say 'リポジトリを監視して改善して', 'find tasks and fix them automatically'."
+      "name": "parallel-dev-plugin",
+      "source": "./parallel-dev-plugin",
+      "description": "English version of plan-parallel-dev-plugin. Skill for creating parallel development plans with multiple developers using git worktree, dependency analysis, critical path calculation, and timeline creation."
     },
     {
       "name": "project-intent-plugin",
