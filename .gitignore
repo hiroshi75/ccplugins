@@ -1,3 +1,7 @@
 .claude/skills/skill-creator/
 .claude/skills/fast-playwright/
 parallel/
+
+# Worktree thinking / intent
+.intent/brief.json
+worktrees/**/.intent/brief.json
